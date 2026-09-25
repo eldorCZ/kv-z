@@ -221,3 +221,10 @@ def test_create_test_and_results_without_names(mock, capsys):
     assert res["summary"]["hardest"][0] == {"number": 2, "percent": 20, "prompt": "P2"}
     assert res["summary"]["leaveFlagged"] == 1
     assert "Jana" not in out and "students" not in res
+
+
+def test_create_test_with_leave_guard(mock, capsys):
+    mock.queue.append((201, {"gameId": "t2", "mode": "test", "pin": "1", "joinUrl": "j", "dashboardUrl": "d", "questionCount": 2}, {}))
+    code, _, _ = run(capsys, "--game", "q1", "--mode", "test", "--leave-guard", "warn", "--max-leaves", "1", "--on-exceed", "lock", "--fullscreen")
+    assert code == 0
+    assert mock.requests[-1]["body"]["settings"]["test"]["leaveGuard"] == {"mode": "warn", "maxLeaves": 1, "onExceed": "lock", "requireFullscreen": True}

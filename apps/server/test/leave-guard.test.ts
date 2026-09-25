@@ -248,3 +248,17 @@ describe('exemption, gaps, submitted attempts', () => {
     expect(codes).toContain(429);
   });
 });
+
+describe('retention (G9)', () => {
+  it('events are deleted together with game results', async () => {
+    const g = await createTest();
+    const s = await student(g.pin);
+    await leave(s.token, 1500);
+    const db = t.services.db.$client;
+    const count = () => (db.prepare('SELECT count(*) n FROM attempt_events e JOIN attempts a ON a.id = e.attempt_id WHERE a.game_id = ?').get(g.gameId) as { n: number }).n;
+    expect(count()).toBeGreaterThan(0);
+    const { runRetention } = await import('../src/retention.js');
+    runRetention(t.services, t.app.log, Date.now() + (t.services.cfg.retentionDays + 1) * 86_400_000);
+    expect(count()).toBe(0);
+  });
+});

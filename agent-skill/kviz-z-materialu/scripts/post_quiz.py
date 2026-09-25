@@ -5,6 +5,7 @@ Usage:
   python post_quiz.py quiz.checked.json [--dry-run] [--params "15 otázek, 8. ročník"] [--new-key]
   python post_quiz.py --game <quizId> [--mode live] [--no-leaderboard]
   python post_quiz.py --game <quizId> --mode test [--time-limit 20] [--closes-at 2026-10-01T18:00:00+02:00] [--show-results none|score|full]
+      [--leave-guard off|log|warn] [--max-leaves 2] [--on-exceed notify|lock] [--fullscreen]
   python post_quiz.py --results <gameId>
 
 Address and token come ONLY from the environment: KVIZHUB_URL, KVIZHUB_TOKEN. The token is never printed.
@@ -193,6 +194,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--time-limit", type=int, help="test: minut na pokus (1-240)")
     ap.add_argument("--closes-at", help="test: termín uzavření (ISO 8601 s časovou zónou)")
     ap.add_argument("--show-results", choices=["none", "score", "full"], help="test: co žák uvidí po odevzdání")
+    ap.add_argument("--leave-guard", choices=["off", "log", "warn"], help="test: hlídání opuštění okna")
+    ap.add_argument("--max-leaves", type=int, help="test: tolerovaná opuštění okna (0-10)")
+    ap.add_argument("--on-exceed", choices=["notify", "lock"], help="test: reakce po překročení")
+    ap.add_argument("--fullscreen", action="store_true", help="test: vyžadovat celou obrazovku")
     ap.add_argument("--results", metavar="GAME_ID")
     args = ap.parse_args(argv)
 
@@ -201,6 +206,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.game:
             mode = "test" if args.mode == "selfpaced" else args.mode
             test = {"timeLimitMin": args.time_limit, "closesAt": args.closes_at, "showResultsToStudent": args.show_results}
+            guard = {"mode": args.leave_guard, "maxLeaves": args.max_leaves, "onExceed": args.on_exceed, "requireFullscreen": True if args.fullscreen else None}
+            guard = {k: v for k, v in guard.items() if v is not None}
+            if guard:
+                test["leaveGuard"] = guard
             code, out = create_game(args.game, mode, not args.no_leaderboard, test)
         elif args.results:
             code, out = results(args.results)

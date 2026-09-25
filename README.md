@@ -47,6 +47,7 @@ vzorový kvíz, odehraje hru s pěti simulovanými hráči a vypíše výsledky.
 | `BIND_ADDR` / `APP_PORT` | `127.0.0.1` / `3000` | Adresa a port na hostiteli, kde kontejner naslouchá. |
 | `GAME_PIN_LENGTH` | `6` | Délka PINu hry. |
 | `RETENTION_DAYS` | `365` | Po kolika dnech se mažou výsledky her a hráči. Kvízy zůstávají. |
+| `HEARTBEAT_GAP_SEC` | `25` | Hlídání okna: výpadek heartbeatu delší než N s se zapíše jako nepotvrzená nepřítomnost (nepočítá se). |
 | `TEST_NAME_RETENTION_DAYS` | `30` | Testovací režim: po kolika dnech se jména žáků nahradí „Žák N“ (výsledky zůstávají). |
 | `API_WEBHOOK_URL` / `API_WEBHOOK_SECRET` | – | Webhook po skončení hry: `POST {gameId, quizId, status:"finished"}`, hlavička `X-KvizHub-Signature: sha256=<HMAC-SHA256 těla>`. |
 | `EXPORT_KAHOOT_MAX_Q` / `EXPORT_KAHOOT_MAX_A` | `95` / `60` | Délkové limity exportu do Kahootu (otázka / odpověď). |
@@ -97,6 +98,65 @@ Specifikace je v [docs/TESTOVACI-REZIM.md](docs/TESTOVACI-REZIM.md).
 - **Výsledky:** průměr, medián, úspěšnost po otázkách a export CSV. Agent dostane jen souhrn bez jmen.
 - **Hodnocení:** každá otázka dá 0–1 (u „více správných“ volitelně částečně). Váha je standard 1, dvojnásobné
   body 2, bez bodů 0. Procenta = součet / maximum.
+
+### Hlídání opuštění okna (v testu)
+
+Když žák během testu opustí okno testu, učitel se to dozví. Opuštěním se myslí přepnutí karty nebo aplikace,
+minimalizace, zamknutí obrazovky, klik do jiného okna nebo vystoupení z celé obrazovky. Aplikace pak zareaguje
+podle nastavení v sekci **Hlídání okna** při spuštění testu:
+
+| nastavení | hodnoty | výchozí |
+|---|---|---|
+| režim | vypnuto / jen zaznamenávat / zaznamenávat a varovat | varovat |
+| tolerovaná opuštění | 0–10 (reakce nastane při dalším započteném) | 2 |
+| po překročení | upozornit učitele (test běží dál) / zamknout test | upozornit |
+| nepočítat kratší než | 0,5–5 s | 1 s |
+| vyžadovat celou obrazovku | jen kde to zařízení umí (ne iPhone) | ne |
+
+Žák se o hlídání dozví na úvodní obrazovce, a to i v režimu „jen zaznamenávat“. Po návratu do okna vidí
+varování, které musí potvrdit. Zamčený test čeká na učitele: v přehledu testu je **Odemknout** (volitelně
+s kompenzací +N minut) a **Nehlídat okno** (výjimka pro jednoho žáka, např. kvůli asistenčním pomůckám).
+Čas testu běží i během zámku. Učitel vidí u žáka počet opuštění, dobu mimo okno a časovou osu událostí.
+Mezery v heartbeatu (výpadek Wi‑Fi nebo uspaný telefon) se zobrazí jako „nepotvrzená nepřítomnost“ a
+nepočítají se.
+
+**Poctivé limity:**
+
+- Webová stránka nemůže opuštění okna **zabránit**, jen ho zjistit. Skutečnou izolaci zařízení zajistí správa
+  zařízení: režim kiosku přes Intune nebo Guided Access (Asistovaný přístup) na iPadu [OVĚŘ konkrétní postup
+  u správce školních zařízení].
+- Aplikace **nepozná** druhé zařízení (telefon vedle notebooku), papírové taháky, spolužáka, snímek obrazovky,
+  rozdělenou obrazovku nebo plovoucí okno, které stránku neodebere z popředí, ani upraveného klienta
+  (JavaScript v prohlížeči lze obejít).
+- **Falešné poplachy** jsou možné: oznámení, systémové dialogy, ztráta zaostření při zobrazení klávesnice.
+  Krátké obnovení stránky se také zaznamená, ale kvůli limitu 1 s se většinou nezapočítá. Proto výchozí reakce
+  nic automaticky neznehodnotí a o důsledcích rozhoduje učitel. **Procenta se kvůli opuštění okna nikdy
+  nesnižují** a test se kvůli tomu nikdy automaticky neodevzdá.
+
+**Soukromí:** ukládá se jen typ události (skrytá stránka, ztráta zaostření, opuštění celé obrazovky), čas
+a délka. Aplikace nezjišťuje obsah jiných oken a aplikací, nepořizuje snímky obrazovky, nepoužívá kameru
+ani mikrofon, nečte schránku a neblokuje kopírování. Události se mažou spolu s výsledky (`RETENTION_DAYS`).
+Agent na Telegramu dostane jen souhrnný počet žáků nad limitem, nikdy jména ani jednotlivé události.
+
+**Ruční kontrolní seznam zařízení (G8).** Automaticky ověřit to nelze. Ověřeno zatím jen v Chromiu
+(Playwright): simulace skrytí stránky a ztráty zaostření vyvolaná událostmi stránky. Na skutečných zařízeních
+prosím doplňte:
+
+| zařízení | akce | zjištěno (ano/ne) | jak rychle |
+|---|---|---|---|
+| notebook, Chrome/Edge | přepnutí karty | ano (simulace v Chromiu) | ihned |
+| notebook, Chrome/Edge | Alt+Tab do jiné aplikace | ano (simulace ztráty zaostření) | po 0,3 s |
+| notebook, Chrome/Edge | minimalizace okna | neověřeno | |
+| notebook, Chrome/Edge | klik do jiného okna / na druhý monitor | neověřeno | |
+| notebook, Chrome/Edge | F11 / Esc v celé obrazovce | neověřeno | |
+| notebook, Chrome/Edge | otevření nástrojů vývojáře | neověřeno (zaostření často zůstane → pravděpodobně ne) | |
+| notebook, Chrome/Edge | dělená obrazovka / plovoucí okno | neověřeno (známý limit) | |
+| Android, Chrome | přepnutí do jiné aplikace | neověřeno | |
+| Android, Chrome | zamknutí obrazovky | neověřeno | |
+| Android, Chrome | stažení oznámení | neověřeno | |
+| Android, Chrome | dělená obrazovka / plovoucí okno | neověřeno (známý limit) | |
+| iPhone/iPad, Safari | přepnutí aplikace, zamknutí | neověřeno | |
+| iPhone/iPad, Safari | celá obrazovka | iPhone ji nepodporuje (učitel vidí „celá obrazovka nepodporována“) | |
 
 ## Instalace skillu na agenta (Claude Code v tmux)
 
@@ -225,6 +285,7 @@ docker compose start
 - [x] Hlavičky CSP, `X-Content-Type-Options`, `Referrer-Policy: no-referrer` a `frame-ancestors 'none'`.
       Rate limity platí na přihlášení, API a připojení do hry.
 - [x] Autentizace je výměnný provider (`local` | `oidc`).
+- [x] Hlídání okna v testu zná jen události stránky testu a jejich čas. Nepoužívá kameru, mikrofon, snímky obrazovky ani schránku, neblokuje kopírování a nikdy nesnižuje procenta.
 - [x] Správné odpovědi se klientům před odhalením nikdy neposílají (ověřuje E2E test na úrovni WebSocket rámců).
       Čas se měří na serveru a po limitu platí tolerance 300 ms.
 - [x] Odkaz pro ovládání hry obsahuje náhodný klíč (32 bajtů) ve fragmentu URL, takže se nedostane do logů

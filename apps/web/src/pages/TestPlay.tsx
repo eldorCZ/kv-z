@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import { ANSWER_STYLES, Shape } from '../components/Shapes';
+import { GuardController, type HeartbeatStatus } from '../leave-guard-client';
 import { useCountdown } from '../socket';
 
 /** Student view of a test attempt (D5, D7). Only whitelisted fields come from the server (D11). */
@@ -89,12 +90,20 @@ export default function TestPlay() {
   const [saveState, setSaveState] = useState<Record<string, SaveState>>({});
   const [confirmSubmit, setConfirmSubmit] = useState(false);
   const [deadline, setDeadline] = useState<number | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [exempt, setExempt] = useState(false);
+  const [warning, setWarning] = useState<{ count: number; left: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(typeof document !== 'undefined' && !!document.fullscreenElement);
+  const warnedCount = useRef(0);
   const pending = useRef(new Map<string, unknown>());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const remaining = useCountdown(view?.status === 'in_progress' ? deadline : null);
 
   const apply = useCallback((v: AttemptView) => {
     setView(v);
+    setLocked(false);
+    if (v.guardExempt !== undefined) setExempt(v.guardExempt);
+    if (v.leaveCount !== undefined) warnedCount.current = Math.max(warnedCount.current, v.leaveCount);
     if (v.answers) setAnswers({ ...v.answers, ...Object.fromEntries(pending.current) });
     setDeadline(v.remainingSec !== null ? Date.now() + v.remainingSec * 1000 : null);
   }, []);
@@ -105,6 +114,10 @@ export default function TestPlay() {
         apply(await studentApi<AttemptView>('GET', '/attempt', tok));
       } catch (e) {
         const err = e as StudentApiError;
+        if (err.status === 423) {
+          setLocked(true);
+          return;
+        }
         if (err.status === 401) {
           writeTestToken(pin, null);
           setToken(null);
@@ -147,6 +160,47 @@ export default function TestPlay() {
     return () => clearInterval(i);
   }, [token]);
 
+  const guard = view?.leaveGuard ?? null;
+  const tracking = !!guard && guard.mode !== 'off' && !exempt;
+  const fullscreenSupported = typeof document !== 'undefined' && !!document.fullscreenEnabled;
+  const needFullscreen = tracking && !!guard?.requireFullscreen && fullscreenSupported;
+
+  // leave guard + heartbeat while the attempt runs (G3); also while locked, to notice an unlock
+  useEffect(() => {
+    if (!token || !(view?.status === 'in_progress' || locked)) return;
+    const onStatus = (st: HeartbeatStatus) => {
+      if (st.guardExempt !== exempt) setExempt(st.guardExempt);
+      if (st.remainingSec !== null) setDeadline(Date.now() + st.remainingSec * 1000);
+      setLocked((was) => {
+        if (was && !st.locked && st.status === 'in_progress') void reload(token);
+        return st.locked;
+      });
+      if (st.status !== 'in_progress') void reload(token);
+    };
+    const c = new GuardController({
+      token,
+      track: tracking && !locked,
+      requireFullscreen: !!guard?.requireFullscreen,
+      fullscreenSupported,
+      onStatus,
+      onReturn: (st) => {
+        // warn mode: a counted leave shows a warning that must be confirmed (G5)
+        if (guard?.mode === 'warn' && !st.guardExempt && !st.locked && st.leaveCount > warnedCount.current) {
+          warnedCount.current = st.leaveCount;
+          setWarning({ count: st.leaveCount, left: Math.max(0, st.maxLeaves - st.leaveCount) });
+        }
+      },
+    });
+    c.start();
+    return () => c.stop();
+  }, [token, view?.status, locked, tracking, exempt, guard?.mode, guard?.requireFullscreen, fullscreenSupported, reload]);
+
+  useEffect(() => {
+    const on = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', on);
+    return () => document.removeEventListener('fullscreenchange', on);
+  }, []);
+
   const save = async (qid: string) => {
     if (!token || !pending.current.has(qid)) return;
     const payload = pending.current.get(qid);
@@ -158,7 +212,11 @@ export default function TestPlay() {
     } catch (e) {
       const err = e as StudentApiError;
       setSaveState((s) => ({ ...s, [qid]: 'error' }));
-      if (err.status === 409 || err.status === 423 || err.status === 401) {
+      if (err.status === 423) {
+        setLocked(true);
+        return;
+      }
+      if (err.status === 409 || err.status === 401) {
         pending.current.delete(qid);
         setError(err.message);
         void reload(token);
@@ -198,6 +256,10 @@ export default function TestPlay() {
 
   const start = async () => {
     if (!token) return;
+    // must be called directly in the click handler (user gesture); unsupported devices (iPhone) skip it (G3.5)
+    if (view?.leaveGuard?.requireFullscreen && view.leaveGuard.mode !== 'off' && !view.guardExempt && document.fullscreenEnabled) {
+      void document.documentElement.requestFullscreen?.().catch(() => undefined);
+    }
     setBusy(true);
     try {
       apply(await studentApi<AttemptView>('POST', '/start', token));
@@ -222,6 +284,11 @@ export default function TestPlay() {
       apply(await studentApi<AttemptView>('POST', '/submit', token));
       setConfirmSubmit(false);
     } catch (e) {
+      if ((e as StudentApiError).status === 423) {
+        setConfirmSubmit(false);
+        setLocked(true);
+        return;
+      }
       setError((e as Error).message);
     } finally {
       setBusy(false);
@@ -248,6 +315,17 @@ export default function TestPlay() {
       </main>
     </div>
   );
+
+  if (token && locked)
+    return shell(
+      <div role="alert" className="m-auto w-full space-y-3 rounded-xl border-2 border-red-400 bg-white p-6 text-center shadow" data-testid="test-locked">
+        <p className="text-4xl" aria-hidden="true">
+          🔒
+        </p>
+        <p className="text-xl font-semibold">{t('guard.lockedTitle')}</p>
+        <p className="text-slate-600">{t('guard.lockedHint')}</p>
+      </div>,
+    );
 
   if (!token || !view)
     return shell(
@@ -280,6 +358,13 @@ export default function TestPlay() {
           <li>{t('test.autosave')}</li>
           {!view.allowBackNavigation && <li>{t('test.noBack')}</li>}
         </ul>
+        {view.leaveGuard && view.leaveGuard.mode !== 'off' && !view.guardExempt && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" data-testid="guard-intro">
+            <p>{t('guard.intro')}</p>
+            {view.leaveGuard.mode === 'warn' && view.leaveGuard.onExceed === 'lock' && <p className="mt-1">{t('guard.introLock')}</p>}
+            {view.leaveGuard.requireFullscreen && <p className="mt-1">{t('guard.introFullscreen')}</p>}
+          </div>
+        )}
         <button onClick={start} disabled={busy} className="w-full rounded-md bg-emerald-600 py-3 text-lg font-bold text-white hover:bg-emerald-700 disabled:bg-emerald-300" data-testid="test-start">
           {t('test.start')}
         </button>
@@ -370,6 +455,28 @@ export default function TestPlay() {
           </button>
         )}
       </div>
+      {warning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4" role="alertdialog" aria-modal="true" aria-labelledby="guard-warning-text" data-testid="guard-warning">
+          <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-center">
+            <p id="guard-warning-text" className="text-lg font-semibold">
+              {t('guard.warning', { count: warning.count, left: warning.left })}
+            </p>
+            <button className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white" onClick={() => setWarning(null)} autoFocus>
+              {t('guard.understood')}
+            </button>
+          </div>
+        </div>
+      )}
+      {needFullscreen && !isFullscreen && !warning && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/80 p-4" role="alertdialog" aria-modal="true">
+          <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-center">
+            <p className="font-semibold">{t('guard.fullscreenNeeded')}</p>
+            <button className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white" onClick={() => void document.documentElement.requestFullscreen?.().catch(() => undefined)} autoFocus>
+              {t('guard.backToFullscreen')}
+            </button>
+          </div>
+        </div>
+      )}
       {confirmSubmit && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-sm space-y-3 rounded-xl bg-white p-5">

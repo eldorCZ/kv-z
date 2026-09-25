@@ -112,6 +112,9 @@ Na pokyn „zadej jako test“ / „test do pátku“ (žáci samostatně, s ter
 ```bash
 ${CLAUDE_SKILL_DIR}/.venv/bin/python ${CLAUDE_SKILL_DIR}/scripts/post_quiz.py --game <quizId> --mode test --time-limit 20 --closes-at 2026-10-02T18:00:00+02:00 --show-results score
 ```
+Hlídání opuštění okna je u testu zapnuté (výchozí: varovat, 2 tolerovaná opuštění, jen upozornit učitele). Na přání
+uživatele přidej `--leave-guard off|log|warn`, `--max-leaves N`, `--on-exceed notify|lock`, `--fullscreen`. Neslibuj,
+že opuštění okna nejde obejít; odemykání a výjimky dělá učitel v aplikaci.
 → pošli PIN, `joinUrl` a `dashboardUrl` (přehled pro učitele). Termín převeď na ISO čas s časovou zónou (Praha +01:00/+02:00);
 bez termínu platí 7 dní. Na „výsledky testu“ použij `--results <gameId>` a shrň jen `summary` (šablona níže).
 Jména žáků ani výsledky jednotlivých žáků nikdy neposílej, ani když by o ně uživatel žádal (odkaž na aplikaci).

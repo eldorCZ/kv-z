@@ -43,6 +43,8 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     allowBackNavigation: true,
     showResultsToStudent: 'score' as 'none' | 'score' | 'full',
   });
+  // Dodatek 2, G2 defaults
+  const [guard, setGuard] = useState({ mode: 'warn' as 'off' | 'log' | 'warn', maxLeaves: 2, onExceed: 'notify' as 'notify' | 'lock', requireFullscreen: false, minLeaveMs: 1000 });
   const [created, setCreated] = useState<Created | null>(null);
   const [qr, setQr] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
@@ -67,6 +69,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
                   requireName: test.requireName,
                   allowBackNavigation: test.allowBackNavigation,
                   showResultsToStudent: test.showResultsToStudent,
+                  leaveGuard: guard,
                 },
               },
             };
@@ -131,6 +134,47 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
                 </label>
               </div>
             </div>
+          )}
+          {mode === 'test' && (
+            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="guard-settings">
+              <legend className="px-1 text-sm font-semibold">{t('guard.settings.title')}</legend>
+              <p className="text-xs text-slate-600">{t('guard.settings.limits')}</p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label={t('guard.settings.mode')}>
+                  <select className={inputCls} value={guard.mode} onChange={(e) => setGuard({ ...guard, mode: e.target.value as typeof guard.mode })} data-testid="guard-mode">
+                    {(['off', 'log', 'warn'] as const).map((m) => (
+                      <option key={m} value={m}>
+                        {t(`guard.settings.modes.${m}`)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                {guard.mode === 'warn' && (
+                  <>
+                    <Field label={t('guard.settings.maxLeaves')} hint={t('guard.settings.maxLeavesHint')}>
+                      <input className={inputCls} type="number" min={0} max={10} value={guard.maxLeaves} onChange={(e) => setGuard({ ...guard, maxLeaves: Math.max(0, Math.min(10, Number(e.target.value) || 0)) })} data-testid="guard-max" />
+                    </Field>
+                    <Field label={t('guard.settings.onExceed')}>
+                      <select className={inputCls} value={guard.onExceed} onChange={(e) => setGuard({ ...guard, onExceed: e.target.value as typeof guard.onExceed })} data-testid="guard-on-exceed">
+                        <option value="notify">{t('guard.settings.notify')}</option>
+                        <option value="lock">{t('guard.settings.lock')}</option>
+                      </select>
+                    </Field>
+                  </>
+                )}
+                {guard.mode !== 'off' && (
+                  <>
+                    <Field label={t('guard.settings.minLeave')} hint={t('guard.settings.minLeaveHint')}>
+                      <input className={inputCls} type="number" min={0.5} max={5} step={0.5} value={guard.minLeaveMs / 1000} onChange={(e) => setGuard({ ...guard, minLeaveMs: Math.round(Math.max(0.5, Math.min(5, Number(e.target.value) || 1)) * 1000) })} />
+                    </Field>
+                    <label className="flex items-center gap-2 pt-6 text-sm">
+                      <input type="checkbox" className="h-4 w-4" checked={guard.requireFullscreen} onChange={(e) => setGuard({ ...guard, requireFullscreen: e.target.checked })} />
+                      {t('guard.settings.fullscreen')}
+                    </label>
+                  </>
+                )}
+              </div>
+            </fieldset>
           )}
           <div className="grid gap-2 sm:grid-cols-2">{(mode === 'live' ? liveKeys : testKeys).map(toggle)}</div>
           <ErrorBox error={error} />

@@ -399,6 +399,33 @@
       "hidden": "skrytá stránka (jiná karta nebo aplikace)",
       "blur": "okno ztratilo zaostření",
       "fullscreen_exit": "opuštění celé obrazovky"
+    },
+    "intro": "Během testu nesmíš opustit toto okno. Přepnutí karty nebo aplikace se zaznamenává a učitel to uvidí.",
+    "introLock": "Při opakovaném opuštění se test zamkne a musíš zavolat učitele.",
+    "introFullscreen": "Test poběží na celé obrazovce.",
+    "warning": "Opustil jsi okno testu ({{count}}×). Zbývá varování: {{left}}.",
+    "understood": "Rozumím",
+    "lockedTitle": "Test je zamčený, protože jsi opakovaně opustil okno. Přihlas se učiteli.",
+    "lockedHint": "Tvoje odpovědi zůstávají uložené. Jakmile učitel test odemkne, můžeš pokračovat. Čas běží dál.",
+    "fullscreenNeeded": "Test běží na celé obrazovce.",
+    "backToFullscreen": "Vrátit se do celé obrazovky",
+    "settings": {
+      "title": "Hlídání okna",
+      "limits": "Aplikace pozná, že žák přepnul kartu nebo aplikaci, zamkl obrazovku nebo opustil celou obrazovku. Nezabrání tomu a nepozná druhé zařízení, taháky ani dělenou obrazovku. Možné jsou i falešné poplachy (oznámení, systémové dialogy), proto o důsledcích vždy rozhodujete vy. Procenta se kvůli tomu nikdy nesnižují.",
+      "mode": "Režim",
+      "modes": {
+        "off": "Vypnuto",
+        "log": "Jen zaznamenávat (žák je informován)",
+        "warn": "Zaznamenávat a varovat žáka"
+      },
+      "maxLeaves": "Tolerovaná opuštění",
+      "maxLeavesHint": "Reakce nastane při dalším započteném opuštění.",
+      "onExceed": "Po překročení",
+      "notify": "Upozornit mě (test běží dál)",
+      "lock": "Zamknout test, odemknu ho já",
+      "minLeave": "Nepočítat opuštění kratší než (s)",
+      "minLeaveHint": "Krátká opuštění se zaznamenají, ale nepočítají.",
+      "fullscreen": "Vyžadovat celou obrazovku (kde to zařízení umí)"
     }
   },
   "test": {

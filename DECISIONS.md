@@ -93,3 +93,20 @@ Rozhodnutí, která zadání neurčovalo. Každé je popsané jednou větou (roz
 - **Akce přehledu (povolit návrat, znovu otevřít, detail) jsou jen pro přihlášeného učitele,** API tokeny k nim nemají přístup.
 - **Oprávnění `results:pii` je nový scope tokenu, token ho standardně nemá.** Bez něj jsou jména ve výsledcích testu nahrazena „Žák N“ (D3.5).
 - **„Povolit návrat“ platí jednou:** další připojení se stejným jménem převezme pokus a starý token přestane platit.
+
+## Hlídání opuštění okna (Dodatek 2)
+
+- **Dodatek 2 mění dvě pravidla testovacího režimu:** „Bez proctoringu“ (D9) a „Nepřidávat proctoring“ (D13) nově nahrazuje hlídání okna podle G1, G9 a G11. V docs/TESTOVACI-REZIM.md jsou původní body přeškrtnuté s odkazem na nová pravidla.
+- **Stavový automat klienta (`LeaveTracker`) je v `packages/core`,** protože nezávisí na frameworku a jde testovat s vymyšlenými událostmi. Na napojení na DOM stačí malý modul `apps/web/src/leave-guard-client.ts`.
+- **Důvod opuštění je nejdřívější z aktivních signálů:** blur, na který po 100 ms naváže hidden, se zapíše jako `blur`.
+- **`seq` událostí začíná hodnotou `Date.now()` při startu stránky,** aby zůstal unikátní i po obnovení stránky. Server ho drží v unikátním indexu (idempotence).
+- **Duplicitní `leave_start` během už otevřeného opuštění se uloží jen jako technický řádek s `seq`** (typ `leave_start_dup`, na časové ose se neukazuje), aby opakované doručení zůstalo idempotentní.
+- **Nová stránka po obnovení pošle hned `leave_end`,** aby uzavřela opuštění, které otevřela předchozí stránka při `pagehide`. Když žádné otevřené není, server ho ignoruje.
+- **Beacon při skrytí stránky nemaže frontu:** stejné události se po návratu pošlou znovu běžným voláním a server je díky `seq` započítá jen jednou.
+- **Heartbeat běží při každém rozpracovaném pokusu** (i s vypnutým hlídáním), protože zároveň synchronizuje zbývající čas. Mezery se ale zapisují jen při zapnutém hlídání a bez výjimky.
+- **Mezera v heartbeatu se nezobrazí, pokud se časově překrývá s opuštěním, které klient nahlásil** (G4.4).
+- **Zamčený pokus vrací na `GET /play/test/attempt`, uložení i odevzdání 423 bez otázek.** Vypršení termínu ho odevzdá normálně (čas běží dál, G4.5).
+- **Kompenzace při odemknutí (+N minut) posune `deadline_at` jen u rozpracovaného pokusu,** vypršelý pokus se znovu otevírá přes „Znovu otevřít“ (D5.8).
+- **„Nad limitem“ (zvýraznění a `summary.leaveFlagged`) se počítá z `leave_total`** (všechna započtená opuštění), zámek z `leave_count` (od posledního odemknutí).
+- **Výchozí hlídání (varovat, 2, upozornit) platí pro každý nový test,** i když ho vytvoří agent bez přepínačů. Tak to určuje G2.
+- **Rate limit událostí a heartbeatu je 10 požadavků za sekundu na token,** ostatní požadavky žáka mají 20 za sekundu.

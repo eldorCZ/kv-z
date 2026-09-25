@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { registerAndToken } from './helpers';
 
 const quiz = {
   schemaVersion: 1,
@@ -10,18 +11,6 @@ const quiz = {
     { type: 'truefalse', prompt: 'Dunaj teče Bratislavou.', correctIndices: [0] },
   ],
 };
-
-export async function registerAndToken(page: Page) {
-  await page.goto('/login');
-  await page.getByRole('button', { name: /Zaregistrujte se/ }).click();
-  await page.getByLabel('E-mail').fill(`ucitel${Date.now()}${Math.random().toString(36).slice(2, 6)}@skola.cz`);
-  await page.getByLabel('Heslo').fill('bezpecne-heslo-123');
-  await page.getByRole('button', { name: 'Vytvořit účet' }).click();
-  await expect(page.getByRole('heading', { name: 'Moje kvízy' })).toBeVisible();
-  await page.getByRole('link', { name: 'API tokeny' }).click();
-  await page.getByRole('button', { name: 'Vytvořit token' }).click();
-  return page.getByTestId('new-token').inputValue();
-}
 
 test('test mode: teacher starts a test, two students submit, dashboard and results', async ({ page, browser, request }) => {
   const token = await registerAndToken(page);
