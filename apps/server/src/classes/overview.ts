@@ -249,6 +249,7 @@ export class ClassOverview {
     }
     const own = results.filter((r) => r.studentId === s.id);
     return {
+      class: { id: c.id, name: c.name, role: c.role, status: c.status },
       student: s,
       summary: studentSummary(ms, mActs, mResults, c.settings),
       tests: series('test'),

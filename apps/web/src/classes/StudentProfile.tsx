@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { api, ApiError } from '../api';
 import { Badge, Button, ErrorBox } from '../components/ui';
+import CodesPanel from './CodesPanel';
 import { printOverview, PrintWarning } from './Matrix';
 import { Bar } from './Topics';
-import { fullName, gameLink, pct, readShowNames, shortDate, TREND_ARROW, type ProfileDto, type SeriesPoint, type Summary } from './types';
+import { fullName, gameLink, pct, readShowNames, shortDate, TREND_ARROW, type CreatedCode, type ProfileDto, type SeriesPoint, type Summary } from './types';
 
 /** Own small SVG line chart: the student's percent and the class median (dashed); a table follows as an alternative (C8.3). */
 export function LineChart({ points, title }: { points: SeriesPoint[]; title: string }) {
@@ -126,6 +127,8 @@ export default function StudentProfile() {
   const [p, setP] = useState<ProfileDto | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [showNames] = useState(() => readShowNames(true));
+  const [codes, setCodes] = useState<CreatedCode[] | null>(null);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     try {
@@ -152,8 +155,19 @@ export default function StudentProfile() {
     }
   };
 
+  const act = async (fn: () => Promise<unknown>) => {
+    setError(null);
+    try {
+      await fn();
+    } catch (e) {
+      setError(e as ApiError);
+    }
+  };
+  const base = `/api/v1/classes/${id}/students/${sid}`;
+
   if (!p) return <ErrorBox error={error} />;
   const s = p.student;
+  const canEdit = p.class.status === 'active' && p.class.role !== 'viewer';
   return (
     <div className="space-y-4">
       <PrintWarning />
@@ -166,7 +180,11 @@ export default function StudentProfile() {
         <h1 className="text-2xl font-bold" data-testid="profile-name">
           {showNames ? fullName(s) : s.publicName}
         </h1>
-        {!s.active && <Badge tone="neutral">{t('roster.left', { date: s.leftAt })}</Badge>}
+        <span className="text-slate-600">
+          {s.rosterNo ? `č. ${s.rosterNo} · ` : ''}
+          {t('roster.publicName')}: {s.publicName} · {p.class.name}
+        </span>
+        {s.active ? <Badge tone="ok">{t('roster.active')}</Badge> : <Badge tone="neutral">{t('roster.left', { date: s.leftAt })}</Badge>}
         <div className="no-print ml-auto flex gap-2">
           <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100" href={`/api/v1/classes/${id}/students/${sid}/export.csv?sep=%3B`} download>
             {t('overview.csvExcel')}
@@ -175,6 +193,31 @@ export default function StudentProfile() {
         </div>
       </div>
       <ErrorBox error={error} onClose={() => setError(null)} />
+      {codes && <CodesPanel classId={id} className={p.class.name} codes={codes} onClose={() => setCodes(null)} />}
+      {canEdit && (
+        <div className="no-print flex flex-wrap gap-2">
+          {s.active && (
+            <Button onClick={() => confirm(t('roster.rotateConfirm', { name: s.publicName })) && act(async () => setCodes((await api<{ created: CreatedCode[] }>('POST', `${base}/rotate`)).created))}>
+              {t('roster.newCode')}
+            </Button>
+          )}
+          <Button onClick={() => act(async () => (await api('POST', `${base}/${s.active ? 'leave' : 'reactivate'}`), await load()))}>{s.active ? t('roster.leave') : t('roster.reactivate')}</Button>
+          {p.class.role === 'owner' && (
+            <Button
+              variant="danger"
+              onClick={() =>
+                confirm(t('overview.eraseConfirm', { name: fullName(s) })) &&
+                act(async () => {
+                  await api('DELETE', base);
+                  navigate(`/classes/${id}?tab=roster`);
+                })
+              }
+            >
+              {t('overview.erase')}
+            </Button>
+          )}
+        </div>
+      )}
       <SummaryBox s={p.summary} />
       {p.summary.flags.length > 0 && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
@@ -263,9 +306,11 @@ export default function StudentProfile() {
                     {[r.makeup && t('overview.cell.makeup'), r.excluded && t('overview.cell.excluded'), !r.counted && t('overview.notCounted'), r.status === 'auto_submitted' && t('overview.autoSubmitted')].filter(Boolean).join(', ')}
                   </td>
                   <td className="no-print p-1 text-right">
-                    <Button variant="ghost" onClick={() => toggle(r.resultId, !r.excluded)}>
-                      {r.excluded ? t('overview.include') : t('overview.exclude')}
-                    </Button>
+                    {canEdit && (
+                      <Button variant="ghost" onClick={() => toggle(r.resultId, !r.excluded)}>
+                        {r.excluded ? t('overview.include') : t('overview.exclude')}
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

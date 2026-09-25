@@ -614,7 +614,8 @@
     "periods": {
       "year": "Celý rok",
       "h1": "1. pololetí",
-      "h2": "2. pololetí"
+      "h2": "2. pololetí",
+      "custom": "Vlastní rozsah"
     },
     "kind": "Druh",
     "kinds": {
@@ -711,6 +712,26 @@
       "low_average": "nízký průměr",
       "falling": "pokles",
       "low_participation": "nízká účast"
-    }
+    },
+    "from": "Od",
+    "to": "Do",
+    "sort": "Řadit",
+    "sorts": {
+      "number": "číslo a příjmení",
+      "name": "příjmení",
+      "avg": "průměr testů",
+      "trend": "trend (klesající první)"
+    },
+    "printConfirm": "Výtisk obsahuje osobní údaje. Pokračovat v tisku?",
+    "erase": "Smazat osobní údaje",
+    "eraseConfirm": "Smazat osobní údaje žáka {{name}}? Jméno a kód se nevratně smažou, výsledky zůstanou jen v souhrnech třídy bez vazby na žáka."
+  },
+  "guests": {
+    "title_one": "{{count}} host bez kódu",
+    "title_few": "{{count}} hosté bez kódu",
+    "title_other": "{{count}} hostů bez kódu",
+    "hint": "Výsledek hosta se do evidence zapíše, až ho přiřadíte žákovi. Nepřiřazení hosté zůstanou jen ve výsledcích hry.",
+    "choose": "— vyberte žáka —",
+    "assign": "Přiřadit"
   }
 }

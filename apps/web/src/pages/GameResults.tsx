@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { api, ApiError, download } from '../api';
+import GuestsPanel from '../classes/GuestsPanel';
 import { Button, ErrorBox } from '../components/ui';
 
 interface TestResults {
@@ -48,6 +49,7 @@ export default function GameResults() {
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => setError(e as ApiError))}>{t('results.csv')}</Button>
       </div>
       <ErrorBox error={error} />
+      <GuestsPanel gameId={id!} />
       <p className="text-sm text-slate-600">{t('results.summary', { count: res.playerCount, status: t(`games.status.${res.status}`) })}</p>
       {res.perQuestion.length > 0 && res.playerCount > 0 && (
         <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
@@ -119,6 +121,7 @@ function TestResultsView({ res, id, error, onError }: { res: TestResults; id: st
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => onError(e as ApiError))}>{t('results.csv')}</Button>
       </div>
       <ErrorBox error={error} />
+      <GuestsPanel gameId={id} />
       <p className="text-sm text-slate-600" data-testid="test-summary">
         {t('results.testSummary', { submitted: res.summary.submitted, students: res.summary.students, avg: res.summary.avgPercent ?? '–', median: res.summary.medianPercent ?? '–' })}
         {res.summary.leaveFlagged ? ` · ${t('results.leaveFlagged', { count: res.summary.leaveFlagged })}` : ''}

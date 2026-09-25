@@ -123,3 +123,14 @@ Rozdíly mezi popisem v dodatku a skutečným kódem (platí kód):
 - **Test `ops.test.ts`, který kontroloval přesný seznam sloupců tabulky `players`, je upravený:** přibyly `student_id` a `is_guest` (C3), IP adresy dál nejsou.
 - **`scoreQuestion` je vydělená z `scoreTest`.** Stejnou funkci používají testy, živé hry (pro evidenci) i `buildResultItems`.
 - **Zaokrouhlení „půl nahoru“ používá `Math.floor(x + 0.5 + 1e-9)`,** aby hodnoty jako 62,5 nepadly kvůli plovoucí čárce dolů.
+- **Změněná pravidla (C0):** v2 A3 („o žácích jen přezdívka a odpovědi“) platí jen pro hry bez třídy; v2 A7 („žádné účty, jen přezdívka, žádné cookies“) platí dál, jen přibylo volitelné uložení osobního kódu v zařízení (localStorage po výslovném souhlasu na /kod); `RETENTION_DAYS` (A7, D9) se týká her, hráčů, pokusů a odpovědí, evidence tříd se řídí `CLASS_RETENTION_MONTHS`; D2 `identityMode: "roster"` odpovídá u nás `settings.classId` (viz výše). README a docs/TESTOVACI-REZIM.md jsou upravené.
+- **Kód jako HMAC, ne šifrování:** kód nejde po vytvoření znovu zobrazit (jen rotovat), ale únik databáze nedá použitelné kódy. Změna `CODE_PEPPER` zneplatní všechny kódy.
+- **Období „Celý rok“ v přehledech nemá hranice dat.** Třída patří k jednomu školnímu roku a aktivity vznikají jen v ní, takže omezení na 1. 9.–31. 8. by nic nezměnilo; pololetí se počítají od 1. 9. prvního roku a dělí k `halfYearSplit`.
+- **Aktivita bez jediného výsledku se v matici neukazuje** (ještě neproběhla nebo nikdo nepřišel); v záložce Aktivity je vidět se stavem „Zatím bez výsledků“. Jinak by u všech žáků svítilo „chybí“ u testu, který se teprve píše.
+- **„Nezapočteno“ se počítá do účasti, ne do průměru.** Žák byl přítomen, výsledek se jen vyřadil (např. technický problém).
+- **Aktivita s `countInStats: false`** je v matici vidět (šedá hlavička), ale nepočítá se do průměrů, účasti, trendu, témat ani souhrnů.
+- **Profil žáka**: grafy ukazují jen započítané aktivity; bod bez výsledku žáka (chybí nebo nezapočteno) přeruší čáru, medián třídy zůstane.
+- **Opakované chyby** se seskupují podle `question_id`, u odpovědí bez id podle znění (`prompt_snapshot`).
+- **Log bez osobních údajů:** serializer požadavku loguje jen metodu a cestu bez parametrů (`?names=full` se tak neobjeví), těla se nelogují. Test `privacy.test.ts` zachytí celý log toku (import, přihlášení kódem, chybný kód, rotace, přehledy, export) a hledá v něm jména a kódy.
+- **Ukázková data** (`pnpm seed:demo-class`) zapisují aktivity přímo do evidence (`classes/seed.ts`) bez odehrání her, `game_id` je proto `null`. Odmítne běžet s `NODE_ENV=production`.
+- **Zálohy:** `scripts/backup.sh` šifruje, je-li nastaveno `BACKUP_AGE_RECIPIENT` (age) nebo `BACKUP_GPG_RECIPIENT` (gpg); jinak vypíše varování. Nešifrovaný soubor po zašifrování smaže.

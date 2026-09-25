@@ -2,24 +2,45 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { api, ApiError } from '../api';
+import i18n from '../i18n';
 import { Button, ErrorBox } from '../components/ui';
-import { fullName, pct, shortDate, TREND_ARROW, type ClassDto, type MatrixCell, type MatrixDto } from './types';
+import { fullName, gameLink, pct, shortDate, TREND_ARROW, type ClassDto, type MatrixCell, type MatrixDto } from './types';
 
-export function PeriodFilter({ period, setPeriod, kind, setKind }: { period: string; setPeriod: (p: string) => void; kind: string; setKind: (k: string) => void }) {
+export interface PeriodState {
+  period: string;
+  from: string;
+  to: string;
+}
+export function periodQuery(p: PeriodState): Record<string, string> {
+  if (p.period !== 'custom') return { period: p.period };
+  const q: Record<string, string> = {};
+  if (p.from) q.from = p.from;
+  if (p.to) q.to = p.to;
+  return q;
+}
+
+export function PeriodFilter({ value, onChange, kind, setKind }: { value: PeriodState; onChange: (p: PeriodState) => void; kind: string; setKind: (k: string) => void }) {
   const { t } = useTranslation();
   const sel = 'rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm';
   return (
     <div className="no-print flex flex-wrap items-center gap-2 text-sm">
       <label className="flex items-center gap-1">
         {t('overview.period')}
-        <select className={sel} value={period} onChange={(e) => setPeriod(e.target.value)} data-testid="period">
-          {['year', 'h1', 'h2'].map((p) => (
+        <select className={sel} value={value.period} onChange={(e) => onChange({ ...value, period: e.target.value })} data-testid="period">
+          {['year', 'h1', 'h2', 'custom'].map((p) => (
             <option key={p} value={p}>
               {t(`overview.periods.${p}`)}
             </option>
           ))}
         </select>
       </label>
+      {value.period === 'custom' && (
+        <>
+          <input type="date" className={sel} aria-label={t('overview.from')} value={value.from} onChange={(e) => onChange({ ...value, from: e.target.value })} />
+          <span>–</span>
+          <input type="date" className={sel} aria-label={t('overview.to')} value={value.to} onChange={(e) => onChange({ ...value, to: e.target.value })} />
+        </>
+      )}
       <label className="flex items-center gap-1">
         {t('overview.kind')}
         <select className={sel} value={kind} onChange={(e) => setKind(e.target.value)} data-testid="kind">
@@ -40,6 +61,7 @@ export function PrintWarning() {
 }
 
 export function printOverview(classId: string) {
+  if (!confirm(i18n.t('overview.printConfirm'))) return;
   void api('POST', `/api/v1/classes/${classId}/log`, { action: 'overview_print' }).catch(() => undefined);
   window.print();
 }
@@ -75,13 +97,14 @@ function Cell({ c }: { c: MatrixCell | undefined }) {
 /** C8.2 "Žáci": students x activities. */
 export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showNames?: boolean }) {
   const { t } = useTranslation();
-  const [period, setPeriod] = useState('year');
+  const [period, setPeriod] = useState<PeriodState>({ period: 'year', from: '', to: '' });
   const [kind, setKind] = useState('');
+  const [sort, setSort] = useState<'number' | 'name' | 'avg' | 'trend'>('number');
   const [m, setM] = useState<MatrixDto | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
 
   useEffect(() => {
-    const q = new URLSearchParams({ period, ...(kind ? { kind } : {}) });
+    const q = new URLSearchParams({ ...periodQuery(period), ...(kind ? { kind } : {}) });
     api<MatrixDto>('GET', `/api/v1/classes/${cls.id}/matrix?${q}`)
       .then(setM)
       .catch((e: ApiError) => setError(e));
@@ -89,12 +112,30 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
 
   if (!m) return <ErrorBox error={error} />;
   const name = (s: MatrixDto['students'][number]) => (showNames ? fullName(s) : s.publicName);
+  const coll = new Intl.Collator('cs');
+  const TREND_ORDER = { falling: 0, stable: 1, rising: 2, little_data: 3 };
+  const rows = [...m.students].sort((a, b) => {
+    if (sort === 'name') return coll.compare(fullName(a), fullName(b));
+    if (sort === 'avg') return (a.summary.testAvg ?? 101) - (b.summary.testAvg ?? 101) || coll.compare(fullName(a), fullName(b));
+    if (sort === 'trend') return TREND_ORDER[a.summary.testTrend.label] - TREND_ORDER[b.summary.testTrend.label] || (a.summary.testTrend.delta ?? 0) - (b.summary.testTrend.delta ?? 0);
+    return 0; // server order: roster number, family name
+  });
 
   return (
     <div className="print-landscape space-y-3">
       <PrintWarning />
       <div className="flex flex-wrap items-center gap-2">
-        <PeriodFilter period={period} setPeriod={setPeriod} kind={kind} setKind={setKind} />
+        <PeriodFilter value={period} onChange={setPeriod} kind={kind} setKind={setKind} />
+        <label className="no-print flex items-center gap-1 text-sm">
+          {t('overview.sort')}
+          <select className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} data-testid="sort">
+            {(['number', 'name', 'avg', 'trend'] as const).map((k) => (
+              <option key={k} value={k}>
+                {t(`overview.sorts.${k}`)}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="no-print ml-auto flex flex-wrap gap-2">
           <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100" href={`/api/v1/classes/${cls.id}/export.csv?sep=%3B`} download>
             {t('overview.csvExcel')}
@@ -112,8 +153,16 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
             <tr>
               <th className="sticky left-0 z-10 bg-slate-50 p-2 text-left">{t('roster.name')}</th>
               {m.activities.map((a) => (
-                <th key={a.id} className={`min-w-16 p-2 text-center font-medium ${a.counted ? '' : 'text-slate-400'}`} title={a.counted ? a.label : `${a.label} – ${t('overview.notCounted')}`}>
-                  <div className="max-w-24 truncate">{a.label}</div>
+                <th key={a.id} className={`min-w-16 p-2 text-center font-medium ${a.kind === 'test' ? 'bg-sky-50' : ''} ${a.counted ? '' : 'text-slate-400'}`} title={a.counted ? a.label : `${a.label} – ${t('overview.notCounted')}`}>
+                  <div className="max-w-24 truncate">
+                    {a.gameId ? (
+                      <Link to={gameLink(a.kind, a.gameId)} className="hover:underline">
+                        {a.label}
+                      </Link>
+                    ) : (
+                      a.label
+                    )}
+                  </div>
                   <div className="font-normal">
                     {a.kind === 'test' ? t('overview.kindShort.test') : t('overview.kindShort.quiz')} {shortDate(a.playedAt)}
                   </div>
@@ -127,7 +176,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
             </tr>
           </thead>
           <tbody>
-            {m.students.map((s) => (
+            {rows.map((s) => (
               <tr key={s.id} className="border-t border-slate-100" data-testid="matrix-row">
                 <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white p-2 text-left font-medium">
                   <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-indigo-700 hover:underline">
@@ -136,7 +185,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
                   {!s.active && <span className="ml-1 text-xs text-slate-500">({t('roster.leftShort')})</span>}
                 </th>
                 {m.activities.map((a) => (
-                  <td key={a.id} className="p-2 text-center tabular-nums">
+                  <td key={a.id} className={`p-2 text-center tabular-nums ${a.kind === 'test' ? 'bg-sky-50/60' : ''}`}>
                     <Cell c={s.cells[a.id]} />
                   </td>
                 ))}

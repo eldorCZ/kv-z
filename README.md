@@ -10,7 +10,9 @@ Učitel kvíz v KvizHubu zkontroluje a upraví a spustí hru: žáci se připoj�
 - **Zdroj u každé otázky.** Agent citaci strojově ověří a učitel ji vidí u otázky.
 - **Otázky s výhradou** (stav „ke kontrole“, `flagged`) se do hry ani exportu nedostanou, dokud je učitel neschválí.
   Agent je schválit nemůže.
-- **Data zůstávají na vašem serveru.** Žáci nemají účty; ukládá se jen přezdívka a odpovědi.
+- **Data zůstávají na vašem serveru.** Žáci nemají účty ani hesla. U hry bez třídy se ukládá jen přezdívka a odpovědi;
+  u volitelných **tříd** (průběžná evidence za školní rok) jméno, zobrazované jméno, číslo v třídním výkazu, hash osobního
+  kódu a výsledky. Pokrok vidí jen učitelé třídy, nikdy agent ani Telegram (viz [Třídy](#třídy-a-průběžná-evidence)).
 - **6 typů otázek:** jedna správná, více správných, pravda/nepravda, krátká odpověď, číselná odpověď a seřazení.
 - **Aplikace nevolá žádný jazykový model.** Otázky vyrábí agent (skill `kviz-z-materialu`). Kvíz jde vytvořit
   i bez agenta, ručně v editoru nebo nahráním JSON.
@@ -55,6 +57,12 @@ vzorový kvíz, odehraje hru s pěti simulovanými hráči a vypíše výsledky.
 | `AUTH_PROVIDER` | `local` | `local` (e‑mail + heslo). `oidc` zatím existuje jen jako rozhraní pro pozdější Microsoft Entra ID. |
 | `TRUST_PROXY` | `1` | Aplikace běží za reverzní proxy a čte IP adresu z `X-Forwarded-For` (kvůli rate limitům). |
 | `JOIN_RATE_LIMIT` / `API_RATE_LIMIT` | `10` / `60` | Pokusy o připojení do hry za minutu na IP adresu / požadavky API za minutu na token. |
+| `CODE_PEPPER` | – | Tajný klíč pro hash osobních kódů žáků, min. 32 znaků (`openssl rand -hex 32`). **Bez něj jsou třídy vypnuté.** Změna zneplatní všechny kódy. |
+| `CLASS_RETENTION_MONTHS` | `12` | Po kolika měsících od konce školního roku (nebo archivace, je-li pozdější) se osobní údaje třídy anonymizují. |
+| `ACCESS_LOG_RETENTION_MONTHS` | `24` | Jak dlouho se drží přístupový log tříd. |
+| `MIN_TOPIC_ITEMS` | `5` | Kolik odpovědí je potřeba, než se ukáže zvládnutí tématu (u třídy trojnásobek a aspoň 3 žáci). |
+| `MIN_AGGREGATE_STUDENTS` | `5` | Pod tento počet žáků nebo výsledků vrací API souhrnů místo čísla `null` („malá skupina“). |
+| `MAX_STUDENTS_PER_CLASS` | `60` | Horní mez velikosti soupisky. |
 
 Pozor: pokud je celá třída za jednou veřejnou IP (NAT školy) **a** proxy nepředává `X-Forwarded-For`,
 narazí žáci na limit 10 připojení za minutu. Caddy tuto hlavičku předává automaticky.
@@ -157,6 +165,78 @@ prosím doplňte:
 | Android, Chrome | dělená obrazovka / plovoucí okno | neověřeno (známý limit) | |
 | iPhone/iPad, Safari | přepnutí aplikace, zamknutí | neověřeno | |
 | iPhone/iPad, Safari | celá obrazovka | iPhone ji nepodporuje (učitel vidí „celá obrazovka nepodporována“) | |
+
+## Třídy a průběžná evidence
+
+Třída je volitelná. Hra bez třídy funguje stejně jako dřív. Třídy se zapnou nastavením `CODE_PEPPER` v `.env`.
+
+1. **Třídy → Nová třída** (např. „8.A Fyzika“, školní rok se doplní sám).
+2. **Soupiska:** vložte seznam (jeden žák na řádek, „Příjmení Jméno“), nebo nahrajte CSV z Excelu
+   (středník i čárka, UTF‑8 i windows‑1250). Před zápisem uvidíte náhled s varováními.
+   Pokud škola nepovolí celá jména, použijte pseudonymy (např. „Jana N.“ nebo „Žák 07“); aplikace funguje stejně.
+3. **Osobní kódy** (8 znaků, např. `K7MQ-2XRT`) se ukážou **jen jednou**: vytiskněte karty (A4, 10 na list, s QR kódem),
+   nebo stáhněte CSV s kódy. Ztracený kód nahradíte tlačítkem „Nový kód“ (starý okamžitě přestane platit).
+4. Při spuštění hry nebo testu vyberte **Třídu**. Žák zadá PIN, pak svůj kód a potvrdí „Jsi to ty, Jana N.?“.
+   Spolužáci a projektor vidí jen zobrazované jméno; celé jméno vidí jen přihlášený učitel po přepnutí.
+5. Výsledky se zapisují do **evidence třídy**: matice žáci × aktivity (testy a kvízy zvlášť, „chybí“, „dopsáno“, „nezapočteno“),
+   trend, účast, příznak „Ke sledování“ podle pevných pravidel, zvládnutí témat, nejslabší otázky, profil žáka s grafy,
+   tisk (A4) a CSV. U testu jde vytvořit **náhradní termín** se stejnými otázkami jen pro nepřítomné.
+   Do evidence jde jen správnost (ne body za rychlost) a hlídání okna procenta nikdy nesnižuje.
+
+Aplikace počítá a zobrazuje, ale **nehodnotí**: žádné automatické známky ani závěry o žákovi.
+
+Vyzkoušení bez skutečných žáků (jen mimo produkci): `pnpm seed:demo-class` vytvoří třídu s 24 pseudonymy
+(„Žák 01“ až „Žák 24“) a 10 aktivitami a vypíše přihlašovací údaje ukázkového učitele.
+
+Agent (API token se scope `classes:read`) vidí jen názvy tříd a **souhrny** (průměry, účast, slabá témata); jména,
+kódy ani výsledky jednotlivých žáků přes API nedostane. Soupisku lze vkládat jen v aplikaci.
+
+## Osobní údaje žáků
+
+**Co se ukládá:** příjmení, jméno (nebo pseudonym), zobrazované jméno, číslo v třídním výkazu, data „ve třídě od / do“,
+příslušnost ke třídě, **hash** osobního kódu (HMAC‑SHA256 s `CODE_PEPPER`) a výsledky.
+**Co se neukládá:** poznámky o žácích, podpůrná opatření, zdravotní ani jiné citlivé údaje, e‑mail, datum narození,
+rodné číslo, fotografie, IP adresy, identifikace zařízení. Aplikace nemá volné textové pole o žákovi.
+
+- **Kódy:** otevřený kód se nikdy neukládá ani neloguje; posílá se jen v těle požadavku. Proto ho nejde zobrazit znovu,
+  ale únik databáze nedá použitelné kódy. Po 20 chybných kódech za 5 minut se zadávání v dané hře na 60 s zablokuje
+  a učitel vidí upozornění. **Změna `CODE_PEPPER` zneplatní všechny kódy** (bude třeba vytisknout nové karty).
+- **Kdo co vidí:** žák jen zobrazovaná jména spolužáků v živé hře (v testu nikoho); ovládání přes `hostUrl` jen zobrazovaná
+  jména; učitel s rolí ve třídě jména v přehledech; agent jen souhrny; Telegram nic z toho.
+- **Přístupový log:** zobrazení soupisky, matice a profilu, tisk, export, rotace kódů a výmaz se zapisují
+  (jen metadata). Vlastník třídy ho vidí v Nastavení třídy. Retence `ACCESS_LOG_RETENTION_MONTHS`.
+- **Retence:** po `CLASS_RETENTION_MONTHS` od konce školního roku se třída anonymizuje: jména a kódy se smažou,
+  výsledky zůstanou jen jako nespojitelné souhrny a hráči ve výsledcích her se přejmenují na „Žák N“. Datum je vidět
+  v přehledu třídy a vlastník může anonymizovat dříve. Mazání her podle `RETENTION_DAYS` evidenci nemění.
+- **Výmaz:** „Smazat osobní údaje“ u žáka (vlastník) smaže jméno a kód, výsledky se odpojí. „Smazat třídu“ smaže
+  i evidenci. „Žák odešel“ je jen deaktivace (kód přestane platit).
+- **Zálohy** obsahují osobní údaje: šifrujte je (`BACKUP_AGE_RECIPIENT` nebo `BACKUP_GPG_RECIPIENT`, viz
+  [Zálohování](#zálohování)) a držte je nejvýš 30 dní, aby po anonymizaci nezůstávaly starší kopie.
+- **Účty učitelů:** heslo aspoň 12 znaků, omezení pokusů o přihlášení, relace nejvýš 12 hodin a 60 minut bez aktivity.
+  Dvoufázové přihlášení je možné pozdější rozšíření.
+
+### Kontrolní seznam před ostrým použitím
+
+Není to právní posudek a nenahrazuje rozhodnutí školy.
+
+- [ ] **Souhlas vedení školy a konzultace s pověřencem pro ochranu osobních údajů:** kdo je správce údajů a na jakém
+      právním základě se evidence vede.
+- [ ] **Informování žáků a zákonných zástupců** (vzor níže si škola upraví).
+- [ ] **Umístění serveru a smlouva s poskytovatelem VPS** (zpracovatelská smlouva, region datového centra).
+      [OVĚŘ region a podmínky u poskytovatele.]
+- [ ] **Pseudonymy**, pokud škola nepovolí celá jména.
+- [ ] **Přístupy:** kdo zná heslo učitele, kdo má přístup na VPS; šifrované zálohy a doba jejich uchování.
+- [ ] **Postup při úniku údajů** a kontakt na pověřence.
+
+### Vzor informace pro žáky a zákonné zástupce
+
+> Ve výuce předmětu **[předmět]** používáme aplikaci KvizHub, která běží na serveru školy / pronajatém serveru
+> **[kde]**. Pro třídu **[třída]** v ní vedeme průběžný přehled výsledků kvízů a testů, abychom viděli, která témata
+> je potřeba zopakovat. Ukládáme jen jméno a příjmení (nebo pseudonym), číslo v třídním výkazu a výsledky.
+> Žáci nemají účty; přihlašují se osobním kódem z karty. Výsledky vidí jen vyučující třídy, spolužáci vidí jen
+> zkrácené jméno. Aplikace nic neznámkuje ani nehodnotí automaticky. Osobní údaje se anonymizují **[datum, 12 měsíců
+> po konci školního roku]**, zálohy se drží nejvýš 30 dní. Správcem údajů je **[škola]**, s dotazy se obracejte
+> na **[vyučující]** nebo pověřence pro ochranu osobních údajů **[kontakt]**.
 
 ## Instalace skillu na agenta (Claude Code v tmux)
 
@@ -270,7 +350,12 @@ docker compose start
 
 (Název volume ověřte příkazem `docker volume ls`. Tvoří ho název adresáře projektu + `_kvizhub-data`.)
 
-## Soukromí a bezpečnost (A7, odškrtnuto)
+**Šifrování záloh** (doporučeno, jakmile používáte třídy): nastavte `BACKUP_AGE_RECIPIENT=age1…` (veřejný klíč
+z `age-keygen`) nebo `BACKUP_GPG_RECIPIENT=…` a skript uloží `…db.gz.age` / `…db.gz.gpg` s právy 600. Bez šifrování
+skript vypíše varování. Soukromý klíč držte mimo server. Obnova: `age -d -i klic.txt zaloha.db.gz.age | gunzip > /tmp/kvizhub.db`.
+Doporučená doba uchování záloh je 30 dní (druhý parametr skriptu).
+
+## Soukromí a bezpečnost (A7, odškrtnuto; doplněno Dodatkem 3)
 
 - [x] Hesla argon2id. Session je httpOnly cookie se `SameSite=Lax` (aby odkaz z Telegramu otevřel kontrolu kvízu přihlášenému učiteli) a při HTTPS i `Secure`. Mutující
       požadavky z prohlížeče vyžadují CSRF token (API tokeny ho nepotřebují).
@@ -278,10 +363,13 @@ docker compose start
       Rate limit je 60 požadavků za minutu na token. Audit log obsahuje jen metadata.
 - [x] Logy neobsahují tokeny, cookies ani těla požadavků, jen metodu, cestu bez parametrů, velikost, stav a dobu.
 - [x] Aplikace nepřijímá dokumenty, jen JSON do 2 MB.
-- [x] Žáci nemají účty. Ukládá se jen přezdívka a odpovědi, žádné IP adresy. Jediný technický token hry je
+- [x] Žáci nemají účty ani hesla. Bez třídy se ukládá jen přezdívka a odpovědi, žádné IP adresy. Jediný technický token hry je
       v sessionStorage. Nejsou tu analytické skripty, externí fonty ani CDN.
+- [x] **Změna pravidla (Dodatek 3):** u tříd se navíc ukládají jména, číslo v třídním výkazu, hash osobního kódu
+      a výsledky za školní rok, viz [Osobní údaje žáků](#osobní-údaje-žáků). Logy neobsahují jména ani kódy (ověřuje test).
 - [x] Retence: výsledky her a hráči se mažou po `RETENTION_DAYS` (denní úloha). Kvízy zůstávají.
       Jména žáků v testech se po `TEST_NAME_RETENTION_DAYS` nahradí „Žák N“.
+      Evidence tříd na `RETENTION_DAYS` nezávisí; anonymizuje se po `CLASS_RETENTION_MONTHS`.
 - [x] Hlavičky CSP, `X-Content-Type-Options`, `Referrer-Policy: no-referrer` a `frame-ancestors 'none'`.
       Rate limity platí na přihlášení, API a připojení do hry.
 - [x] Autentizace je výměnný provider (`local` | `oidc`).

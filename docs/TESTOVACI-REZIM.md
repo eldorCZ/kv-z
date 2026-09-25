@@ -19,7 +19,7 @@ v ovládacím panelu a vidí výsledky v procentech.
 | `timeLimitMin` | 1–240 nebo `null` (bez limitu) | 20 |
 | `opensAt` | ISO čas nebo `null` (hned) | `null` |
 | `closesAt` | ISO čas (termín), musí být v budoucnu | za 7 dní |
-| `requireName` | žák zadá jméno a příjmení (jinak jen přezdívku) | `true` |
+| `requireName` | žák zadá jméno a příjmení (jinak jen přezdívku); u třídního testu se ignoruje, identita je „roster“ (osobní kód, Dodatek 3 C6.1) | `true` |
 | `allowBackNavigation` | návrat k předchozím otázkám | `true` |
 | `showResultsToStudent` | `none` \| `score` \| `full` | `score` |
 | `leaveGuard` | viz Dodatek 2 (G2) | – |
@@ -79,7 +79,9 @@ nastavení. Po obnovení stránky pokračuje tam, kde byl. Mobile-first, texty p
 
 ## D9 Soukromí
 Jména žáků jsou osobní údaje: v databázi jen `players.nickname`; po `TEST_NAME_RETENTION_DAYS` (výchozí 30) se
-nahradí `Žák N`, výsledky zůstávají do `RETENTION_DAYS`. Nelogují se. ~~Bez proctoringu.~~ → Hlídání opuštění
+nahradí `Žák N`, výsledky zůstávají do `RETENTION_DAYS`. **Doplněno Dodatkem 3 (C9.4):** `RETENTION_DAYS` se týká her,
+hráčů, pokusů a odpovědí; evidence tříd (`class_activities`, `activity_results`, `result_items`) se tím nemaže
+a řídí se `CLASS_RETENTION_MONTHS`. Nelogují se. ~~Bez proctoringu.~~ → Hlídání opuštění
 okna podle Dodatku 2 (G1, G9): jen události stránky testu, žák je předem informován.
 
 ## D10 Skill

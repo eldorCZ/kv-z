@@ -88,6 +88,8 @@ export function sendError(reply: FastifyReply, status: number, message: string, 
 export interface BuildOptions {
   /** injectable clock (tests use fake time) */
   now?: () => number;
+  /** log destination (tests capture the log to check it contains no personal data) */
+  logStream?: NodeJS.WritableStream;
 }
 
 export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ app: FastifyInstance; io: Server; services: Services }> {
@@ -95,6 +97,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   const app = Fastify({
     logger: {
       level: cfg.logLevel,
+      ...(opts.logStream ? { stream: opts.logStream } : {}),
       redact: { paths: ['req.headers.authorization', 'req.headers.cookie', 'req.headers["x-csrf-token"]', 'res.headers["set-cookie"]'], remove: true },
       serializers: {
         req: (req: FastifyRequest) => ({ method: req.method, url: req.url.replace(/[?#].*$/, ''), length: req.headers['content-length'] }),

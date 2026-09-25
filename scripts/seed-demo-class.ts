@@ -1,6 +1,6 @@
 /**
- * pnpm seed:demo-class – creates a demo class with 24 made-up students and 10 activities (tests and quizzes)
- * so the class overviews can be tried without real pupils. Deterministic: the same results on every run.
+ * pnpm seed:demo-class – creates a demo class with 24 students and 10 activities (tests and quizzes)
+ * (pseudonyms "Žák 01" to "Žák 24") so the class overviews can be tried without real pupils. Deterministic: the same results on every run.
  * Not for production: refuses to run with NODE_ENV=production.
  *
  * Uses the database from DB_PATH (like the server) and the teacher DEMO_EMAIL (created when missing,
@@ -16,13 +16,8 @@ if (process.env.NODE_ENV === 'production') {
   process.exit(1);
 }
 
-// made-up names only (pseudonyms), never real pupils
-const NAMES = [
-  'Adámková Alžběta', 'Bartoš Bohumil', 'Cibulková Cecílie', 'Doležal Dalibor', 'Erbenová Eliška', 'Fiala Filip',
-  'Gregorová Gabriela', 'Havlík Hynek', 'Ilčíková Ivana', 'Jelínek Jáchym', 'Kolářová Klára', 'Lukeš Lubomír',
-  'Mašková Magdaléna', 'Novotný Norbert', 'Ondrová Olga', 'Pokorný Přemysl', 'Říhová Radka', 'Stejskal Svatopluk',
-  'Šimková Šárka', 'Tichý Tadeáš', 'Urbanová Uršula', 'Vávra Vojtěch', 'Zemanová Zdislava', 'Žák Žofín',
-];
+// pseudonyms only ("Žák 01" to "Žák 24"), never real pupils
+const NAMES = Array.from({ length: 24 }, (_, i) => `Žák ${String(i + 1).padStart(2, '0')}`);
 const TOPICS = ['Lom světla', 'Odraz světla', 'Čočky', 'Barvy a spektrum'];
 const ACTIVITIES: { kind: 'test' | 'quiz'; label: string; topics: number[]; count?: boolean }[] = [
   { kind: 'quiz', label: 'Rozcvička: světlo', topics: [0, 1] },
@@ -66,10 +61,7 @@ if (!teacher) {
 const cls = s.classes.create(teacher.id, { name: 'Demo 8.A (smyšlená data)', subject: 'Fyzika' });
 const created = s.classes.addStudents(
   cls,
-  NAMES.map((n, i) => {
-    const [familyName, givenName] = n.split(' ');
-    return { familyName, givenName, rosterNo: i + 1 };
-  }),
+  NAMES.map((familyName, i) => ({ familyName, givenName: '', rosterNo: i + 1 })),
 );
 const ids = created.map((c) => c.student.id);
 const db = s.db.$client;
@@ -88,7 +80,7 @@ db.prepare('UPDATE students SET active = 0, left_at = ? WHERE id = ?').run(dateO
 db.prepare('UPDATE students SET since = ? WHERE id = ?').run(dateOf(firstDay + 3 * step - DAY), ids[23]);
 
 const rand = rng(20250901);
-// base skill per pupil; pupil 3 declines, pupil 7 is weak, pupil 11 is often absent
+// base skill per pupil; pupil 3 declines, pupils 5 and 15 improve, pupil 7 is weak, pupil 11 is often absent
 const skill = ids.map((_, i) => 0.45 + ((i * 37) % 50) / 100);
 skill[7] = 0.35;
 let tests = 0;
@@ -105,6 +97,7 @@ ACTIVITIES.forEach((a, ai) => {
     }
     let p = skill[si]!;
     if (si === 3) p = 0.9 - ai * 0.06;
+    if (si === 5 || si === 15) p = 0.35 + ai * 0.06;
     const items: SeedItem[] = [];
     for (let q = 0; q < 8; q++) {
       const topic = TOPICS[a.topics[q % a.topics.length]!]!;

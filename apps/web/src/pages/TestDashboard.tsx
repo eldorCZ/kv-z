@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { api, ApiError, download } from '../api';
+import GuestsPanel from '../classes/GuestsPanel';
 import { Badge, Button, ErrorBox, Modal, formatDate } from '../components/ui';
 
 export interface DashboardStudent {
@@ -175,6 +176,7 @@ export default function TestDashboard() {
       )}
       {guard && guard.mode !== 'off' && <p className="text-xs text-slate-500">{t('dash.guardInfo', { mode: t(`guard.mode.${guard.mode}`), max: guard.maxLeaves })}</p>}
       <ErrorBox error={error} onClose={() => setError(null)} />
+      {d.classGame && <GuestsPanel gameId={id!} showNames={fullNames} />}
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-left text-sm" data-testid="dash-table">

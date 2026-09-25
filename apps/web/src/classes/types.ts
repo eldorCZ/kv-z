@@ -102,6 +102,7 @@ export interface SeriesPoint {
   classMedian: number | null;
 }
 export interface ProfileDto {
+  class: { id: string; name: string; role: ClassDto['role']; status: ClassDto['status'] };
   student: StudentDto;
   summary: Summary;
   tests: SeriesPoint[];

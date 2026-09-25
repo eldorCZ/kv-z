@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../api';
 import { Button, ErrorBox, Field, inputCls } from '../components/ui';
-import { PeriodFilter, PrintWarning } from './Matrix';
+import { PeriodFilter, periodQuery, PrintWarning, type PeriodState } from './Matrix';
 import type { ClassDto } from './types';
 
 interface TopicsDto {
@@ -24,7 +24,7 @@ export function Bar({ percent }: { percent: number | null }) {
 /** C8.2 "Témata": topic mastery of the class, weakest questions, renaming and merging topics. */
 export default function Topics({ cls }: { cls: ClassDto }) {
   const { t } = useTranslation();
-  const [period, setPeriod] = useState('year');
+  const [period, setPeriod] = useState<PeriodState>({ period: 'year', from: '', to: '' });
   const [kind, setKind] = useState('');
   const [data, setData] = useState<TopicsDto | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -32,7 +32,7 @@ export default function Topics({ cls }: { cls: ClassDto }) {
   const canEdit = cls.status === 'active' && cls.role !== 'viewer';
 
   const load = useCallback(async () => {
-    const q = new URLSearchParams({ period, ...(kind ? { kind } : {}) });
+    const q = new URLSearchParams({ ...periodQuery(period), ...(kind ? { kind } : {}) });
     try {
       setData(await api<TopicsDto>('GET', `/api/v1/classes/${cls.id}/topics?${q}`));
     } catch (e) {
@@ -63,7 +63,7 @@ export default function Topics({ cls }: { cls: ClassDto }) {
     <div className="space-y-4">
       <PrintWarning />
       <ErrorBox error={error} onClose={() => setError(null)} />
-      <PeriodFilter period={period} setPeriod={setPeriod} kind={kind} setKind={setKind} />
+      <PeriodFilter value={period} onChange={setPeriod} kind={kind} setKind={setKind} />
       <section className="rounded-lg border border-slate-200 bg-white p-3">
         <h2 className="mb-2 font-semibold">{t('overview.topicsTitle')}</h2>
         {data.topics.length === 0 ? (
