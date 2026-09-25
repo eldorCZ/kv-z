@@ -213,7 +213,7 @@ docker compose start
 ```bash
 pnpm install
 pnpm dev                 # server :3000 (tsx watch) + Vite :5173 s proxy
-pnpm ci                  # typecheck + lint + unit/API/engine testy + zátěžový test 150 hráčů
+pnpm check               # typecheck + lint + unit/API/engine testy + zátěžový test 150 hráčů
 pnpm build && pnpm test:e2e   # Playwright: učitel, token, API, schválení, hra 1 host + 3 hráči, reconnect, WebSocket rámce
 pnpm loadtest 150        # zátěž (volitelně proti KVIZHUB_URL + KVIZHUB_TOKEN)
 pnpm demo

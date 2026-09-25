@@ -17,7 +17,7 @@
     "test:skill": "cd agent-skill/kviz-z-materialu && (test -x .venv/bin/python && .venv/bin/python -m pytest -q || python3 -m pytest -q)",
     "loadtest": "tsx scripts/loadtest.ts",
     "demo": "tsx scripts/demo.ts",
-    "ci": "pnpm typecheck && pnpm lint && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
