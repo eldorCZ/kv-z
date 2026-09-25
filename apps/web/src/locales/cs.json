@@ -1,11 +1,21 @@
 {
-  "common": { "close": "Zavřít", "delete": "Smazat", "loading": "Načítám…" },
+  "common": {
+    "close": "Zavřít",
+    "delete": "Smazat",
+    "loading": "Načítám…"
+  },
   "errors": {
     "network": "Server není dostupný. Zkontrolujte připojení k internetu a zkuste to znovu.",
     "validation": "Data nejsou platná. Opravte prosím chyby níže.",
     "generic": "Něco se nepovedlo. Zkuste to prosím znovu."
   },
-  "nav": { "main": "Hlavní navigace", "quizzes": "Moje kvízy", "games": "Hry a výsledky", "tokens": "API tokeny", "logout": "Odhlásit" },
+  "nav": {
+    "main": "Hlavní navigace",
+    "quizzes": "Moje kvízy",
+    "games": "Hry a výsledky",
+    "tokens": "API tokeny",
+    "logout": "Odhlásit"
+  },
   "login": {
     "introLogin": "Přihlaste se ke svému účtu učitele.",
     "introRegister": "Založte si účet učitele. Žáci účet nepotřebují.",
@@ -73,10 +83,30 @@
     "newQuestionPrompt": "Nová otázka",
     "optionN": "Možnost {{n}}"
   },
-  "types": { "single": "Jedna správná", "multi": "Více správných", "truefalse": "Pravda / nepravda", "short": "Krátká odpověď", "numeric": "Číselná odpověď", "order": "Seřazení" },
-  "points": { "standard": "Standardní body", "double": "Dvojnásobné body", "none": "Bez bodů" },
-  "difficulty": { "easy": "lehká", "medium": "střední", "hard": "těžká" },
-  "bloom": { "remember": "zapamatovat", "understand": "porozumět", "apply": "aplikovat", "analyze": "analyzovat" },
+  "types": {
+    "single": "Jedna správná",
+    "multi": "Více správných",
+    "truefalse": "Pravda / nepravda",
+    "short": "Krátká odpověď",
+    "numeric": "Číselná odpověď",
+    "order": "Seřazení"
+  },
+  "points": {
+    "standard": "Standardní body",
+    "double": "Dvojnásobné body",
+    "none": "Bez bodů"
+  },
+  "difficulty": {
+    "easy": "lehká",
+    "medium": "střední",
+    "hard": "těžká"
+  },
+  "bloom": {
+    "remember": "zapamatovat",
+    "understand": "porozumět",
+    "apply": "aplikovat",
+    "analyze": "analyzovat"
+  },
   "editor": {
     "type": "Typ otázky",
     "time": "Čas",
@@ -126,12 +156,41 @@
     "joinAt": "Žáci se připojí na",
     "openHost": "Otevřít projektor a ovládání",
     "copyHost": "Kopírovat odkaz pro ovládání",
-    "hostHint": "Odkaz pro ovládání neposílejte žákům. Platí jen pro tuto hru."
+    "hostHint": "Odkaz pro ovládání neposílejte žákům. Platí jen pro tuto hru.",
+    "modeLabel": "Režim",
+    "modes": {
+      "live": "Živá hra",
+      "test": "Test"
+    },
+    "modesHint": {
+      "live": "Učitel řídí tempo na projektoru, body za rychlost.",
+      "test": "Každý žák sám svým tempem do termínu, výsledky v procentech."
+    },
+    "startTest": "Spustit test",
+    "testReady": "Test je připravený ({{count}} otázek). Žáci se připojí PINem nebo QR kódem.",
+    "openDashboard": "Otevřít přehled testu",
+    "test": {
+      "timeLimit": "Časový limit (min)",
+      "timeLimitHint": "Prázdné = bez limitu (jen termín).",
+      "closesAt": "Termín uzavření",
+      "showResults": "Po odevzdání žák uvidí",
+      "results": {
+        "none": "nic (výsledky jen učitel)",
+        "score": "procenta",
+        "full": "procenta a správné odpovědi"
+      },
+      "requireName": "Žák zadá jméno a příjmení",
+      "allowBack": "Povolit návrat k předchozím otázkám"
+    }
   },
   "export": {
     "title": "Export kvízu",
     "format": "Formát exportu",
-    "formats": { "kahoot": "Kahoot (xlsx)", "gift": "Moodle GIFT", "json": "JSON (KvizHub)" },
+    "formats": {
+      "kahoot": "Kahoot (xlsx)",
+      "gift": "Moodle GIFT",
+      "json": "JSON (KvizHub)"
+    },
     "includeFlagged": "Zahrnout i otázky ke kontrole",
     "jsonInfo": "JSON obsahuje všechny otázky včetně vysvětlení, zdrojů a stavu kontroly. Lze ho znovu nahrát.",
     "reasons": {
@@ -142,7 +201,10 @@
       "too_many_options": "Více než 4 možnosti",
       "too_long": "Příliš dlouhé"
     },
-    "fields": { "prompt": "text otázky", "option": "možnost" },
+    "fields": {
+      "prompt": "text otázky",
+      "option": "možnost"
+    },
     "tooLongItem": "Otázka {{number}}: {{field}} má {{length}} znaků, limit je {{limit}}. Zkraťte ji v editoru.",
     "kahootNote": "Vysvětlení a zdroje Kahoot nepřenese – stáhněte si k exportu i plnou verzi v JSON.",
     "download": "Stáhnout",
@@ -182,7 +244,13 @@
     "title": "Hry a výsledky",
     "none": "Zatím jste nespustili žádnou hru.",
     "openHost": "Otevřít ovládání",
-    "status": { "lobby": "čeká na start", "running": "probíhá", "finished": "dokončena", "aborted": "přerušena" }
+    "status": {
+      "lobby": "čeká na start",
+      "running": "probíhá",
+      "finished": "dokončena",
+      "aborted": "přerušena"
+    },
+    "testBadge": "Test"
   },
   "results": {
     "title": "Výsledky hry",
@@ -195,7 +263,13 @@
     "score": "Skóre",
     "perQuestion": "Úspěšnost po otázkách",
     "answered": "odpovědělo {{answered}}, správně {{correct}}",
-    "avgTime": "průměrný čas {{s}} s"
+    "avgTime": "průměrný čas {{s}} s",
+    "testTitle": "Výsledky testu",
+    "toDashboard": "Přehled testu",
+    "testSummary": "Odevzdalo {{submitted}} z {{students}} žáků · průměr {{avg}} % · medián {{median}} %",
+    "leaveFlagged_one": "{{count}} žák opustil okno nad limit",
+    "leaveFlagged_few": "{{count}} žáci opustili okno nad limit",
+    "leaveFlagged_other": "{{count}} žáků opustilo okno nad limit"
   },
   "host": {
     "disconnected": "Spojení se serverem se přerušilo, připojuji znovu…",
@@ -222,7 +296,10 @@
     "confirmKick": "Odebrat hráče {{nickname}}?",
     "remaining": "Zbývající čas v sekundách",
     "answered": "Odpovědělo {{answered}} z {{total}}",
-    "typeHint": { "short": "Napište odpověď na telefonu.", "numeric": "Napište číslo na telefonu." },
+    "typeHint": {
+      "short": "Napište odpověď na telefonu.",
+      "numeric": "Napište číslo na telefonu."
+    },
     "revealStats": "Správně odpovědělo {{correct}} z {{total}} žáků.",
     "leaderboard": "Průběžné pořadí",
     "podium": "Vítězové"
@@ -256,5 +333,114 @@
     "numberLabel": "Vaše číselná odpověď",
     "textLabel": "Vaše odpověď",
     "submit": "Odeslat"
+  },
+  "dash": {
+    "test": "Test",
+    "running": "Probíhá",
+    "finished": "Ukončeno",
+    "closesAt": "termín {{date}}",
+    "limit": "limit {{min}} min",
+    "joinAt": "Žáci se připojí na",
+    "countJoined_one": "{{count}} připojený",
+    "countJoined_few": "{{count}} připojení",
+    "countJoined_other": "{{count}} připojených",
+    "countInProgress": "{{count}} píše",
+    "countSubmitted": "{{count}} odevzdalo",
+    "countLocked": "{{count}} zamčeno",
+    "end": "Ukončit test",
+    "confirmEnd": "Ukončit test? Rozpracované pokusy se odevzdají a ohodnotí.",
+    "results": "Výsledky",
+    "student": "Žák",
+    "status": "Stav",
+    "answered": "Zodpovězeno",
+    "remaining": "Zbývá",
+    "percent": "Procenta",
+    "left": "Opustil okno",
+    "st": {
+      "not_started": "nezačal",
+      "in_progress": "píše",
+      "submitted": "odevzdáno",
+      "expired": "vypršel čas"
+    },
+    "detail": "Detail",
+    "allowReturn": "Povolit návrat",
+    "returnAllowed": "Návrat povolen",
+    "reopen": "Znovu otevřít",
+    "reopenPrompt": "Na kolik minut pokus znovu otevřít? (1–60)",
+    "none": "Zatím se nikdo nepřipojil.",
+    "locked": "zamčeno",
+    "overLimit": "nad limitem opuštění",
+    "unlock": "Odemknout",
+    "unlockPrompt": "Odemknout pokus. Přidat kompenzaci času v minutách? (0–30)",
+    "exempt": "nehlídá se",
+    "guardOff": "Nehlídat okno",
+    "guardOn": "Znovu hlídat okno",
+    "leftValue_one": "{{count}}× · {{sec}} s",
+    "leftValue_few": "{{count}}× · {{sec}} s",
+    "leftValue_other": "{{count}}× · {{sec}} s",
+    "gap": "nepotvrzeno",
+    "gapHint": "Nepotvrzená nepřítomnost nebo výpadek spojení (nepočítá se).",
+    "noFullscreen": "celá obrazovka nepodporována",
+    "guardInfo": "Hlídání okna: {{mode}}, tolerance {{max}} opuštění. Aplikace opuštění okna pozná, ale nezabrání mu.",
+    "timeline": "Časová osa opuštění okna",
+    "noEvents": "Žádné události.",
+    "eventGap": "nepotvrzená nepřítomnost nebo výpadek spojení",
+    "duration": "{{sec}} s",
+    "stillAway": "stále mimo okno",
+    "notCounted": "nepočítá se, kratší než limit"
+  },
+  "guard": {
+    "mode": {
+      "off": "vypnuto",
+      "log": "jen zaznamenávat",
+      "warn": "varovat"
+    },
+    "reason": {
+      "hidden": "skrytá stránka (jiná karta nebo aplikace)",
+      "blur": "okno ztratilo zaostření",
+      "fullscreen_exit": "opuštění celé obrazovky"
+    }
+  },
+  "test": {
+    "joinTitle": "Připojení k testu",
+    "name": "Jméno a příjmení",
+    "nameHint": "Učitel uvidí tvoje jméno u výsledků.",
+    "continue": "Pokračovat",
+    "hello": "Ahoj, {{name}}!",
+    "questionCount_one": "{{count}} otázka",
+    "questionCount_few": "{{count}} otázky",
+    "questionCount_other": "{{count}} otázek",
+    "timeLimit": "Na test máš {{min}} minut od kliknutí na „Začít test“.",
+    "noTimeLimit": "Test nemá časový limit.",
+    "closesAt": "Odevzdat nejpozději: {{date}}",
+    "autosave": "Odpovědi se ukládají průběžně a můžeš je měnit až do odevzdání.",
+    "noBack": "K předchozím otázkám se nejde vrátit.",
+    "start": "Začít test",
+    "remaining": "Zbývající čas",
+    "overview": "Přehled otázek",
+    "goTo": "Otázka {{n}}",
+    "questionOf": "Otázka {{n}} z {{total}}",
+    "prev": "Předchozí",
+    "next": "Další",
+    "submit": "Odevzdat test",
+    "confirmTitle": "Odevzdat test?",
+    "unanswered_one": "{{count}} otázka zůstala bez odpovědi.",
+    "unanswered_few": "{{count}} otázky zůstaly bez odpovědi.",
+    "unanswered_other": "{{count}} otázek zůstalo bez odpovědi.",
+    "allAnswered": "Všechny otázky jsou zodpovězené.",
+    "back": "Zpět k testu",
+    "submitNow": "Odevzdat",
+    "submitted": "Test je odevzdaný.",
+    "expired": "Čas vypršel, test se odevzdal automaticky.",
+    "resultsLater": "Výsledky ti sdělí učitel.",
+    "yourAnswer": "Tvoje odpověď",
+    "noAnswer": "bez odpovědi",
+    "orderHint": "Seřaď položky šipkami.",
+    "save": {
+      "saved": "✓ Uloženo",
+      "saving": "Ukládám…",
+      "pending": "Ukládám…",
+      "error": "Nepodařilo se uložit, zkouším znovu…"
+    }
   }
 }

@@ -1,7 +1,7 @@
 import type { GameOverEvent, JoinResult, LeaderboardEvent, PublicQuestion, RevealEvent } from '@kvizhub/core';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { ANSWER_STYLES, Shape } from '../components/Shapes';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
 
@@ -29,6 +29,7 @@ function writeToken(v: string | null) {
 export default function Play() {
   const { t } = useTranslation();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const sock = useRef<GameSocket | null>(null);
   const [view, setView] = useState<View>('join');
   const [pin, setPin] = useState(params.get('pin')?.replace(/\D/g, '') ?? '');
@@ -94,11 +95,33 @@ export default function Play() {
     };
   }, []);
 
+  /** A PIN can belong to a live game or to a test (self-paced); tests have their own screen. */
+  const isTest = async (p: string) => {
+    if (!p) return false;
+    try {
+      return (await fetch(`/play/test/lookup?pin=${encodeURIComponent(p)}`)).ok;
+    } catch {
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    const p = params.get('pin')?.replace(/\D/g, '');
+    if (p && !readToken())
+      void isTest(p).then((test) => {
+        if (test) navigate(`/test?pin=${p}`, { replace: true });
+      });
+  }, []);
+
   const join = async (e: FormEvent) => {
     e.preventDefault();
     if (!sock.current) return;
     setBusy(true);
     setError('');
+    if (await isTest(pin)) {
+      setBusy(false);
+      return navigate(`/test?pin=${pin}&name=${encodeURIComponent(nickname)}`);
+    }
     const r = await call<JoinResult>(sock.current, 'join', { pin, nickname });
     setBusy(false);
     if (!r.ok) return setError(r.error);
