@@ -81,7 +81,7 @@ describe('join rate limit and privacy', () => {
       expect(results[3]).toMatchObject({ ok: false, error: expect.stringMatching(/Příliš mnoho/) });
       // player table has no IP or user agent columns
       const cols = (t.services.db.$client.prepare('pragma table_info(players)').all() as { name: string }[]).map((c) => c.name);
-      expect(cols.sort()).toEqual(['game_id', 'id', 'joined_at', 'nickname', 'token_hash']);
+      expect(cols.sort()).toEqual(['game_id', 'id', 'is_guest', 'joined_at', 'nickname', 'student_id', 'token_hash']); // student_id + is_guest: Dodatek 3 (C3), still no IP address
       void g;
     } finally {
       await t.close();

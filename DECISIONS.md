@@ -110,3 +110,16 @@ Rozhodnutí, která zadání neurčovalo. Každé je popsané jednou větou (roz
 - **„Nad limitem“ (zvýraznění a `summary.leaveFlagged`) se počítá z `leave_total`** (všechna započtená opuštění), zámek z `leave_count` (od posledního odemknutí).
 - **Výchozí hlídání (varovat, 2, upozornit) platí pro každý nový test,** i když ho vytvoří agent bez přepínačů. Tak to určuje G2.
 - **Rate limit událostí a heartbeatu je 10 požadavků za sekundu na token,** ostatní požadavky žáka mají 20 za sekundu.
+
+## Třídy a evidence (Dodatek 3)
+
+Rozdíly mezi popisem v dodatku a skutečným kódem (platí kód):
+
+- **`identityMode` z D2 v kódu neexistuje;** test má pole `requireName`. U třídní hry se identita určuje přítomností `classId` (identita „roster“) a `requireName` se ignoruje.
+- **`games.snapshot_json` z D4 v kódu nebyl,** test četl otázky z aktuálního kvízu. Migrace 4 sloupec přidává a plní se jen u třídních her (živých i testů), takže chování testu bez třídy se nemění. Náhradní termín kopíruje snapshot původní hry.
+- **Vyřazení otázky z hodnocení (D6.4) v kódu neexistuje,** proto se po něm nic nepřepočítává. `buildResultItems` ale množinu vyřazených otázek přijímá, takže ho jde později doplnit.
+- **`players.display_name` je v kódu `players.nickname`.** U třídních her obsahuje `public_name`.
+- **Počítání pořadí: `D5.5`/`D5.6` odpovídá v kódu `TestService.finalize`** (odevzdání `submitted` → výsledek `submitted`, vypršení `expired` → `auto_submitted`).
+- **Test `ops.test.ts`, který kontroloval přesný seznam sloupců tabulky `players`, je upravený:** přibyly `student_id` a `is_guest` (C3), IP adresy dál nejsou.
+- **`scoreQuestion` je vydělená z `scoreTest`.** Stejnou funkci používají testy, živé hry (pro evidenci) i `buildResultItems`.
+- **Zaokrouhlení „půl nahoru“ používá `Math.floor(x + 0.5 + 1e-9)`,** aby hodnoty jako 62,5 nepadly kvůli plovoucí čárce dolů.

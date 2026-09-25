@@ -74,3 +74,13 @@ describe('contract validation – invalid fixtures', () => {
     expect(r.errors[0]!.path).toBe('questions[2].correctIndices[0]');
   });
 });
+
+describe('topic and tags (C10.1)', () => {
+  it('are optional and validated', () => {
+    const ok = validateQuiz({ schemaVersion: 1, title: 't', tags: ['Fyzika', 'Optika'], questions: [{ type: 'truefalse', prompt: 'p', correctIndices: [0], topic: 'Lom světla' }] });
+    expect(ok.ok).toBe(true);
+    const bad = validateQuiz({ schemaVersion: 1, title: 't', tags: ['a', 'b', 'c', 'd', 'e', 'f'], questions: [{ type: 'truefalse', prompt: 'p', correctIndices: [0], topic: 'x'.repeat(61) }] });
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(bad.errors.map((e) => e.path).sort()).toEqual(['questions[0].topic', 'tags']);
+  });
+});

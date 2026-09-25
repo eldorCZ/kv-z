@@ -57,6 +57,7 @@ export const quizRoutes =
       gradeLevel: q.gradeLevel,
       sourceFiles: q.sourceFiles,
       settings: q.settings,
+      tags: q.tags ?? [],
       questions: q.questions.map(publicQuestion),
     });
 

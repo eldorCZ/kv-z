@@ -9,6 +9,7 @@ export function jsonExport(quiz: ExportQuiz, opts: { includeIds?: boolean } = {}
     gradeLevel: quiz.gradeLevel,
     sourceFiles: quiz.sourceFiles,
     settings: quiz.settings,
+    ...(quiz.tags?.length ? { tags: quiz.tags } : {}),
     questions: quiz.questions.map((q) => ({
       ...(opts.includeIds && q.id ? { id: q.id } : {}),
       type: q.type,
@@ -25,6 +26,7 @@ export function jsonExport(quiz: ExportQuiz, opts: { includeIds?: boolean } = {}
       difficulty: q.difficulty ?? null,
       sourceRef: q.sourceRef ?? null,
       qa: q.qa,
+      ...(q.topic ? { topic: q.topic } : {}),
     })),
   };
   return { data, summary: buildSummary('json', quiz.questions.length, {}, []) };

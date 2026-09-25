@@ -306,3 +306,16 @@ describe('games via API', () => {
     expect(res.body).toMatchObject({ ranking: [], perQuestion: expect.any(Array) });
   });
 });
+
+describe('topic and tags roundtrip (C10.1)', () => {
+  it('keeps topic and tags through export and re-import; Kahoot ignores them', async () => {
+    const quiz = { ...fixture('valid/minimal.json'), tags: ['Fyzika'] };
+    quiz.questions[0].topic = 'Tvar Země';
+    const id = (await t.http.post('/api/v1/quizzes').set(auth()).send(quiz)).body.quizId;
+    const exp = await t.http.get(`/api/v1/quizzes/${id}?format=json&download=1`).set(auth());
+    expect(exp.body.tags).toEqual(['Fyzika']);
+    expect(exp.body.questions[0].topic).toBe('Tvar Země');
+    const again = (await t.http.post('/api/v1/quizzes').set(auth()).send(exp.body)).body.quizId;
+    expect((await t.http.get(`/api/v1/quizzes/${again}?format=json&download=1`).set(auth())).body).toEqual(exp.body);
+  });
+});

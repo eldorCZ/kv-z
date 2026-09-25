@@ -13,6 +13,7 @@ export const sessions = sqliteTable('sessions', {
   teacherId: text('teacher_id').notNull().references(() => teachers.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at').notNull(),
   expiresAt: integer('expires_at').notNull(),
+  lastSeenAt: integer('last_seen_at'),
 });
 
 export const apiTokens = sqliteTable('api_tokens', {
@@ -40,6 +41,7 @@ export const quizzes = sqliteTable(
     idempotencyKey: text('idempotency_key'),
     requestHash: text('request_hash'),
     idempotencyResponse: text('idempotency_response'),
+    tagsJson: text('tags_json'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },
@@ -68,6 +70,7 @@ export const questions = sqliteTable(
     qaStatus: text('qa_status').notNull(),
     qaNotes: text('qa_notes').notNull().default(''),
     approvedAt: integer('approved_at'),
+    topic: text('topic'),
   },
   (t) => [index('questions_quiz').on(t.quizId, t.position)],
 );
@@ -87,6 +90,12 @@ export const games = sqliteTable(
     createdAt: integer('created_at').notNull(),
     endsAt: integer('ends_at'),
     finishedAt: integer('finished_at'),
+    classId: text('class_id'),
+    activityId: text('activity_id'),
+    allowGuests: integer('allow_guests').notNull().default(0),
+    audienceJson: text('audience_json'),
+    snapshotJson: text('snapshot_json'),
+    playedJson: text('played_json'),
   },
   (t) => [index('games_quiz').on(t.quizId), index('games_created').on(t.createdAt)],
 );
@@ -99,6 +108,8 @@ export const players = sqliteTable(
     nickname: text('nickname').notNull(),
     tokenHash: text('token_hash').notNull(),
     joinedAt: integer('joined_at').notNull(),
+    studentId: text('student_id'),
+    isGuest: integer('is_guest').notNull().default(0),
   },
   (t) => [index('players_game').on(t.gameId)],
 );

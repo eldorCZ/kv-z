@@ -34,6 +34,7 @@ export function rowToQuestion(r: QuestionRow): StoredQuestion {
     difficulty: (r.difficulty as Question['difficulty']) ?? null,
     sourceRef: r.sourceRefJson ? JSON.parse(r.sourceRefJson) : null,
     qa: { status: r.qaStatus as 'ok' | 'flagged', notes: r.qaNotes },
+    ...(r.topic ? { topic: r.topic } : {}),
     approvedAt: r.approvedAt,
   };
 }
@@ -59,6 +60,7 @@ function questionToRow(q: Question, quizId: string, position: number, id = newId
     qaStatus: q.qa.status,
     qaNotes: q.qa.notes,
     approvedAt: null,
+    topic: q.topic ?? null,
   };
 }
 
@@ -71,6 +73,7 @@ function rowToQuiz(r: QuizRow, qs: StoredQuestion[]): StoredQuiz {
     language: r.language,
     gradeLevel: r.gradeLevel,
     sourceFiles: JSON.parse(r.sourceFilesJson),
+    ...(r.tagsJson ? { tags: JSON.parse(r.tagsJson) as string[] } : {}),
     settings: JSON.parse(r.settingsJson),
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
@@ -102,6 +105,7 @@ export class QuizRepo {
           language: quiz.language,
           gradeLevel: quiz.gradeLevel,
           sourceFilesJson: JSON.stringify(quiz.sourceFiles),
+          tagsJson: quiz.tags?.length ? JSON.stringify(quiz.tags) : null,
           settingsJson: JSON.stringify(quiz.settings),
           idempotencyKey: idem?.key ?? null,
           requestHash: idem?.hash ?? null,

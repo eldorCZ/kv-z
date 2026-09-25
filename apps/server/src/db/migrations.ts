@@ -158,6 +158,108 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX attempt_events_attempt ON attempt_events(attempt_id, at);
   CREATE UNIQUE INDEX attempt_events_seq ON attempt_events(attempt_id, seq);
   `,
+  // 4: classes, roster and year-long records (Dodatek 3, C3). Records do NOT cascade from games.
+  `
+  CREATE TABLE classes (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    school_year TEXT NOT NULL,
+    subject TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    settings_json TEXT NOT NULL,
+    school_year_end TEXT NOT NULL,
+    archived_at INTEGER,
+    created_at INTEGER NOT NULL
+  );
+  CREATE TABLE class_teachers (
+    class_id TEXT NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    teacher_id TEXT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    PRIMARY KEY (class_id, teacher_id)
+  );
+  CREATE TABLE students (
+    id TEXT PRIMARY KEY,
+    class_id TEXT NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    family_name TEXT NOT NULL,
+    given_name TEXT NOT NULL DEFAULT '',
+    public_name TEXT NOT NULL,
+    roster_no INTEGER,
+    code_lookup TEXT,
+    code_rotated_at INTEGER,
+    active INTEGER NOT NULL DEFAULT 1,
+    since TEXT NOT NULL,
+    left_at TEXT,
+    created_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX students_code ON students(code_lookup);
+  CREATE INDEX students_class ON students(class_id);
+  CREATE TABLE class_activities (
+    id TEXT PRIMARY KEY,
+    class_id TEXT NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    game_id TEXT REFERENCES games(id) ON DELETE SET NULL,
+    kind TEXT NOT NULL,
+    label TEXT NOT NULL,
+    quiz_id TEXT REFERENCES quizzes(id) ON DELETE SET NULL,
+    quiz_title TEXT NOT NULL,
+    played_at INTEGER NOT NULL,
+    count_in_stats INTEGER NOT NULL DEFAULT 1,
+    root_activity_id TEXT REFERENCES class_activities(id) ON DELETE CASCADE,
+    roster_size INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX class_activities_class ON class_activities(class_id, played_at);
+  CREATE TABLE activity_results (
+    id TEXT PRIMARY KEY,
+    activity_id TEXT NOT NULL REFERENCES class_activities(id) ON DELETE CASCADE,
+    student_id TEXT REFERENCES students(id) ON DELETE SET NULL,
+    status TEXT NOT NULL,
+    percent INTEGER NOT NULL,
+    points_centi INTEGER NOT NULL,
+    max_points_centi INTEGER NOT NULL,
+    answered_count INTEGER NOT NULL,
+    question_count INTEGER NOT NULL,
+    excluded INTEGER NOT NULL DEFAULT 0,
+    excluded_reason TEXT,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE UNIQUE INDEX activity_results_unique ON activity_results(activity_id, student_id);
+  CREATE TABLE result_items (
+    activity_result_id TEXT NOT NULL REFERENCES activity_results(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    question_id TEXT,
+    prompt_snapshot TEXT NOT NULL,
+    topic TEXT,
+    bloom TEXT,
+    difficulty TEXT,
+    weight INTEGER NOT NULL,
+    score_milli INTEGER NOT NULL,
+    answered INTEGER NOT NULL,
+    PRIMARY KEY (activity_result_id, position)
+  );
+  CREATE TABLE access_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    at INTEGER NOT NULL,
+    teacher_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    class_id TEXT NOT NULL,
+    student_id TEXT,
+    item_count INTEGER
+  );
+  CREATE INDEX access_log_class ON access_log(class_id, at);
+  ALTER TABLE games ADD COLUMN class_id TEXT REFERENCES classes(id) ON DELETE SET NULL;
+  ALTER TABLE games ADD COLUMN activity_id TEXT;
+  ALTER TABLE games ADD COLUMN allow_guests INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE games ADD COLUMN audience_json TEXT;
+  ALTER TABLE games ADD COLUMN snapshot_json TEXT;
+  ALTER TABLE games ADD COLUMN played_json TEXT;
+  ALTER TABLE players ADD COLUMN student_id TEXT REFERENCES students(id) ON DELETE SET NULL;
+  ALTER TABLE players ADD COLUMN is_guest INTEGER NOT NULL DEFAULT 0;
+  CREATE UNIQUE INDEX players_student ON players(game_id, student_id) WHERE student_id IS NOT NULL;
+  ALTER TABLE quizzes ADD COLUMN tags_json TEXT;
+  ALTER TABLE questions ADD COLUMN topic TEXT;
+  ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER;
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

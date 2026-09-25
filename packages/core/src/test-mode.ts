@@ -20,6 +20,16 @@ export interface TestScore {
  * weighted standard = 1, double = 2, none = 0. Speed does not matter.
  * `answers` holds payloads in ORIGINAL indices, keyed by question id.
  */
+/**
+ * The one shared per-question scoring used by tests, live games and the class records (C7.1):
+ * 0..1 (partial credit for multi when enabled), unanswered = 0.
+ */
+export function scoreQuestion(q: Omit<Scorable, 'id' | 'points'>, payload: unknown, opts: CheckOptions = {}) {
+  if (payload === undefined) return { correct: false, fraction: 0, answered: false };
+  const r = checkAnswer(q, payload, opts);
+  return { ...r, answered: true };
+}
+
 export function scoreTest(questions: Scorable[], answers: Map<string, unknown>, opts: CheckOptions = {}): TestScore {
   let score = 0;
   let maxScore = 0;
@@ -27,7 +37,7 @@ export function scoreTest(questions: Scorable[], answers: Map<string, unknown>, 
     const w = pointsWeight(q.points);
     maxScore += w;
     const payload = answers.get(q.id);
-    const r = payload === undefined ? { correct: false, fraction: 0 } : checkAnswer(q, payload, opts);
+    const r = scoreQuestion(q, payload, opts);
     score += r.fraction * w;
     return { questionId: q.id, fraction: r.fraction, correct: r.correct, answered: payload !== undefined };
   });

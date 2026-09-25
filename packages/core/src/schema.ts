@@ -72,6 +72,8 @@ const questionBase = z.object({
   difficulty: z.enum(DIFFICULTIES).nullable().optional(),
   sourceRef: sourceRefSchema.nullable().optional(),
   qa: qaSchema.default({ status: 'ok', notes: '' }),
+  // Dodatek 3 (C10.1): optional topic for tracking mastery over the school year
+  topic: z.string().trim().min(1).max(60).nullable().optional(),
 });
 
 type QuestionDraft = z.output<typeof questionBase>;
@@ -187,6 +189,7 @@ export const quizSchema = z.object({
   language: z.string().trim().min(2).max(10).default('cs'),
   gradeLevel: z.string().trim().max(60).default(''),
   sourceFiles: z.array(sourceFileSchema).max(20).default([]),
+  tags: z.array(z.string().trim().min(1).max(40)).max(5).optional(),
   settings: quizSettingsSchema.default({ shuffleQuestions: false, shuffleOptions: true }),
   questions: z.array(questionSchema).min(1).max(LIMITS.questionsMax),
 });
