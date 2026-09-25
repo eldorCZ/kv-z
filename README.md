@@ -385,7 +385,9 @@ Doporučená doba uchování záloh je 30 dní (druhý parametr skriptu).
 pnpm install
 pnpm dev                 # server :3000 (tsx watch) + Vite :5173 s proxy
 pnpm check               # typecheck + lint + unit/API/engine testy + zátěžový test 150 hráčů
-pnpm build && pnpm test:e2e   # Playwright: učitel, token, API, schválení, hra 1 host + 3 hráči, reconnect, WebSocket rámce
+pnpm build && pnpm test:e2e   # Playwright: učitel, token, API, schválení, hra 1 host + 3 hráči, reconnect, WebSocket rámce,
+                              # test, hlídání okna, třídy (soupiska, kódy, třídní test, náhradní termín, matice, projektor)
+pnpm seed:demo-class     # ukázková třída s 24 pseudonymy (jen mimo produkci, potřebuje DB_PATH a CODE_PEPPER)
 pnpm loadtest 150        # zátěž (volitelně proti KVIZHUB_URL + KVIZHUB_TOKEN)
 pnpm demo
 
@@ -420,3 +422,9 @@ Struktura: `apps/server` (Fastify + Socket.IO + Drizzle/SQLite), `apps/web` (Rea
 - Přihlášení přes Microsoft Entra ID / OIDC je připravené jen jako rozhraní (`AuthProvider`).
 - Tvorbu otázek a slepé řešení dělá jazykový model agenta. Automatické testy je nahrazují hotovým
   `fixtures/quiz.json`, pro tyto kroky je v SKILL.md ruční kontrolní seznam.
+- **Třídy (Dodatek 3):** sdílení třídy s dalším učitelem (role editor/viewer) a převod do nového školního roku (C-M8)
+  zatím nejsou; oprávnění rolí jsou ale implementovaná a otestovaná. Dvoufázové přihlášení učitele není.
+  Vybrat jen některé žáky pro hru jde jen v aplikaci, ne přes API (záměrně). Vyřazení otázky z hodnocení (D6.4)
+  v kódu neexistuje, takže se po něm evidence nepřepočítává.
+- **Právní rámec tříd [OVĚŘ]:** kontrolní seznam v [Osobní údaje žáků](#osobní-údaje-žáků) není právní posudek;
+  region serveru a smluvní podmínky poskytovatele VPS je potřeba ověřit u poskytovatele.
