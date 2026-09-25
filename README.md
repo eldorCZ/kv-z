@@ -47,6 +47,7 @@ vzorový kvíz, odehraje hru s pěti simulovanými hráči a vypíše výsledky.
 | `BIND_ADDR` / `APP_PORT` | `127.0.0.1` / `3000` | Adresa a port na hostiteli, kde kontejner naslouchá. |
 | `GAME_PIN_LENGTH` | `6` | Délka PINu hry. |
 | `RETENTION_DAYS` | `365` | Po kolika dnech se mažou výsledky her a hráči. Kvízy zůstávají. |
+| `TEST_NAME_RETENTION_DAYS` | `30` | Testovací režim: po kolika dnech se jména žáků nahradí „Žák N“ (výsledky zůstávají). |
 | `API_WEBHOOK_URL` / `API_WEBHOOK_SECRET` | – | Webhook po skončení hry: `POST {gameId, quizId, status:"finished"}`, hlavička `X-KvizHub-Signature: sha256=<HMAC-SHA256 těla>`. |
 | `EXPORT_KAHOOT_MAX_Q` / `EXPORT_KAHOOT_MAX_A` | `95` / `60` | Délkové limity exportu do Kahootu (otázka / odpověď). |
 | `ALLOW_REGISTRATION` | `1` | `0` vypne registraci nových učitelů. Po založení vlastního účtu doporučeno. |
@@ -64,6 +65,7 @@ narazí žáci na limit 10 připojení za minutu. Caddy tuto hlavičku předáv�
 2. Token se zobrazí **jen jednou**, v databázi je uložen jen jeho SHA-256 otisk. Zkopírujte ho do proměnné
    `KVIZHUB_TOKEN` na serveru agenta. Nikdy ho neposílejte do chatu.
 3. Oprávnění schvalovat otázky (`quizzes:approve`) token dostat nemůže. Schvaluje jen učitel v aplikaci.
+   Oprávnění `results:pii` (jména žáků ve výsledcích testu) token standardně nemá. Agent na Telegramu ho nepotřebuje.
 4. Token jde kdykoli odvolat. V seznamu uvidíte, kdy byl naposledy použit. Každé volání API se zapíše do audit logu
    (čas, token, endpoint, stav, bez obsahu).
 
@@ -76,6 +78,25 @@ Přehled API: `GET /api/v1/openapi.json` (generováno ze zod schémat). Hlavní 
 | POST/PATCH/DELETE | `/api/v1/quizzes/{id}/questions[/{qid}]` | Přidání, úprava a smazání otázky |
 | POST | `/api/v1/quizzes/{id}/games` | Hra → `{gameId, pin, joinUrl, hostUrl}` (409, když jsou všechny otázky ke kontrole) |
 | GET | `/api/v1/games/{id}`, `/api/v1/games/{id}/results` | Stav a výsledky hry |
+
+## Testovací režim
+
+Kromě živé hry jde kvíz zadat jako **test**. Každý žák ho prochází sám na svém zařízení, vlastním tempem,
+s časovým limitem a do termínu. Nic se nepromítá a body za rychlost se nepočítají, výsledek je v procentech.
+Specifikace je v [docs/TESTOVACI-REZIM.md](docs/TESTOVACI-REZIM.md).
+
+- **Spuštění:** v kvízu **Spustit hru**, pak **Test**. Nastavíte limit v minutách, termín uzavření, zda žák zadává
+  jméno a příjmení, návrat k předchozím otázkám a co žák uvidí po odevzdání (nic, procenta, nebo procenta
+  se správnými odpověďmi). Přes API: `POST /api/v1/quizzes/{id}/games {"mode":"test","settings":{"test":{…}}}`.
+- **Žáci:** otevřou `/play` nebo QR kód a zadají PIN. Aplikace pozná test a vyžádá jméno. Odpovědi se ukládají
+  průběžně. Po obnovení stránky nebo výpadku Wi‑Fi žák pokračuje tam, kde skončil (technický token je
+  v localStorage). Po vypršení limitu se test odevzdá sám.
+- **Přehled testu** (`/tests/{id}`, jen pro učitele): stav žáků, zbývající čas a procenta. Akce: **Povolit návrat**
+  (stejné jméno z jiného zařízení převezme pokus), **Znovu otevřít** (+N minut), **Ukončit test**.
+  Detail žáka ukáže jeho odpovědi.
+- **Výsledky:** průměr, medián, úspěšnost po otázkách a export CSV. Agent dostane jen souhrn bez jmen.
+- **Hodnocení:** každá otázka dá 0–1 (u „více správných“ volitelně částečně). Váha je standard 1, dvojnásobné
+  body 2, bez bodů 0. Procenta = součet / maximum.
 
 ## Instalace skillu na agenta (Claude Code v tmux)
 
@@ -200,6 +221,7 @@ docker compose start
 - [x] Žáci nemají účty. Ukládá se jen přezdívka a odpovědi, žádné IP adresy. Jediný technický token hry je
       v sessionStorage. Nejsou tu analytické skripty, externí fonty ani CDN.
 - [x] Retence: výsledky her a hráči se mažou po `RETENTION_DAYS` (denní úloha). Kvízy zůstávají.
+      Jména žáků v testech se po `TEST_NAME_RETENTION_DAYS` nahradí „Žák N“.
 - [x] Hlavičky CSP, `X-Content-Type-Options`, `Referrer-Policy: no-referrer` a `frame-ancestors 'none'`.
       Rate limity platí na přihlášení, API a připojení do hry.
 - [x] Autentizace je výměnný provider (`local` | `oidc`).
@@ -245,7 +267,7 @@ Struktura: `apps/server` (Fastify + Socket.IO + Drizzle/SQLite), `apps/web` (Rea
   `aborted`). Pro škálování na více instancí je potřeba Socket.IO Redis adapter a sdílený stav her. Záměrně není
   součástí (jedna třída = desítky hráčů).
 - SQLite: repository vrstva (Drizzle) je oddělená, přechod na Postgres vyžaduje hlavně nové migrace.
-- Samostatný režim (`selfpaced`, volitelný milník A-M6) není implementován; API vrací 422.
+- Testovací režim vznikl podle vlastní specifikace (docs/TESTOVACI-REZIM.md), protože text původního dodatku nebyl k dispozici.
 - Přihlášení přes Microsoft Entra ID / OIDC je připravené jen jako rozhraní (`AuthProvider`).
 - Tvorbu otázek a slepé řešení dělá jazykový model agenta. Automatické testy je nahrazují hotovým
   `fixtures/quiz.json`, pro tyto kroky je v SKILL.md ruční kontrolní seznam.

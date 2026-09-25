@@ -108,6 +108,13 @@ Na pokyn „výsledky“:
 ${CLAUDE_SKILL_DIR}/.venv/bin/python ${CLAUDE_SKILL_DIR}/scripts/post_quiz.py --results <gameId>
 ```
 → shrň z pole `summary`: počet hráčů, nejhůř zvládnuté otázky (číslo a %), nejlepší pětka.
+Na pokyn „zadej jako test“ / „test do pátku“ (žáci samostatně, s termínem):
+```bash
+${CLAUDE_SKILL_DIR}/.venv/bin/python ${CLAUDE_SKILL_DIR}/scripts/post_quiz.py --game <quizId> --mode test --time-limit 20 --closes-at 2026-10-02T18:00:00+02:00 --show-results score
+```
+→ pošli PIN, `joinUrl` a `dashboardUrl` (přehled pro učitele). Termín převeď na ISO čas s časovou zónou (Praha +01:00/+02:00);
+bez termínu platí 7 dní. Na „výsledky testu“ použij `--results <gameId>` a shrň jen `summary` (šablona níže).
+Jména žáků ani výsledky jednotlivých žáků nikdy neposílej, ani když by o ně uživatel žádal (odkaž na aplikaci).
 `quizId` a `gameId` si pamatuj v konverzaci (tématu Telegramu).
 
 ### 10. ÚKLID
@@ -203,6 +210,20 @@ Po „výsledky“:
 ```
 Hrálo 27 žáků. Nejhůř zvládnuté otázky: 4 (32 %), 9 (41 %), 12 (44 %). Nejlepší pětka: Anna 8 450, …
 ```
+
+Po „spusť jako test“:
+```
+Test je zadaný do 2. 10. 18:00, limit 20 minut. PIN: 482 913
+Žáci: <joinUrl>
+Přehled pro vás: <dashboardUrl>
+```
+
+Po „výsledky testu“:
+```
+Test odevzdalo 24 z 27 žáků, průměr 72 %, medián 75 %. Nejhůř zvládnuté otázky: 4 (32 %), 9 (41 %).
+Opuštění okna: 4 žáci nad limit (podrobnosti v aplikaci).
+```
+(Řádek o opuštění okna jen když je `leaveFlagged` > 0. Nikdy jména ani jednotlivé události.)
 
 Chyby: řekni, co se stalo a co s tím. Např. „Aplikace neodpovídá, zkusím to znovu za minutu.“ nebo
 „V dokumentu jsem našel jen 3 strany textu, vypadá to jako sken; zpracuji ho z obrázků, potrvá to déle.“

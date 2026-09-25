@@ -77,3 +77,19 @@ Rozhodnutí, která zadání neurčovalo. Každé je popsané jednou větou (roz
 - **Pracovní adresář je `${CLAUDE_SKILL_DIR}/work/<datum-čas>`** a skripty se volají přes `${CLAUDE_SKILL_DIR}/.venv/bin/python`. Cestu a proměnnou jsem ověřil v dokumentaci Claude Code (code.claude.com/docs/en/skills) a spolu s `allowed-tools` to umožní spouštět skripty bez potvrzování.
 - **Extrakce DOCX považuje za nadpisy i styly „Title“ a „Název“ a české „Nadpis 1–3“** (Word v češtině).
 - **U PDF bez záložek se stránky seskupují po 3 (průměrně méně než 2 000 znaků na stranu), jinak po 2.** Opakované řádky na začátku a konci aspoň poloviny stran se berou jako záhlaví nebo zápatí.
+
+## Testovací režim (docs/TESTOVACI-REZIM.md)
+
+- **Text „DODATEK: TESTOVACÍ REŽIM“ nebyl k dispozici, proto jsem specifikaci D0–D13 sestavil sám.** Vychází z milníku A-M6 a z odkazů v Dodatku 2 a číslování sekcí odpovídá těmto odkazům.
+- **Režim se jmenuje `test`, `selfpaced` z původního kontraktu je přijímán jako synonymum,** takže původní kontrakt zůstává platný.
+- **PIN je unikátní mezi živými hrami i otevřenými testy** a žák zadává PIN na stejné stránce `/play`. Aplikace test pozná přes `GET /play/test/lookup` a přesměruje na `/test`.
+- **Studentské endpointy leží pod `/play/test` (ne `/api/v1`) a autorizují se hlavičkou `X-Player-Token`,** takže se nemíchají s tokeny učitelů ani s CSRF.
+- **Token pokusu je v localStorage (ne sessionStorage),** aby žák po zavření prohlížeče pokračoval ve stejném pokusu. U živé hry zůstává sessionStorage.
+- **Jméno žáka se ukládá do `players.nickname`** (žádný nový sloupec). Po `TEST_NAME_RETENTION_DAYS` se přepíše na „Žák N“.
+- **Pořadí otázek a míchání možností se určí pro každý pokus zvlášť při připojení** a ukládá se k pokusu, takže se po obnovení stránky nemění.
+- **Odpovědi testu používají stávající tabulku `answers`** (jedna na žáka a otázku, přepisuje se do odevzdání).
+- **Tolerance po termínu je 5 s.** Úloha každých 5 s pokus po termínu odevzdá (`expired`) a každý požadavek žáka ho vyhodnotí i sám (líně).
+- **Obsah testu se čte z aktuálního kvízu:** když učitel během testu upraví nebo smaže otázku, projeví se to. Neschválené otázky se nezobrazují.
+- **Akce přehledu (povolit návrat, znovu otevřít, detail) jsou jen pro přihlášeného učitele,** API tokeny k nim nemají přístup.
+- **Oprávnění `results:pii` je nový scope tokenu, token ho standardně nemá.** Bez něj jsou jména ve výsledcích testu nahrazena „Žák N“ (D3.5).
+- **„Povolit návrat“ platí jednou:** další připojení se stejným jménem převezme pokus a starý token přestane platit.

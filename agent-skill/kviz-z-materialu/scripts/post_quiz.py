@@ -3,7 +3,8 @@
 
 Usage:
   python post_quiz.py quiz.checked.json [--dry-run] [--params "15 otázek, 8. ročník"] [--new-key]
-  python post_quiz.py --game <quizId> [--mode live] [--leaderboard/--no-leaderboard]
+  python post_quiz.py --game <quizId> [--mode live] [--no-leaderboard]
+  python post_quiz.py --game <quizId> --mode test [--time-limit 20] [--closes-at 2026-10-01T18:00:00+02:00] [--show-results none|score|full]
   python post_quiz.py --results <gameId>
 
 Address and token come ONLY from the environment: KVIZHUB_URL, KVIZHUB_TOKEN. The token is never printed.
@@ -136,13 +137,17 @@ def post_quiz(path: Path, dry_run: bool, params: str, new_key: bool) -> tuple[in
     return 0, body
 
 
-def create_game(quiz_id: str, mode: str, leaderboard: bool) -> tuple[int, object]:
-    status, _h, body = request("POST", f"/quizzes/{quiz_id}/games", {"mode": mode, "settings": {"showLeaderboard": leaderboard}})
+def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = None) -> tuple[int, object]:
+    settings: dict = {"showLeaderboard": leaderboard}
+    if mode == "test":
+        settings = {"test": {k: v for k, v in (test or {}).items() if v is not None}}
+    status, _h, body = request("POST", f"/quizzes/{quiz_id}/games", {"mode": mode, "settings": settings})
     if status == 422:
         return 2, {"errors": (body or {}).get("errors", [])}
     if status != 201:
         raise ApiFailure(error_message(status, body), status, body)
-    return 0, {k: body[k] for k in ("gameId", "pin", "joinUrl", "hostUrl") if k in body} | {"questionCount": body.get("questionCount")}
+    keys = ("gameId", "mode", "pin", "joinUrl", "qrUrl", "dashboardUrl", "closesAt") if mode == "test" else ("gameId", "pin", "joinUrl", "hostUrl")
+    return 0, {k: body[k] for k in keys if k in body} | {"questionCount": body.get("questionCount")}
 
 
 def results(game_id: str) -> tuple[int, object]:
@@ -150,6 +155,23 @@ def results(game_id: str) -> tuple[int, object]:
     if status != 200:
         raise ApiFailure(error_message(status, body), status, body)
     per_q = body.get("perQuestion", [])
+    if body.get("mode") == "test":
+        # the agent only ever gets aggregates for tests: no names, no per-student data (D10, G7)
+        summ = body.get("summary", {})
+        hardest = sorted(per_q, key=lambda q: q.get("successRate", 0))[:3] if summ.get("submitted") else []
+        out = {
+            "mode": "test",
+            "status": body.get("status"),
+            "summary": {
+                "students": summ.get("students", 0),
+                "submitted": summ.get("submitted", 0),
+                "avgPercent": summ.get("avgPercent"),
+                "medianPercent": summ.get("medianPercent"),
+                "hardest": [{"number": q.get("number"), "percent": round(q.get("successRate", 0) * 100), "prompt": q.get("prompt")} for q in hardest],
+                "leaveFlagged": summ.get("leaveFlagged"),
+            },
+        }
+        return 0, out
     hardest = sorted((q for q in per_q if q.get("answered", 0) or body.get("playerCount")), key=lambda q: q.get("successRate", 0))[:3]
     body["summary"] = {
         "playerCount": body.get("playerCount", 0),
@@ -166,15 +188,20 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--params", default="", help="parametry zakázky (počet otázek, ročník…) do Idempotency-Key")
     ap.add_argument("--new-key", action="store_true", help="vynutit nový kvíz i ze stejných podkladů")
     ap.add_argument("--game", metavar="QUIZ_ID")
-    ap.add_argument("--mode", default="live", choices=["live", "selfpaced"])
+    ap.add_argument("--mode", default="live", choices=["live", "test", "selfpaced"])
     ap.add_argument("--no-leaderboard", action="store_true")
+    ap.add_argument("--time-limit", type=int, help="test: minut na pokus (1-240)")
+    ap.add_argument("--closes-at", help="test: termín uzavření (ISO 8601 s časovou zónou)")
+    ap.add_argument("--show-results", choices=["none", "score", "full"], help="test: co žák uvidí po odevzdání")
     ap.add_argument("--results", metavar="GAME_ID")
     args = ap.parse_args(argv)
 
     token = os.environ.get("KVIZHUB_TOKEN", "")
     try:
         if args.game:
-            code, out = create_game(args.game, args.mode, not args.no_leaderboard)
+            mode = "test" if args.mode == "selfpaced" else args.mode
+            test = {"timeLimitMin": args.time_limit, "closesAt": args.closes_at, "showResultsToStudent": args.show_results}
+            code, out = create_game(args.game, mode, not args.no_leaderboard, test)
         elif args.results:
             code, out = results(args.results)
         elif args.quiz:

@@ -194,3 +194,30 @@ def test_game_409_all_flagged(mock, capsys):
     mock.queue.append((409, {"error": "Kvíz nemá žádnou hratelnou otázku"}, {}))
     code, _, err = run(capsys, "--game", "q1")
     assert code == 1 and "hratelnou" in err
+
+
+def test_create_test_and_results_without_names(mock, capsys):
+    mock.queue.append((201, {"gameId": "t1", "mode": "test", "pin": "123456", "joinUrl": "https://k/play", "qrUrl": "https://k/play?pin=123456", "dashboardUrl": "https://k/tests/t1", "questionCount": 8, "closesAt": "2026-10-02T16:00:00Z"}, {}))
+    code, out, _ = run(capsys, "--game", "q1", "--mode", "test", "--time-limit", "25", "--show-results", "full")
+    assert code == 0
+    assert json.loads(out)["dashboardUrl"] == "https://k/tests/t1"
+    assert mock.requests[-1]["body"] == {"mode": "test", "settings": {"test": {"timeLimitMin": 25, "showResultsToStudent": "full"}}}
+    mock.queue.append(
+        (
+            200,
+            {
+                "mode": "test",
+                "status": "finished",
+                "summary": {"students": 3, "submitted": 3, "avgPercent": 70, "medianPercent": 75, "leaveFlagged": 1},
+                "students": [{"student": "Jana Nováková", "percent": 100}],
+                "perQuestion": [{"number": 1, "prompt": "P1", "successRate": 0.9}, {"number": 2, "prompt": "P2", "successRate": 0.2}],
+            },
+            {},
+        )
+    )
+    code, out, _ = run(capsys, "--results", "t1")
+    res = json.loads(out)
+    assert code == 0
+    assert res["summary"]["hardest"][0] == {"number": 2, "percent": 20, "prompt": "P2"}
+    assert res["summary"]["leaveFlagged"] == 1
+    assert "Jana" not in out and "students" not in res

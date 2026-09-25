@@ -99,7 +99,7 @@ export function buildOpenApi(publicUrl: string) {
       },
       '/quizzes/{id}/games': {
         post: {
-          summary: 'Vytvořit hru (games:write)',
+          summary: 'Vytvořit živou hru (mode "live") nebo test (mode "test", nastavení v settings.test) (games:write)',
           parameters: [idParam('id')],
           requestBody: { ...json({ $ref: '#/components/schemas/CreateGame' }) },
           responses: {
@@ -112,9 +112,10 @@ export function buildOpenApi(publicUrl: string) {
           },
         },
       },
-      '/games/{id}': { get: { summary: 'Stav hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: '{status, playerCount, currentQuestion}' }, ...std } } },
+      '/games/{id}/end': { post: { summary: 'Ukončit hru nebo test (games:write). U testu se rozpracované pokusy odevzdají.', parameters: [idParam('id')], responses: { 200: { description: 'OK' }, ...std } } },
+      '/games/{id}': { get: { summary: 'Stav hry (games:read). Test: {mode:"test", status, counts:{joined, notStarted, inProgress, submitted}, closesAt}', parameters: [idParam('id')], responses: { 200: { description: '{status, playerCount, currentQuestion}' }, ...std } } },
       '/games/{id}/results': {
-        get: { summary: 'Výsledky hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: '{ranking:[{nickname, score}], perQuestion:[{questionId, successRate, avgTimeMs}]}' }, ...std } },
+        get: { summary: 'Výsledky hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: 'Živá hra: {ranking:[{nickname, score}], perQuestion:[{questionId, successRate, avgTimeMs}]}. Test: {mode:"test", summary:{students, submitted, avgPercent, medianPercent}, students:[{student, percent, status}], perQuestion}. Jména žáků jen s oprávněním results:pii, jinak „Žák N“.' }, ...std } },
       },
     },
   };
