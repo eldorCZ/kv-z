@@ -78,7 +78,6 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     },
     bodyLimit: 2 * 1024 * 1024,
     trustProxy: cfg.trustProxy,
-    disableRequestLogging: false,
   });
 
   const db = openDb(cfg.dbPath);
@@ -127,7 +126,7 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     },
   };
 
-  setupSockets({ io, games, accounts, log: app.log, trustProxy: cfg.trustProxy, publicUrl: cfg.publicUrl });
+  setupSockets({ io, games, accounts, log: app.log, trustProxy: cfg.trustProxy, publicUrl: cfg.publicUrl, joinLimit: cfg.joinRateLimit });
 
   await app.register(cookie);
   await app.register(helmet, {
@@ -242,9 +241,11 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     return sendError(reply, 404, 'Nenalezeno.', 'not_found');
   });
 
-  app.addHook('onClose', async () => {
+  app.addHook('preClose', async () => {
     games.shutdown();
-    io.close();
+    io.disconnectSockets(true);
+  });
+  app.addHook('onClose', async () => {
     db.$client.close();
   });
 

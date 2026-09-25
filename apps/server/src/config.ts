@@ -20,6 +20,8 @@ export interface Config {
   /** host disconnect grace period before the game is ended */
   hostTimeoutMs: number;
   apiRateLimit: number;
+  /** join attempts per IP per minute */
+  joinRateLimit: number;
   authProvider: 'local' | 'oidc';
   allowRegistration: boolean;
 }
@@ -55,6 +57,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     logLevel: env.LOG_LEVEL ?? 'info',
     hostTimeoutMs: int(env.HOST_TIMEOUT_MS, 120_000),
     apiRateLimit: int(env.API_RATE_LIMIT, 60),
+    joinRateLimit: int(env.JOIN_RATE_LIMIT, 10),
     authProvider: env.AUTH_PROVIDER === 'oidc' ? 'oidc' : 'local',
     allowRegistration: (env.ALLOW_REGISTRATION ?? '1') !== '0',
     ...overrides,
