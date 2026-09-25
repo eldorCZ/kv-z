@@ -1,0 +1,63 @@
+import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
+
+export interface Config {
+  publicUrl: string;
+  sessionSecret: string;
+  bindAddr: string;
+  port: number;
+  pinLength: number;
+  retentionDays: number;
+  webhookUrl: string;
+  webhookSecret: string;
+  kahootMaxQ: number;
+  kahootMaxA: number;
+  dbPath: string;
+  webDist: string;
+  kahootTemplatePath: string;
+  trustProxy: boolean;
+  logLevel: string;
+  /** host disconnect grace period before the game is ended */
+  hostTimeoutMs: number;
+  apiRateLimit: number;
+  authProvider: 'local' | 'oidc';
+  allowRegistration: boolean;
+}
+
+const repoRoot = join(import.meta.dirname, '../../..');
+
+function int(v: string | undefined, d: number): number {
+  const n = Number.parseInt(v ?? '', 10);
+  return Number.isFinite(n) ? n : d;
+}
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Partial<Config> = {}): Config {
+  let sessionSecret = env.SESSION_SECRET ?? '';
+  if (sessionSecret.length < 32) {
+    if (env.NODE_ENV === 'production') throw new Error('SESSION_SECRET musí mít alespoň 32 znaků (vygenerujte: openssl rand -hex 32).');
+    sessionSecret = randomBytes(32).toString('hex');
+  }
+  const cfg: Config = {
+    publicUrl: (env.PUBLIC_URL ?? 'http://localhost:3000').replace(/\/+$/, ''),
+    sessionSecret,
+    bindAddr: env.BIND_ADDR ?? '127.0.0.1',
+    port: int(env.APP_PORT, 3000),
+    pinLength: int(env.GAME_PIN_LENGTH, 6),
+    retentionDays: int(env.RETENTION_DAYS, 365),
+    webhookUrl: env.API_WEBHOOK_URL ?? '',
+    webhookSecret: env.API_WEBHOOK_SECRET ?? '',
+    kahootMaxQ: int(env.EXPORT_KAHOOT_MAX_Q, 95),
+    kahootMaxA: int(env.EXPORT_KAHOOT_MAX_A, 60),
+    dbPath: env.DB_PATH ?? join(repoRoot, 'data/kvizhub.db'),
+    webDist: env.WEB_DIST ?? join(repoRoot, 'apps/web/dist'),
+    kahootTemplatePath: env.KAHOOT_TEMPLATE_PATH ?? join(repoRoot, 'fixtures/kahoot-template.xlsx'),
+    trustProxy: (env.TRUST_PROXY ?? '1') !== '0',
+    logLevel: env.LOG_LEVEL ?? 'info',
+    hostTimeoutMs: int(env.HOST_TIMEOUT_MS, 120_000),
+    apiRateLimit: int(env.API_RATE_LIMIT, 60),
+    authProvider: env.AUTH_PROVIDER === 'oidc' ? 'oidc' : 'local',
+    allowRegistration: (env.ALLOW_REGISTRATION ?? '1') !== '0',
+    ...overrides,
+  };
+  return cfg;
+}
