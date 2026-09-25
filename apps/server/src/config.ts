@@ -10,6 +10,8 @@ export interface Config {
   retentionDays: number;
   /** test mode: student names are replaced by "Žák N" after this many days (D9) */
   testNameRetentionDays: number;
+  /** leave guard: missing heartbeats longer than this are stored as unconfirmed gaps (G4.4) */
+  heartbeatGapSec: number;
   webhookUrl: string;
   webhookSecret: string;
   kahootMaxQ: number;
@@ -50,6 +52,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     pinLength: int(env.GAME_PIN_LENGTH, 6),
     retentionDays: int(env.RETENTION_DAYS, 365),
     testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
+    heartbeatGapSec: int(env.HEARTBEAT_GAP_SEC, 25),
     webhookUrl: env.API_WEBHOOK_URL ?? '',
     webhookSecret: env.API_WEBHOOK_SECRET ?? '',
     kahootMaxQ: int(env.EXPORT_KAHOOT_MAX_Q, 95),

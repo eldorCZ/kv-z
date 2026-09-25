@@ -24,6 +24,7 @@ import type { Attempt, AttemptRepo } from '../repo/attempts.js';
 import type { GameRepo, GameRow } from '../repo/games.js';
 import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
 import { newId, sha256 } from '../util.js';
+import { guardOf, type ClientEvent, type LeaveGuardService } from './leave-guard.js';
 
 /** Answers are accepted this long after the deadline (network latency). */
 export const DEADLINE_GRACE_MS = 5000;
@@ -51,6 +52,7 @@ export class TestService {
     private readonly manager: GameManager,
     private readonly log: FastifyBaseLogger,
     readonly now: () => number,
+    readonly guard: LeaveGuardService,
   ) {}
 
   isOpenPin(pin: string) {
@@ -125,7 +127,13 @@ export class TestService {
   counts(g: GameRow) {
     const list = this.attempts.listForGame(g.id);
     const by = (s: string[]) => list.filter((x) => s.includes(x.attempt.status)).length;
-    return { joined: list.length, notStarted: by(['not_started']), inProgress: by(['in_progress']), submitted: by(['submitted', 'expired']) };
+    return {
+      joined: list.length,
+      notStarted: by(['not_started']),
+      inProgress: by(['in_progress']),
+      submitted: by(['submitted', 'expired']),
+      locked: list.filter((x) => x.attempt.lockedAt !== null && x.attempt.status === 'in_progress').length,
+    };
   }
 
   status(g: GameRow) {
@@ -153,7 +161,23 @@ export class TestService {
         startedAt: a.startedAt,
         submittedAt: a.submittedAt,
         allowReturn: a.allowReturn,
+        ...this.guardFields(g, a),
       })),
+    };
+  }
+
+  /** Leave guard columns for the teacher (G6). */
+  private guardFields(g: GameRow, a: Attempt) {
+    const guard = guardOf(g);
+    return {
+      leaveCount: a.leaveCount,
+      leaveTotal: a.leaveTotal,
+      awaySec: Math.round(a.awayTotalMs / 1000),
+      locked: a.lockedAt !== null,
+      guardExempt: a.guardExempt,
+      unconfirmedGap: this.guard.hasGap(a.id),
+      fullscreenSupported: a.fullscreenSupported,
+      overLimit: guard.mode !== 'off' && a.leaveTotal > guard.maxLeaves,
     };
   }
 
@@ -172,6 +196,7 @@ export class TestService {
       deadlineAt: a.deadlineAt,
       submittedAt: a.submittedAt,
       percent: a.percent,
+      events: this.guard.timeline(a),
       questions: qs.map((q, i) => {
         const payload = answers.get(q.id);
         const r = payload === undefined ? null : checkAnswer(q, payload, { partialMulti: g.settings.partialMulti, ignoreDiacritics: g.settings.ignoreDiacritics });
@@ -223,6 +248,11 @@ export class TestService {
       this.finalize(g, a, 'expired', a.deadlineAt ?? now);
       expired++;
     }
+    for (const id of this.guard.withOpenLeaves()) {
+      const a = this.attempts.get(id);
+      const g = a ? this.games.get(a.gameId) : undefined;
+      if (a && g) this.guard.evaluateOpen(g, a, now);
+    }
     for (const id of this.attempts.openTestsClosingBefore(now - DEADLINE_GRACE_MS)) {
       const g = this.games.get(id);
       if (g) this.end(g);
@@ -239,7 +269,11 @@ export class TestService {
       percent: a.percent,
       status: a.status,
       submittedAt: a.submittedAt,
+      leaveCount: a.leaveTotal,
+      awaySec: Math.round(a.awayTotalMs / 1000),
+      locked: a.lockedAt !== null,
     }));
+    const guardSettings = guardOf(g);
     const done = list.filter((x) => x.attempt.status === 'submitted' || x.attempt.status === 'expired');
     const percents = done.map((x) => x.attempt.percent ?? 0).sort((a, b) => a - b);
     const qs = this.questionsFor(g, g.questionIds);
@@ -273,6 +307,7 @@ export class TestService {
         submitted: done.length,
         avgPercent: percents.length ? Math.round(percents.reduce((a, b) => a + b, 0) / percents.length) : null,
         medianPercent: median,
+        leaveFlagged: guardSettings.mode === 'off' ? 0 : list.filter((x) => x.attempt.leaveTotal > guardSettings.maxLeaves).length,
       },
       students,
       perQuestion,
@@ -287,13 +322,21 @@ export class TestService {
       return /[";\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
     const statusCs: Record<string, string> = { not_started: 'nezačal', in_progress: 'rozpracováno', submitted: 'odevzdáno', expired: 'vypršel čas' };
-    const header = ['Žák', 'Procenta', 'Stav', 'Odevzdáno', ...res.perQuestion.flatMap((q) => [`Otázka ${q.number}`, `Otázka ${q.number} správně`])];
+    const header = ['Žák', 'Procenta', 'Stav', 'Odevzdáno', 'Počet opuštění okna', 'Doba mimo okno (s)', 'Zamčeno', ...res.perQuestion.flatMap((q) => [`Otázka ${q.number}`, `Otázka ${q.number} správně`])];
     const lines = [header.map(cell).join(';')];
     const sorted = [...res.students].sort((a, b) => a.student.localeCompare(b.student, 'cs'));
     for (const s of sorted) {
       const d = this.detail(g, s.attemptId);
       const byQ = new Map(d.questions.map((q) => [q.questionId, q]));
-      const cols: unknown[] = [s.student, s.percent ?? '', statusCs[s.status] ?? s.status, s.submittedAt ? new Date(s.submittedAt).toISOString() : ''];
+      const cols: unknown[] = [
+        s.student,
+        s.percent ?? '',
+        statusCs[s.status] ?? s.status,
+        s.submittedAt ? new Date(s.submittedAt).toISOString() : '',
+        s.leaveCount,
+        s.awaySec,
+        s.locked ? 'ano' : 'ne',
+      ];
       for (const q of res.perQuestion) {
         const a = byQ.get(q.questionId);
         cols.push(a?.answer ?? '', a?.answer === null || !a ? '' : a.correct ? 'ano' : a.fraction > 0 ? 'částečně' : 'ne');
@@ -354,6 +397,7 @@ export class TestService {
       this.finalize(game, attempt, 'expired', attempt.deadlineAt);
       attempt = this.attempts.get(attempt.id)!;
     }
+    attempt = this.guard.evaluateOpen(game, attempt, this.now());
     return { attempt, nickname: found.nickname, game, test: testOf(game) };
   }
 
@@ -383,8 +427,13 @@ export class TestService {
       closesAt: t.closesAt,
       allowBackNavigation: t.allowBackNavigation,
       remainingSec: a.status === 'in_progress' && a.deadlineAt !== null ? Math.max(0, Math.ceil((a.deadlineAt - now) / 1000)) : null,
+      leaveGuard: guardOf(g),
+      guardExempt: a.guardExempt,
+      leaveCount: a.leaveCount,
+      locked: a.lockedAt !== null,
     };
     if (a.status === 'not_started') return base;
+    if (a.status === 'in_progress' && a.lockedAt !== null) this.lockedError();
     if (a.status === 'in_progress') {
       const qs = this.questionsFor(g, a.questionIds);
       const stored = this.attempts.answers(a.playerId);
@@ -421,8 +470,13 @@ export class TestService {
     };
   }
 
+  private lockedError(): never {
+    throw new HttpError(423, 'Test je zamčený, protože jsi opakovaně opustil okno. Přihlas se učiteli.', 'locked');
+  }
+
   saveAnswer(ctx: StudentCtx, questionId: string, payload: unknown) {
     const { attempt: a, game: g } = ctx;
+    if (a.status === 'in_progress' && a.lockedAt !== null) this.lockedError();
     if (a.status === 'not_started') throw new HttpError(409, 'Test ještě nezačal. Klikněte na „Začít test“.', 'not_started');
     if (a.status !== 'in_progress') throw new HttpError(409, 'Test je odevzdaný, odpovědi už nelze měnit.', 'submitted');
     const now = this.now();
@@ -437,9 +491,47 @@ export class TestService {
     return { saved: true, remainingSec: a.deadlineAt !== null ? Math.max(0, Math.ceil((a.deadlineAt - now) / 1000)) : null };
   }
 
+  // ------------------------------------------------------------------ leave guard (Dodatek 2)
+
+  events(ctx: StudentCtx, events: ClientEvent[]) {
+    this.guard.record(ctx.game, ctx.attempt, events, this.now());
+  }
+
+  heartbeat(ctx: StudentCtx, body: { fullscreenSupported?: unknown }) {
+    const now = this.now();
+    const a = ctx.attempt.status === 'in_progress' ? this.guard.heartbeat(ctx.game, ctx.attempt, body, now) : ctx.attempt;
+    const guard = guardOf(ctx.game);
+    return {
+      status: a.status,
+      locked: a.lockedAt !== null && a.status === 'in_progress',
+      remainingSec: a.status === 'in_progress' && a.deadlineAt !== null ? Math.max(0, Math.ceil((a.deadlineAt - now) / 1000)) : null,
+      serverTimeMs: now,
+      leaveCount: a.leaveCount,
+      maxLeaves: guard.maxLeaves,
+      guardExempt: a.guardExempt,
+    };
+  }
+
+  private attemptOf(g: GameRow, attemptId: string) {
+    const a = this.attempts.get(attemptId);
+    if (!a || a.gameId !== g.id) throw new HttpError(404, 'Pokus nenalezen.', 'not_found');
+    return a;
+  }
+
+  unlock(g: GameRow, attemptId: string, extraMinutes: number) {
+    const a = this.attemptOf(g, attemptId);
+    if (a.lockedAt === null) throw new HttpError(409, 'Pokus není zamčený.', 'not_locked');
+    this.guard.unlock(a, extraMinutes);
+  }
+
+  setExempt(g: GameRow, attemptId: string, exempt: boolean) {
+    this.guard.setExempt(this.attemptOf(g, attemptId), exempt);
+  }
+
   submit(ctx: StudentCtx) {
     const { attempt: a, game: g } = ctx;
     if (a.status === 'not_started') throw new HttpError(409, 'Test ještě nezačal.', 'not_started');
+    if (a.status === 'in_progress' && a.lockedAt !== null) this.lockedError();
     if (a.status === 'in_progress') this.finalize(g, a, 'submitted', this.now());
     return this.view({ ...ctx, attempt: this.attempts.get(a.id)! });
   }

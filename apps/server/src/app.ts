@@ -17,6 +17,7 @@ import { GameRepo } from './repo/games.js';
 import { QuizRepo } from './repo/quizzes.js';
 import { AttemptRepo } from './repo/attempts.js';
 import { TestService } from './test-mode/service.js';
+import { LeaveGuardService } from './test-mode/leave-guard.js';
 import { playTestRoutes } from './routes/play-test.js';
 import { authRoutes } from './routes/auth.js';
 import { gameRoutes } from './routes/games.js';
@@ -116,7 +117,8 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     onFinished: (g) => void hooks.gameService?.notifyFinished(g),
   });
   const attempts = new AttemptRepo(db);
-  const testService = new TestService(cfg, gameRepo, attempts, quizzes, games, app.log, now);
+  const leaveGuard = new LeaveGuardService(db, attempts, cfg.heartbeatGapSec * 1000);
+  const testService = new TestService(cfg, gameRepo, attempts, quizzes, games, app.log, now, leaveGuard);
   const gameService = new GameService(cfg, gameRepo, quizzes, games, app.log, (p) => testService.isOpenPin(p));
   hooks.gameService = gameService;
 

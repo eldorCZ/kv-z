@@ -20,6 +20,14 @@ export interface Attempt {
   questionIds: string[];
   optionPerms: Record<string, number[]>;
   createdAt: number;
+  // leave guard (Dodatek 2)
+  leaveCount: number;
+  leaveTotal: number;
+  awayTotalMs: number;
+  lockedAt: number | null;
+  guardExempt: boolean;
+  lastHeartbeatAt: number | null;
+  fullscreenSupported: boolean | null;
 }
 
 type Row = typeof attempts.$inferSelect;
@@ -40,10 +48,38 @@ function toAttempt(r: Row): Attempt {
     questionIds: JSON.parse(r.questionIdsJson),
     optionPerms: JSON.parse(r.optionPermsJson),
     createdAt: r.createdAt,
+    leaveCount: r.leaveCount,
+    leaveTotal: r.leaveTotal,
+    awayTotalMs: r.awayTotalMs,
+    lockedAt: r.lockedAt,
+    guardExempt: r.guardExempt === 1,
+    lastHeartbeatAt: r.lastHeartbeatAt,
+    fullscreenSupported: r.fullscreenSupported === null ? null : r.fullscreenSupported === 1,
   };
 }
 
-export type AttemptPatch = Partial<Pick<Attempt, 'status' | 'startedAt' | 'deadlineAt' | 'submittedAt' | 'allowReturn' | 'percent' | 'score' | 'maxScore'>>;
+export type AttemptPatch = Partial<
+  Pick<
+    Attempt,
+    | 'status'
+    | 'startedAt'
+    | 'deadlineAt'
+    | 'submittedAt'
+    | 'allowReturn'
+    | 'percent'
+    | 'score'
+    | 'maxScore'
+    | 'leaveCount'
+    | 'leaveTotal'
+    | 'awayTotalMs'
+    | 'lockedAt'
+    | 'guardExempt'
+    | 'lastHeartbeatAt'
+    | 'fullscreenSupported'
+  >
+>;
+
+const BOOL_COLUMNS = new Set(['allowReturn', 'guardExempt', 'fullscreenSupported']);
 
 export class AttemptRepo {
   constructor(private readonly db: Db) {}
@@ -91,7 +127,7 @@ export class AttemptRepo {
 
   update(id: string, patch: AttemptPatch) {
     const set: Partial<Row> = {};
-    for (const [k, v] of Object.entries(patch)) (set as Record<string, unknown>)[k] = k === 'allowReturn' ? (v ? 1 : 0) : v;
+    for (const [k, v] of Object.entries(patch)) (set as Record<string, unknown>)[k] = BOOL_COLUMNS.has(k) && v !== null ? (v ? 1 : 0) : v;
     if (Object.keys(set).length) this.db.update(attempts).set(set).where(eq(attempts.id, id)).run();
   }
 

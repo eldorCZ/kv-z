@@ -134,6 +134,30 @@ export const MIGRATIONS: string[] = [
   CREATE INDEX attempts_game ON attempts(game_id);
   CREATE INDEX attempts_deadline ON attempts(status, deadline_at);
   `,
+  // 3: leave guard (Dodatek 2, G4.1)
+  `
+  ALTER TABLE attempts ADD COLUMN leave_count INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE attempts ADD COLUMN leave_total INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE attempts ADD COLUMN away_total_ms INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE attempts ADD COLUMN locked_at INTEGER;
+  ALTER TABLE attempts ADD COLUMN guard_exempt INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE attempts ADD COLUMN last_heartbeat_at INTEGER;
+  ALTER TABLE attempts ADD COLUMN fullscreen_supported INTEGER;
+  CREATE TABLE attempt_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    attempt_id TEXT NOT NULL REFERENCES attempts(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,
+    reason TEXT,
+    source TEXT NOT NULL,
+    at INTEGER NOT NULL,
+    client_ts INTEGER,
+    duration_ms INTEGER,
+    counted INTEGER NOT NULL DEFAULT 0,
+    seq INTEGER
+  );
+  CREATE INDEX attempt_events_attempt ON attempt_events(attempt_id, at);
+  CREATE UNIQUE INDEX attempt_events_seq ON attempt_events(attempt_id, seq);
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

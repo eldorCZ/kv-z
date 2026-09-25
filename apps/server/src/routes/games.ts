@@ -89,6 +89,23 @@ export const gameRoutes =
       return s.testService.dashboard(g);
     });
 
+    // leave guard (Dodatek 2, G4.5, G4.6) – teacher only, not available to API tokens (G7)
+    app.post<AttemptParams>('/games/:id/attempts/:aid/unlock', { config: { sessionOnly: true } }, async (req, reply) => {
+      const g = ownedTest(req.params.id, req.auth!.teacherId, reply);
+      if (!g) return;
+      const extra = Number((req.body as { extraMinutes?: unknown } | undefined)?.extraMinutes ?? 0);
+      if (!Number.isInteger(extra) || extra < 0 || extra > 30) return sendError(reply, 400, 'Kompenzace musí být 0–30 minut.', 'invalid');
+      s.testService.unlock(g, req.params.aid, extra);
+      return s.testService.dashboard(g);
+    });
+
+    app.post<AttemptParams>('/games/:id/attempts/:aid/exempt', { config: { sessionOnly: true } }, async (req, reply) => {
+      const g = ownedTest(req.params.id, req.auth!.teacherId, reply);
+      if (!g) return;
+      s.testService.setExempt(g, req.params.aid, (req.body as { exempt?: unknown } | undefined)?.exempt !== false);
+      return s.testService.dashboard(g);
+    });
+
     app.post<GameParams>('/games/:id/end', { config: { scope: 'games:write' } }, async (req, reply) => {
       const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
       if (!g) return;

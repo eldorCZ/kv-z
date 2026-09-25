@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { leaveGuardSchema } from './leave-guard.js';
 import { normalizeText } from './text.js';
 
 export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'short', 'numeric', 'order'] as const;
@@ -212,6 +213,7 @@ export const testSettingsSchema = z
     requireName: z.boolean().default(true),
     allowBackNavigation: z.boolean().default(true),
     showResultsToStudent: z.enum(SHOW_RESULTS).default('score'),
+    leaveGuard: leaveGuardSchema.default({ mode: 'warn', maxLeaves: 2, onExceed: 'notify', requireFullscreen: false, minLeaveMs: 1000 }),
   })
   .superRefine((t, ctx) => {
     if (t.opensAt && t.closesAt && Date.parse(t.closesAt) <= Date.parse(t.opensAt)) {

@@ -9,6 +9,7 @@ export const playTestRoutes =
   async (app) => {
     const joinLimiter = new RateLimiter(s.cfg.joinRateLimit, 60_000);
     const tokenLimiter = new RateLimiter(20, 1000);
+    const guardLimiter = new RateLimiter(10, 1000);
 
     app.addHook('onRequest', async (_req, reply) => {
       reply.header('cache-control', 'no-store');
@@ -51,6 +52,28 @@ export const playTestRoutes =
       if (!ctx) return;
       const body = (req.body ?? {}) as { payload?: unknown };
       return s.testService.saveAnswer(ctx, req.params.qid, body.payload);
+    });
+
+    // ---------- leave guard (Dodatek 2, G4.2) ----------
+    /** sendBeacon cannot set headers, so this endpoint also accepts playerToken in the body (G3.3). */
+    app.post('/events', { config: { public: true } }, async (req, reply) => {
+      const body = (req.body ?? {}) as { events?: unknown; playerToken?: unknown };
+      const token = req.headers['x-player-token'] ?? body.playerToken;
+      if (typeof token === 'string' && guardLimiter.hit(`e:${token}`)) return sendError(reply, 429, 'Příliš mnoho požadavků.', 'rate_limited');
+      const ctx = s.testService.resolve(token);
+      const events = Array.isArray(body.events) ? body.events.slice(0, 50) : [];
+      s.testService.events(
+        ctx,
+        events.filter((e): e is { type: 'leave_start' | 'leave_end'; reason?: string; clientTs?: number; seq: number } => !!e && typeof e === 'object' && (e.type === 'leave_start' || e.type === 'leave_end')),
+      );
+      return reply.code(204).send();
+    });
+
+    app.post('/heartbeat', { config: { public: true } }, async (req, reply) => {
+      const token = req.headers['x-player-token'];
+      if (typeof token === 'string' && guardLimiter.hit(`h:${token}`)) return sendError(reply, 429, 'Příliš mnoho požadavků.', 'rate_limited');
+      const ctx = s.testService.resolve(token);
+      return s.testService.heartbeat(ctx, (req.body ?? {}) as { fullscreenSupported?: unknown });
     });
 
     app.post('/submit', { config: { public: true } }, async (req, reply) => {

@@ -147,6 +147,30 @@ export const attempts = sqliteTable(
     questionIdsJson: text('question_ids_json').notNull(),
     optionPermsJson: text('option_perms_json').notNull(),
     createdAt: integer('created_at').notNull(),
+    leaveCount: integer('leave_count').notNull().default(0),
+    leaveTotal: integer('leave_total').notNull().default(0),
+    awayTotalMs: integer('away_total_ms').notNull().default(0),
+    lockedAt: integer('locked_at'),
+    guardExempt: integer('guard_exempt').notNull().default(0),
+    lastHeartbeatAt: integer('last_heartbeat_at'),
+    fullscreenSupported: integer('fullscreen_supported'),
   },
   (t) => [index('attempts_game').on(t.gameId), index('attempts_deadline').on(t.status, t.deadlineAt)],
+);
+
+export const attemptEvents = sqliteTable(
+  'attempt_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    attemptId: text('attempt_id').notNull().references(() => attempts.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    reason: text('reason'),
+    source: text('source').notNull(),
+    at: integer('at').notNull(),
+    clientTs: integer('client_ts'),
+    durationMs: integer('duration_ms'),
+    counted: integer('counted').notNull().default(0),
+    seq: integer('seq'),
+  },
+  (t) => [index('attempt_events_attempt').on(t.attemptId, t.at), uniqueIndex('attempt_events_seq').on(t.attemptId, t.seq)],
 );
