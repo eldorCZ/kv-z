@@ -16,6 +16,9 @@ import { AccountRepo, APPROVE_SCOPE, TOKEN_SCOPES, type Scope } from './repo/acc
 import { GameRepo } from './repo/games.js';
 import { QuizRepo } from './repo/quizzes.js';
 import { AttemptRepo } from './repo/attempts.js';
+import { ClassService } from './classes/service.js';
+import { EvidenceService } from './classes/evidence.js';
+import { classRoutes } from './routes/classes.js';
 import { TestService } from './test-mode/service.js';
 import { LeaveGuardService } from './test-mode/leave-guard.js';
 import { playTestRoutes } from './routes/play-test.js';
@@ -60,6 +63,8 @@ export interface Services {
   loginLimiter: RateLimiter;
   kahootTemplate: () => Buffer;
   attempts: AttemptRepo;
+  classes: ClassService;
+  evidence: EvidenceService;
   testService: TestService;
   now: () => number;
 }
@@ -134,6 +139,8 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     auth: createAuthProvider(cfg.authProvider, accounts),
     loginLimiter: new RateLimiter(10, 60_000),
     attempts,
+    classes: new ClassService(cfg, db, now),
+    evidence: new EvidenceService(cfg, db, now),
     testService,
     now,
     kahootTemplate: () => {
@@ -230,7 +237,11 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   });
 
   app.setErrorHandler((err: Error & { statusCode?: number; code?: string }, req, reply) => {
-    if (err instanceof HttpError) return sendError(reply, err.status, err.message, err.code);
+    if (err instanceof HttpError) {
+      const errors = (err as HttpError & { errors?: unknown[] }).errors;
+      if (err.status === 422 && errors) return reply.code(422).send({ errors });
+      return sendError(reply, err.status, err.message, err.code);
+    }
     if (err.code === 'FST_ERR_CTP_BODY_TOO_LARGE') return sendError(reply, 413, 'Tělo požadavku je příliš velké (max. 2 MB).', 'too_large');
     if (err.code === 'FST_ERR_CTP_INVALID_MEDIA_TYPE') return sendError(reply, 415, 'Pošlete data jako JSON (Content-Type: application/json).', 'unsupported_media_type');
     if (err.statusCode === 400 || err.code === 'FST_ERR_CTP_EMPTY_JSON_BODY') {
@@ -247,6 +258,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   await app.register(quizRoutes(services), { prefix: '/api/v1' });
   await app.register(gameRoutes(services), { prefix: '/api/v1' });
   await app.register(openapiRoutes(services), { prefix: '/api/v1' });
+  await app.register(classRoutes(services), { prefix: '/api/v1' });
   await app.register(playTestRoutes(services), { prefix: '/play/test' });
 
   // D5.6: expire attempts after their deadline and close tests (every 5 s)

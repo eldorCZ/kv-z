@@ -33,7 +33,7 @@ export class LocalAuthProvider implements AuthProvider {
   async register(email: string, password: string): Promise<AuthenticatedTeacher> {
     const normalized = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) || normalized.length > 200) throw new RegistrationError('Zadejte platný e-mail.');
-    if (password.length < 10) throw new RegistrationError('Heslo musí mít alespoň 10 znaků.');
+    if (password.length < 12) throw new RegistrationError('Heslo musí mít alespoň 12 znaků.');
     if (password.length > 200) throw new RegistrationError('Heslo je příliš dlouhé.');
     if (this.accounts.findTeacherByEmail(normalized)) throw new RegistrationError('Účet s tímto e-mailem už existuje. Přihlaste se.');
     const t = this.accounts.createTeacher(normalized, await hashPassword(password));

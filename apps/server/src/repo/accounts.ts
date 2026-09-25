@@ -3,14 +3,16 @@ import type { Db } from '../db/index.js';
 import { apiTokens, auditLog, sessions, teachers } from '../db/schema.js';
 import { newId, sha256 } from '../util.js';
 
-export const TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read', 'results:pii'] as const;
+export const TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read', 'classes:read', 'results:pii'] as const;
 /** Scopes a new token gets when none are specified; results:pii (student names) must be requested explicitly. */
-export const DEFAULT_TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read'] as const;
+export const DEFAULT_TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read', 'classes:read'] as const;
 /** Only teacher sessions hold this scope; API tokens can never get it (contract 2.1, 2.5). */
 export const APPROVE_SCOPE = 'quizzes:approve';
 export type Scope = (typeof TOKEN_SCOPES)[number] | typeof APPROVE_SCOPE;
 
-export const SESSION_TTL_MS = 30 * 24 * 3600 * 1000;
+/** C9.10: at most 12 hours, and 60 minutes without activity. */
+export const SESSION_TTL_MS = 12 * 3600 * 1000;
+export const SESSION_IDLE_MS = 60 * 60 * 1000;
 
 export class AccountRepo {
   constructor(private readonly db: Db) {}
@@ -31,12 +33,15 @@ export class AccountRepo {
 
   createSession(teacherId: string, sessionId: string) {
     const now = Date.now();
-    this.db.insert(sessions).values({ idHash: sha256(sessionId), teacherId, createdAt: now, expiresAt: now + SESSION_TTL_MS }).run();
+    this.db.insert(sessions).values({ idHash: sha256(sessionId), teacherId, createdAt: now, expiresAt: now + SESSION_TTL_MS, lastSeenAt: now }).run();
   }
 
   getSession(sessionId: string) {
     const s = this.db.select().from(sessions).where(eq(sessions.idHash, sha256(sessionId))).get();
-    if (!s || s.expiresAt < Date.now()) return undefined;
+    const now = Date.now();
+    if (!s || s.expiresAt < now || (s.lastSeenAt ?? s.createdAt) + SESSION_IDLE_MS < now) return undefined;
+    // sliding idle window; written at most once a minute
+    if (now - (s.lastSeenAt ?? 0) > 60_000) this.db.update(sessions).set({ lastSeenAt: now }).where(eq(sessions.idHash, s.idHash)).run();
     return s;
   }
 

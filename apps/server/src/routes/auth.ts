@@ -5,6 +5,7 @@ import { csrfToken, sendError, type Services } from '../app.js';
 import { RegistrationError } from '../auth/provider.js';
 import { SESSION_COOKIE } from '../game/socket.js';
 import { SESSION_TTL_MS } from '../repo/accounts.js';
+import { classesEnabled } from '../config.js';
 import { seedSampleQuiz } from '../seed.js';
 
 const credentials = z.object({ email: z.string().max(200), password: z.string().max(200) });
@@ -31,6 +32,7 @@ export const authRoutes =
     app.get('/config', { config: { public: true } }, async () => ({
       provider: s.auth.name,
       allowRegistration: s.cfg.allowRegistration && s.auth.supportsPassword,
+      classesEnabled: classesEnabled(s.cfg),
     }));
 
     app.post('/register', { config: { public: true } }, async (req, reply) => {

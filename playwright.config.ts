@@ -32,6 +32,7 @@ export default defineConfig({
       SESSION_SECRET: 'e2e-secret-e2e-secret-e2e-secret-0123456789',
       LOG_LEVEL: 'warn',
       JOIN_RATE_LIMIT: '100',
+      CODE_PEPPER: 'e2e-pepper-0123456789abcdef0123456789abcdef',
     },
   },
 });

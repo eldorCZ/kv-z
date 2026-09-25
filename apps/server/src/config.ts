@@ -12,6 +12,13 @@ export interface Config {
   testNameRetentionDays: number;
   /** leave guard: missing heartbeats longer than this are stored as unconfirmed gaps (G4.4) */
   heartbeatGapSec: number;
+  // Dodatek 3 (C9.4): classes are enabled only with a CODE_PEPPER of >= 32 characters
+  codePepper: string;
+  classRetentionMonths: number;
+  accessLogRetentionMonths: number;
+  minTopicItems: number;
+  minAggregateStudents: number;
+  maxStudentsPerClass: number;
   webhookUrl: string;
   webhookSecret: string;
   kahootMaxQ: number;
@@ -53,6 +60,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     retentionDays: int(env.RETENTION_DAYS, 365),
     testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
     heartbeatGapSec: int(env.HEARTBEAT_GAP_SEC, 25),
+    codePepper: env.CODE_PEPPER ?? '',
+    classRetentionMonths: int(env.CLASS_RETENTION_MONTHS, 12),
+    accessLogRetentionMonths: int(env.ACCESS_LOG_RETENTION_MONTHS, 24),
+    minTopicItems: int(env.MIN_TOPIC_ITEMS, 5),
+    minAggregateStudents: int(env.MIN_AGGREGATE_STUDENTS, 5),
+    maxStudentsPerClass: int(env.MAX_STUDENTS_PER_CLASS, 60),
     webhookUrl: env.API_WEBHOOK_URL ?? '',
     webhookSecret: env.API_WEBHOOK_SECRET ?? '',
     kahootMaxQ: int(env.EXPORT_KAHOOT_MAX_Q, 95),
@@ -72,3 +85,5 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
   };
   return cfg;
 }
+
+export const classesEnabled = (cfg: Config) => cfg.codePepper.length >= 32;

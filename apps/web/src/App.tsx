@@ -8,6 +8,9 @@ import Login from './pages/Login';
 import Play from './pages/Play';
 import TestPlay from './pages/TestPlay';
 import TestDashboard from './pages/TestDashboard';
+import ClassesPage from './classes/ClassesPage';
+import ClassDetail from './classes/ClassDetail';
+import CodePage from './pages/CodePage';
 import QuizReview from './pages/QuizReview';
 import Quizzes from './pages/Quizzes';
 import Tokens from './pages/Tokens';
@@ -18,6 +21,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/play" element={<Play />} />
       <Route path="/test" element={<TestPlay />} />
+      <Route path="/kod" element={<CodePage />} />
       <Route path="/host/:gameId" element={<Host />} />
       <Route
         element={
@@ -32,6 +36,8 @@ export default function App() {
         <Route path="/games" element={<Games />} />
         <Route path="/games/:id" element={<GameResults />} />
         <Route path="/tests/:id" element={<TestDashboard />} />
+        <Route path="/classes" element={<ClassesPage />} />
+        <Route path="/classes/:id" element={<ClassDetail />} />
         <Route path="/settings/tokens" element={<Tokens />} />
       </Route>
       <Route path="*" element={<Navigate to="/quizzes" replace />} />
