@@ -24,6 +24,7 @@ export interface Config {
   joinRateLimit: number;
   authProvider: 'local' | 'oidc';
   allowRegistration: boolean;
+  seedSampleQuiz: boolean;
 }
 
 const repoRoot = join(import.meta.dirname, '../../..');
@@ -60,6 +61,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     joinRateLimit: int(env.JOIN_RATE_LIMIT, 10),
     authProvider: env.AUTH_PROVIDER === 'oidc' ? 'oidc' : 'local',
     allowRegistration: (env.ALLOW_REGISTRATION ?? '1') !== '0',
+    seedSampleQuiz: (env.SEED_SAMPLE_QUIZ ?? '1') !== '0',
     ...overrides,
   };
   return cfg;

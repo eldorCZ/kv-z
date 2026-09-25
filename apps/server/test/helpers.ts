@@ -11,7 +11,7 @@ export const fixture = (p: string) => JSON.parse(readFileSync(join(root, 'fixtur
 
 export async function startApp(overrides: Partial<Config> = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'kvizhub-test-'));
-  const cfg = loadConfig({ LOG_LEVEL: 'silent' } as NodeJS.ProcessEnv, { dbPath: join(dir, 'test.db'), webDist: join(dir, 'nodist'), logLevel: 'silent', ...overrides });
+  const cfg = loadConfig({ LOG_LEVEL: 'silent' } as NodeJS.ProcessEnv, { dbPath: join(dir, 'test.db'), webDist: join(dir, 'nodist'), logLevel: 'silent', seedSampleQuiz: false, ...overrides });
   const built = await buildApp(cfg);
   await built.app.listen({ host: '127.0.0.1', port: 0 });
   const port = (built.app.server.address() as AddressInfo).port;

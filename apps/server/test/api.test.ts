@@ -246,7 +246,7 @@ describe('exports', () => {
     });
     expect(r.status).toBe(200);
     expect(r.headers['content-type']).toContain('spreadsheetml');
-    const summary = JSON.parse(r.headers['x-export-summary']);
+    const summary = JSON.parse(r.headers['x-export-summary']!);
     expect(summary).toMatchObject({ format: 'kahoot', total: 7, exported: 2 });
     expect(summary.message).toContain('Exportováno 2 z 7 otázek.');
     const wb = new ExcelJS.Workbook();
@@ -255,7 +255,7 @@ describe('exports', () => {
     await tpl.xlsx.load(readFileSync(join(root, 'fixtures/kahoot-template.xlsx')) as unknown as ArrayBuffer);
     expect(wb.worksheets[0]!.getRow(8).values).toEqual(tpl.worksheets[0]!.getRow(8).values);
     const withFlagged = await t.http.get(`/api/v1/quizzes/${quizId}?format=kahoot&includeFlagged=1`).set(auth());
-    expect(JSON.parse(withFlagged.headers['x-export-summary']).exported).toBe(3);
+    expect(JSON.parse(withFlagged.headers['x-export-summary']!).exported).toBe(3);
   });
 
   it('gift', async () => {

@@ -1,0 +1,79 @@
+# Rozhodnutí
+
+Rozhodnutí, která zadání neurčovalo. Každé je popsané jednou větou (rozhodnutí a důvod).
+
+## Architektura a stack
+
+- **Workspace balíčky se nekompilují zvlášť.** `packages/core` a `packages/export` exportují zdrojové TypeScript soubory. Vite, Vitest i tsx je čtou přímo a server se pro produkci sbalí přes esbuild do `dist/index.js`, takže odpadá krok sestavení balíčků a mapování `.d.ts`.
+- **Migrace databáze jsou ručně psané SQL soubory řízené přes `PRAGMA user_version`** a Drizzle slouží jen jako query builder. Nepotřebujeme tak `drizzle-kit`, schéma je čitelné v jednom souboru a jde snadno přepsat pro Postgres.
+- **Identifikátory jsou náhodné řetězce base64url (12 bajtů), ne autoinkrement,** aby ID kvízů a her v URL nešlo uhodnout.
+- **Session jsou uložené v tabulce `sessions` (hash ID, expirace 30 dní).** Datový model tabulku nezmiňoval, ale bez ní by nešlo spolehlivě odhlásit ani zneplatnit přihlášení.
+- **UI používá stejné `/api/v1` jako agent.** Přihlášený učitel má všechna oprávnění včetně `quizzes:approve`, mutace z prohlížeče ale musí nést CSRF token (HMAC ID session). API tak existuje jen jednou.
+- **Pro UI je navíc několik endpointů mimo kontrakt:** seznam kvízů, `PATCH`/`DELETE` kvízu, klonování, `PUT /order`, duplikace otázky, `approve`, `approve-ok`, `export-summary`, seznam her, `results.csv` a `end`. Rozšiřují kontrakt, nemění ho.
+- **Tokeny nemohou oprávnění `quizzes:approve` získat vůbec** (ne jen „standardně nemají“). Tím je pravidlo 2.5 vynucené na serveru bez výjimek.
+- **API token má tvar `khp_` + 32 náhodných bajtů,** aby byl v logu nebo úniku snadno rozpoznatelný.
+- **Rate limity jsou vlastní jednoduchý limiter v paměti (pevné okno)** místo `@fastify/rate-limit`. Limit na token se musí vyhodnotit až po ověření tokenu a aplikace běží jako jedna instance.
+- **Cookie session má `SameSite=Lax`.** Se `Strict` by odkaz `reviewUrl` otevřený z Telegramu nenesl cookie a učitel by se musel znovu přihlašovat; mutace chrání CSRF token.
+- **Registrace je ve výchozím stavu zapnutá (`ALLOW_REGISTRATION=1`),** aby šel první účet založit bez konzole. README doporučuje ji potom vypnout.
+- **Nový učitel dostane ukázkový kvíz (`SEED_SAMPLE_QUIZ=1`)** a může hned vyzkoušet kontrolu, hru i exporty.
+
+## Kontrakt
+
+- **Chyby mimo validaci (401, 403, 404, 409, 429, 500) mají tvar `{error, code}`,** 422 má tvar `{errors:[…]}` podle kontraktu, aby agent i UI mohly zprávy přímo zobrazit.
+- **`id` otázky je v kontraktu volitelné pole:** při `POST` se ignoruje a `GET ?format=json` ho vrací (agent ho potřebuje pro `PATCH`), takže odpověď `GET` jde znovu poslat přes `POST`. Čistý export ke stažení (`&download=1`) ID neobsahuje.
+- **`bloom`, `difficulty` a `sourceRef` jsou volitelné (mohou být `null`),** protože ručně vytvořené otázky v editoru je nemají. Agent je podle SKILL.md vyplňuje vždy.
+- **U typu `order` je povoleno 3–5 položek** (zadání počet neurčovalo; méně než 3 nedává smysl, 5 je limit možností).
+- **`PATCH` otázky aplikuje jen poslaná pole, sloučenou otázku validuje celou a při změně typu vymaže typově specifická pole, která nebyla poslána.**
+- **Když `PATCH` přes token mění `flagged` na `ok`, vrátí 403** (pravidlo 2.5). U přihlášeného učitele se taková změna počítá jako schválení.
+- **Idempotence:** otisk požadavku je SHA-256 kanonického JSON těla (seřazené klíče) a původní odpověď se ukládá u kvízu. Opakovaný požadavek s týmž klíčem a obsahem vrátí přesně původní 201.
+- **Hlavička `X-Export-Summary` je JSON s ne-ASCII znaky escapovanými jako `\uXXXX`,** protože HTTP hlavičky musí být ASCII. `JSON.parse` je vrátí zpět.
+
+## Hra
+
+- **Hru vytváří REST (UI i API), ne socketová událost `create_game`.** Hostitel se k existující hře připojí událostí `host_attach {gameId, hostKey}` a učitel přihlášený v aplikaci může i bez klíče, podle cookie. Oprávnění se tak řeší na jednom místě.
+- **Událost hráče pro opětovné připojení se jmenuje `reconnect_player`,** protože `reconnect` je v klientovi Socket.IO vyhrazená událost Manageru.
+- **`hostKey` je ve fragmentu URL (`/host/{id}#key=…`),** takže se nedostane do logů serveru, proxy ani do hlavičky Referer. Stránka projektoru ho po načtení uloží do sessionStorage a z adresy odstraní.
+- **Po uplynutí času nebo po odpovědi všech připojených hráčů se odpověď odhalí automaticky.** Enter ji odhalí dřív a mezerník posouvá hru dál (odhalení → žebříček → další otázka).
+- **Po poslední otázce se žebříček nezobrazuje a hra jde rovnou na pódium.**
+- **Míchání možností je pro všechny hráče ve hře stejné,** aby projektor a telefony ukazovaly stejné pořadí a tvary. U `truefalse` se nemíchá. U `order` se položky vždy zamíchají tak, aby nikdy nebyly ve správném pořadí.
+- **Úspěšnost otázky ve výsledcích = počet správných / počet hráčů ve hře** (kdo neodpověděl, počítá se jako špatně) a průměrný čas se počítá jen z odeslaných odpovědí.
+- **Při shodě skóre mají hráči stejné pořadí** (např. 1, 2, 2, 4).
+- **Bonus za sérii = +100 za každou další správnou odpověď v řadě (druhá v řadě +100, …), max. +500;** u přeskočené otázky se body i série vrátí.
+- **Částečné body u `multi` = (správně zvolené − špatně zvolené) / počet správných,** oříznuto na 0..1.
+- **Krátká odpověď ignoruje koncovou interpunkci a ve výchozím stavu i diakritiku,** 1 překlep se toleruje u odpovědí delších než 5 znaků (Levenshtein).
+- **Dokončená hra zůstane v paměti ještě 10 minut** (hráči po obnovení stránky uvidí pódium), její PIN se ale uvolní hned.
+- **Rozehrané hry se po restartu serveru označí jako `aborted`,** protože živý stav je podle zadání jen v paměti.
+- **Pozastavená hra (odpojený hostitel) odmítá odpovědi a po návratu hostitele se čas otázky prodlouží o dobu pauzy.**
+- **Maximální počet hráčů ve hře je 500.**
+- **Filtr vulgarit porovnává text bez diakritiky, s běžnými záměnami znaků (0→o, 4→a, …) a se sloučenými opakovanými písmeny.** Slova s 5 a více znaky hledá i uvnitř přezdívky, kratší jen jako celá slova, aby neblokoval běžná jména. Seznam je v `packages/core/data/profanity.json`.
+
+## Exporty
+
+- **Šablonu Kahoot nešlo stáhnout (síťová politika prostředí blokuje support.kahoot.com),** proto je v repozitáři rekonstrukce. Export hledá hlavičky podle textu, takže oficiální soubor jde vložit bez změny kódu (viz README, [OVĚŘ]).
+- **Otázky delší než limit Kahootu se do xlsx nezapíšou vůbec (nezkracují se)** a vypíšou se v souhrnu; stejně se vynechají `multi` s 5 možnostmi (Kahoot bere max. 4).
+- **V GIFT je vysvětlení jako obecná zpětná vazba `####`,** která funguje u všech typů otázek. Odpovědi uvnitř bloku jsou každá na vlastním řádku.
+- **U `multi` v GIFT se váha správných odpovědí zaokrouhlí na nejbližší hodnotu, kterou Moodle přijímá** (např. 33,33333) a špatné mají −100 %.
+- **CSV výsledků používá středník a UTF-8 BOM** (kvůli českému Excelu) a hodnoty začínající `= + - @` dostanou prefix `'` (ochrana proti vložení vzorce).
+
+## Frontend
+
+- **Automatické ukládání v editoru otázky:** změna se validuje stejným zod schématem jako na serveru. Platný stav se po 800 ms odešle přes `PATCH`, neplatný se neodešle a ukáže chyby. Rozpracovaný koncept je v localStorage, dokud se neuloží.
+- **Pořadí otázek jde měnit přetažením (HTML5 drag & drop) i tlačítky ▲▼** (kvůli klávesnici a dotykovým zařízením).
+- **„Schválit všechny v pořádku“ označí otázky ve stavu `ok` jako zkontrolované učitelem (`approved_at`)** a otázky ve stavu `flagged` nemění, protože ty se schvalují jednotlivě.
+- **QR kód se generuje v prohlížeči (knihovna `qrcode` je v bundlu)** a aplikace nepoužívá žádné externí služby ani CDN.
+
+## Provoz
+
+- **Build stage v Dockerfile používá plný image `node:22-bookworm`** (obsahuje python3 a g++ pro případný překlad `better-sqlite3`), runtime je `node:22-bookworm-slim` s uživatelem `node`.
+- **Kontejner má read-only systém souborů a zapisuje jen do volume `/data` a tmpfs `/tmp`.**
+- **Záloha používá `VACUUM INTO` přes `better-sqlite3` uvnitř kontejneru,** takže na hostiteli není potřeba `sqlite3` a aplikaci není nutné zastavit.
+- **Retenční úloha maže i expirované session a záznamy audit logu starší než `RETENTION_DAYS`.**
+
+## Skill (část B)
+
+- **Pravidla kontraktu jsou v Pythonu zrcadlená (`scripts/contract.py`) a test je porovnává se stejnými fixtures jako server,** protože požadované závislosti skillu neobsahují knihovnu pro JSON Schema.
+- **`post_quiz.py` odmítne odeslat kvíz, kde má některá otázka poznámku „citace nenalezena ve zdroji“** (návratový kód 2). Pravidlo „s nenalezenou citací otázku neodesílá“ tak vynucuje skript, ne jen agent.
+- **Idempotency-Key = SHA-256 z hashů zdrojových souborů, názvu, ročníku, jazyka, počtu otázek a volitelného `--params`.** Nový kvíz ze stejných podkladů vytvoří až přepínač `--new-key`.
+- **Pracovní adresář je `${CLAUDE_SKILL_DIR}/work/<datum-čas>`** a skripty se volají přes `${CLAUDE_SKILL_DIR}/.venv/bin/python`. Cestu a proměnnou jsem ověřil v dokumentaci Claude Code (code.claude.com/docs/en/skills) a spolu s `allowed-tools` to umožní spouštět skripty bez potvrzování.
+- **Extrakce DOCX považuje za nadpisy i styly „Title“ a „Název“ a české „Nadpis 1–3“** (Word v češtině).
+- **U PDF bez záložek se stránky seskupují po 3 (průměrně méně než 2 000 znaků na stranu), jinak po 2.** Opakované řádky na začátku a konci aspoň poloviny stran se berou jako záhlaví nebo zápatí.

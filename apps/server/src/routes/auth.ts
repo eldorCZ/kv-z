@@ -5,6 +5,7 @@ import { csrfToken, sendError, type Services } from '../app.js';
 import { RegistrationError } from '../auth/provider.js';
 import { SESSION_COOKIE } from '../game/socket.js';
 import { SESSION_TTL_MS } from '../repo/accounts.js';
+import { seedSampleQuiz } from '../seed.js';
 
 const credentials = z.object({ email: z.string().max(200), password: z.string().max(200) });
 
@@ -14,7 +15,7 @@ export const authRoutes =
     const cookieOpts = {
       path: '/',
       httpOnly: true,
-      sameSite: 'strict' as const,
+      sameSite: 'lax' as const, // lax: links from Telegram (reviewUrl) must keep the teacher logged in; CSRF token protects mutations
       secure: s.cfg.publicUrl.startsWith('https://'),
       maxAge: SESSION_TTL_MS / 1000,
     };
@@ -40,6 +41,7 @@ export const authRoutes =
       if (!body.success) return sendError(reply, 400, 'Vyplňte e-mail a heslo.', 'invalid');
       try {
         const t = await s.auth.register(body.data.email, body.data.password);
+        if (s.cfg.seedSampleQuiz) seedSampleQuiz(s.quizzes, t.id);
         const sid = startSession(t.id);
         reply.setCookie(SESSION_COOKIE, sid, cookieOpts);
         return { teacher: t, csrfToken: csrfToken(s.cfg, sid) };

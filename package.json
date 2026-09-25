@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "test:skill": "cd agent-skill/kviz-z-materialu && python -m pytest -q",
+    "test:skill": "cd agent-skill/kviz-z-materialu && (test -x .venv/bin/python && .venv/bin/python -m pytest -q || python3 -m pytest -q)",
     "loadtest": "tsx scripts/loadtest.ts",
     "demo": "tsx scripts/demo.ts",
     "ci": "pnpm typecheck && pnpm lint && pnpm test"
