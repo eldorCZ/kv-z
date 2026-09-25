@@ -11,6 +11,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.11.0(jiti@2.7.0))
+      '@kvizhub/core':
+        specifier: workspace:*
+        version: link:packages/core
       '@playwright/test':
         specifier: 1.56.1
         version: 1.56.1
@@ -68,6 +71,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)
+      exceljs:
+        specifier: ^4.4.0
+        version: 4.4.0
       fastify:
         specifier: ^5.12.5
         version: 5.12.5

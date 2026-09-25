@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+data
+.git
+.env
+test-results
+playwright-report
+agent-skill
+**/*.db

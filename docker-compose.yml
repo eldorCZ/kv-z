@@ -1,0 +1,32 @@
+services:
+  kvizhub:
+    build: .
+    image: kvizhub:latest
+    container_name: kvizhub
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # inside the container the app always listens on 0.0.0.0:3000;
+      # on the host it is published only on ${BIND_ADDR}:${APP_PORT} (default 127.0.0.1:3000)
+      BIND_ADDR: 0.0.0.0
+      APP_PORT: 3000
+      NODE_ENV: production
+    ports:
+      - "${BIND_ADDR:-127.0.0.1}:${APP_PORT:-3000}:3000"
+    volumes:
+      - kvizhub-data:/data
+    mem_limit: 512m
+    cpus: 1.0
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  kvizhub-data:
