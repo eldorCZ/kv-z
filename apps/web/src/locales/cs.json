@@ -2,7 +2,8 @@
   "common": {
     "close": "Zavřít",
     "delete": "Smazat",
-    "loading": "Načítám…"
+    "loading": "Načítám…",
+    "cancel": "Zrušit"
   },
   "errors": {
     "network": "Server není dostupný. Zkontrolujte připojení k internetu a zkuste to znovu.",
@@ -536,7 +537,8 @@
       "profile_view": "zobrazení profilu žáka",
       "export": "export CSV",
       "anonymize": "anonymizace třídy",
-      "names_view": "zobrazení celých jmen v panelu"
+      "names_view": "zobrazení celých jmen v panelu",
+      "matrix_view": "zobrazení přehledu žáků"
     }
   },
   "roster": {
@@ -581,7 +583,8 @@
     "left": "odešel {{date}}",
     "empty": "Soupiska je prázdná.",
     "editTitle": "Upravit žáka",
-    "save": "Uložit"
+    "save": "Uložit",
+    "leftShort": "odešel/odešla"
   },
   "kod": {
     "invalid": "Odkaz neobsahuje platný kód.",
@@ -605,5 +608,109 @@
     "no": "Ne, zadat jiný kód",
     "noCode": "Nemám kód",
     "askTeacher": "Požádej učitele o nový kód."
+  },
+  "overview": {
+    "period": "Období",
+    "periods": {
+      "year": "Celý rok",
+      "h1": "1. pololetí",
+      "h2": "2. pololetí"
+    },
+    "kind": "Druh",
+    "kinds": {
+      "all": "Vše",
+      "test": "test",
+      "quiz": "kvíz"
+    },
+    "kindShort": {
+      "test": "T",
+      "quiz": "K"
+    },
+    "printWarning": "Výtisk obsahuje osobní údaje. Neponechávejte ho volně ležet a po použití ho skartujte.",
+    "print": "Tisk",
+    "csvExcel": "CSV (Excel, středník)",
+    "csvComma": "CSV (čárka)",
+    "legend": "Buňka: procenta · d = dopsáno později · přeškrtnuté = nezapočteno · chybí = nebyl(a) u aktivity · – = v té době nebyl(a) ve třídě. Rychlost odpovědí se do procent nepočítá.",
+    "cell": {
+      "na": "v té době nebyl(a) ve třídě",
+      "missing": "chybí",
+      "excluded": "nezapočteno",
+      "makeup": "dopsáno"
+    },
+    "notCounted": "nezapočítává se do přehledů",
+    "testAvg": "Průměr testů",
+    "quizAvg": "Průměr kvízů",
+    "trend": "Trend testů",
+    "participation": "Účast",
+    "watch": "Ke sledování",
+    "trends": {
+      "rising": "roste",
+      "falling": "klesá",
+      "stable": "stabilní",
+      "little_data": "málo dat"
+    },
+    "trendDelta": "změna {{delta}} p. b.",
+    "classRow": "Třída (průměr)",
+    "medianTitle": "medián {{median}} %",
+    "noActivities": "Zatím žádná odehraná aktivita v tomto období.",
+    "makeupCreated": "Test na dopsání je připravený pro {{count}} žáků.",
+    "makeupReused": "Test na dopsání už existuje – zobrazuji ho znovu.",
+    "openDashboard": "Otevřít panel testu",
+    "makeups_one": "{{count}} dopsání",
+    "makeups_few": "{{count}} dopsání",
+    "makeups_other": "{{count}} dopsání",
+    "notHeld": "Zatím bez výsledků.",
+    "activityStats": "Výsledků: {{n}} · účast {{part}} · průměr {{avg}} · medián {{median}}",
+    "missingCount_one": "chybí {{count}} žák",
+    "missingCount_few": "chybí {{count}} žáci",
+    "missingCount_other": "chybí {{count}} žáků",
+    "makeup": "Dopsat test",
+    "countInStats": "Započítat do přehledů",
+    "topicsTitle": "Zvládnutí témat",
+    "noTopics": "Otázky zatím nemají vyplněné téma.",
+    "topic": "Téma",
+    "mastery": "Úspěšnost",
+    "itemsStudents": "odpovědí / žáků",
+    "littleData": "málo dat",
+    "rename": "Přejmenovat / sloučit",
+    "renameHint": "Nový název tématu „{{from}}“. Zadáte-li název jiného tématu, obě se sloučí.",
+    "newTopic": "Nový název",
+    "renameDo": "Přejmenovat",
+    "renameConfirm": "Přejmenovat „{{from}}“ na „{{to}}“? Změní se {{questions}} otázek ve vašich kvízech a {{items}} záznamů v evidenci třídy.",
+    "topicRule": "Hodnota tématu za třídu se ukáže až od 3 žáků a {{items}} odpovědí; u žáka od {{min}} odpovědí.",
+    "weakQuestions": "Nejslabší otázky",
+    "noWeak": "Zatím žádná otázka nemá aspoň {{min}} odpovědí.",
+    "noTopic": "bez tématu",
+    "answers_one": "{{count}} odpověď",
+    "answers_few": "{{count}} odpovědi",
+    "answers_other": "{{count}} odpovědí",
+    "noData": "Zatím žádná data.",
+    "chartStudent": "žák",
+    "chartMedian": "medián třídy",
+    "asTable": "Zobrazit jako tabulku",
+    "activity": "Aktivita",
+    "date": "Datum",
+    "student": "Žák",
+    "countOf_one": "{{count}} výsledek",
+    "countOf_few": "{{count}} výsledky",
+    "countOf_other": "{{count}} výsledků",
+    "eligible": "z {{count}} aktivit, kde byl(a) ve třídě",
+    "backToClass": "Zpět na třídu",
+    "flagNote": "Upozornění vychází z pevných pravidel v nastavení třídy. Aplikace nic nehodnotí; rozhoduje učitel.",
+    "testsChart": "Testy v čase",
+    "quizzesChart": "Kvízy v čase",
+    "mistakes": "Opakované chyby (aspoň 2×)",
+    "noMistakes": "Žádná otázka nebyla chybně aspoň dvakrát.",
+    "topicMin": "Téma se hodnotí od {{min}} odpovědí.",
+    "results": "Všechny výsledky",
+    "autoSubmitted": "odevzdáno automaticky",
+    "include": "Započítat",
+    "exclude": "Nezapočítat",
+    "excludeReason": "Nezapočítat výsledek. Jde o technický problém? (OK = technický problém, Zrušit = jiný důvod)",
+    "flags": {
+      "low_average": "nízký průměr",
+      "falling": "pokles",
+      "low_participation": "nízká účast"
+    }
   }
 }

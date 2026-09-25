@@ -10,6 +10,7 @@ import TestPlay from './pages/TestPlay';
 import TestDashboard from './pages/TestDashboard';
 import ClassesPage from './classes/ClassesPage';
 import ClassDetail from './classes/ClassDetail';
+import StudentProfile from './classes/StudentProfile';
 import CodePage from './pages/CodePage';
 import QuizReview from './pages/QuizReview';
 import Quizzes from './pages/Quizzes';
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/tests/:id" element={<TestDashboard />} />
         <Route path="/classes" element={<ClassesPage />} />
         <Route path="/classes/:id" element={<ClassDetail />} />
+        <Route path="/classes/:id/students/:sid" element={<StudentProfile />} />
         <Route path="/settings/tokens" element={<Tokens />} />
       </Route>
       <Route path="*" element={<Navigate to="/quizzes" replace />} />

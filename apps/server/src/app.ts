@@ -18,6 +18,7 @@ import { QuizRepo } from './repo/quizzes.js';
 import { AttemptRepo } from './repo/attempts.js';
 import { ClassService } from './classes/service.js';
 import { EvidenceService } from './classes/evidence.js';
+import { ClassOverview } from './classes/overview.js';
 import { ClassGameAdmin, ClassGames } from './classes/class-games.js';
 import { rosterRoutes } from './routes/roster.js';
 import { classRoutes } from './routes/classes.js';
@@ -67,6 +68,7 @@ export interface Services {
   attempts: AttemptRepo;
   classes: ClassService;
   evidence: EvidenceService;
+  overview: ClassOverview;
   classGames: ClassGames;
   classAdmin: ClassGameAdmin;
   testService: TestService;
@@ -171,6 +173,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     attempts,
     classes,
     evidence,
+    overview: new ClassOverview(cfg, classes, evidence, gameRepo),
     classGames,
     classAdmin: new ClassGameAdmin(classGames, classes, evidence, gameRepo, quizzes, () => testService, cfg, now),
     testService,

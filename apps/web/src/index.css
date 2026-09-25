@@ -25,7 +25,8 @@ body,
     size: A4;
     margin: 10mm;
   }
-  body * {
+  /* card printing: only the print area is visible */
+  body:has(.print-area) * {
     visibility: hidden;
   }
   .print-area,
@@ -56,4 +57,29 @@ body,
   .card-sheet .code-card:nth-child(10n) {
     break-after: page;
   }
+  .print-only {
+    display: block !important;
+  }
+  .print-landscape {
+    page: landscape;
+  }
+  .sticky {
+    position: static !important;
+  }
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+  table {
+    font-size: 9pt;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
+@page landscape {
+  size: A4 landscape;
+  margin: 8mm;
+}
+.print-only {
+  display: none;
 }

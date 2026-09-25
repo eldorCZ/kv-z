@@ -77,6 +77,78 @@ export const classRoutes =
       return { entries: s.classes.accessLog(c.id) };
     });
 
+    // ---------------- overviews (C8)
+    type Q = { period?: string; from?: string; to?: string; kind?: string };
+    const sepOf = (q: { sep?: string }) => (q.sep === ',' ? ',' : ';');
+
+    app.get<ClassParams & { Querystring: Q }>('/classes/:id/matrix', { config: { sessionOnly: true } }, async (req) => {
+      const c = access(req, 'viewer');
+      const m = s.overview.matrix(c, req.query);
+      s.classes.log(req.auth!.teacherId, 'matrix_view', c.id, null, m.students.length);
+      return m;
+    });
+
+    app.get<ClassParams>('/classes/:id/activities', { config: { sessionOnly: true } }, async (req) => {
+      const c = access(req, 'viewer');
+      return { activities: s.overview.activities(c) };
+    });
+
+    app.patch<{ Params: { id: string; aid: string } }>('/classes/:id/activities/:aid', { config: { sessionOnly: true } }, async (req, reply) => {
+      const c = access(req as unknown as FastifyRequest<ClassParams>, 'editor');
+      const count = (req.body as { countInStats?: unknown } | undefined)?.countInStats;
+      if (typeof count !== 'boolean') return sendError(reply, 400, 'Chybí countInStats.', 'invalid');
+      s.overview.setCountInStats(c, req.params.aid, count);
+      return { ok: true };
+    });
+
+    app.get<ClassParams & { Querystring: Q }>('/classes/:id/topics', { config: { sessionOnly: true } }, async (req) => {
+      const c = access(req, 'viewer');
+      return s.overview.topics(c, req.query);
+    });
+
+    app.post<ClassParams>('/classes/:id/topics/rename', { config: { sessionOnly: true } }, async (req) => {
+      const c = access(req, 'editor');
+      const b = (req.body ?? {}) as { from?: unknown; to?: unknown; dryRun?: unknown };
+      return s.overview.renameTopic(c, req.auth!.teacherId, String(b.from ?? ''), String(b.to ?? ''), b.dryRun === true);
+    });
+
+    app.get<StudentParams>('/classes/:id/students/:sid/profile', { config: { sessionOnly: true } }, async (req) => {
+      const c = access(req as unknown as FastifyRequest<ClassParams>, 'viewer');
+      const p = s.overview.profile(c, req.params.sid);
+      s.classes.log(req.auth!.teacherId, 'profile_view', c.id, req.params.sid, 1);
+      return p;
+    });
+
+    app.patch<{ Params: { id: string; rid: string } }>('/classes/:id/results/:rid', { config: { sessionOnly: true } }, async (req, reply) => {
+      const c = access(req as unknown as FastifyRequest<ClassParams>, 'editor');
+      const b = (req.body ?? {}) as { excluded?: unknown; reason?: unknown };
+      if (typeof b.excluded !== 'boolean') return sendError(reply, 400, 'Chybí excluded.', 'invalid');
+      s.overview.setExcluded(c, req.params.rid, b.excluded, typeof b.reason === 'string' ? b.reason : null);
+      return { ok: true };
+    });
+
+    app.get<ClassParams & { Querystring: { sep?: string } }>('/classes/:id/export.csv', { config: { sessionOnly: true } }, async (req, reply) => {
+      const c = access(req, 'viewer');
+      const csv = s.overview.classCsv(c, sepOf(req.query));
+      s.classes.log(req.auth!.teacherId, 'export', c.id, null, s.classes.students(c.id).length);
+      return reply
+        .header('content-type', 'text/csv; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .header('content-disposition', `attachment; filename="trida-${c.id.slice(0, 8)}.csv"`)
+        .send(csv);
+    });
+
+    app.get<StudentParams & { Querystring: { sep?: string } }>('/classes/:id/students/:sid/export.csv', { config: { sessionOnly: true } }, async (req, reply) => {
+      const c = access(req as unknown as FastifyRequest<ClassParams>, 'viewer');
+      const csv = s.overview.studentCsv(c, req.params.sid, sepOf(req.query));
+      s.classes.log(req.auth!.teacherId, 'export', c.id, req.params.sid, 1);
+      return reply
+        .header('content-type', 'text/csv; charset=utf-8')
+        .header('cache-control', 'no-store')
+        .header('content-disposition', `attachment; filename="zak-${req.params.sid.slice(0, 8)}.csv"`)
+        .send(csv);
+    });
+
     // ---------------- makeup test (C6.4, C10.3): games:write + classes:read, idempotent
     app.post<{ Params: { id: string; aid: string } }>('/classes/:id/activities/:aid/makeup', { config: { scope: 'games:write' } }, async (req, reply) => {
       if (!req.auth!.scopes.has('classes:read')) return sendError(reply, 403, 'API token nemá oprávnění classes:read.', 'forbidden');

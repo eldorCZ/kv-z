@@ -17,6 +17,7 @@
     "test:skill": "cd agent-skill/kviz-z-materialu && (test -x .venv/bin/python && .venv/bin/python -m pytest -q || python3 -m pytest -q)",
     "loadtest": "tsx scripts/loadtest.ts",
     "demo": "tsx scripts/demo.ts",
+    "seed:demo-class": "tsx scripts/seed-demo-class.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm test"
   },
   "devDependencies": {
