@@ -129,3 +129,24 @@ export const auditLog = sqliteTable(
   },
   (t) => [index('audit_at').on(t.at)],
 );
+
+export const attempts = sqliteTable(
+  'attempts',
+  {
+    id: text('id').primaryKey(),
+    gameId: text('game_id').notNull().references(() => games.id, { onDelete: 'cascade' }),
+    playerId: text('player_id').notNull().unique().references(() => players.id, { onDelete: 'cascade' }),
+    status: text('status').notNull(),
+    startedAt: integer('started_at'),
+    deadlineAt: integer('deadline_at'),
+    submittedAt: integer('submitted_at'),
+    allowReturn: integer('allow_return').notNull().default(0),
+    percent: integer('percent'),
+    score: real('score'),
+    maxScore: real('max_score'),
+    questionIdsJson: text('question_ids_json').notNull(),
+    optionPermsJson: text('option_perms_json').notNull(),
+    createdAt: integer('created_at').notNull(),
+  },
+  (t) => [index('attempts_game').on(t.gameId), index('attempts_deadline').on(t.status, t.deadlineAt)],
+);

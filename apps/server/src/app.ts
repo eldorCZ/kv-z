@@ -15,6 +15,9 @@ import { SESSION_COOKIE, setupSockets } from './game/socket.js';
 import { AccountRepo, APPROVE_SCOPE, TOKEN_SCOPES, type Scope } from './repo/accounts.js';
 import { GameRepo } from './repo/games.js';
 import { QuizRepo } from './repo/quizzes.js';
+import { AttemptRepo } from './repo/attempts.js';
+import { TestService } from './test-mode/service.js';
+import { playTestRoutes } from './routes/play-test.js';
 import { authRoutes } from './routes/auth.js';
 import { gameRoutes } from './routes/games.js';
 import { openapiRoutes } from './routes/openapi.js';
@@ -55,6 +58,9 @@ export interface Services {
   auth: AuthProvider;
   loginLimiter: RateLimiter;
   kahootTemplate: () => Buffer;
+  attempts: AttemptRepo;
+  testService: TestService;
+  now: () => number;
 }
 
 export function csrfToken(cfg: Config, sessionId: string) {
@@ -67,7 +73,13 @@ export function sendError(reply: FastifyReply, status: number, message: string, 
   return reply.code(status).send({ error: message, code });
 }
 
-export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io: Server; services: Services }> {
+export interface BuildOptions {
+  /** injectable clock (tests use fake time) */
+  now?: () => number;
+}
+
+export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ app: FastifyInstance; io: Server; services: Services }> {
+  const now = opts.now ?? Date.now;
   const app = Fastify({
     logger: {
       level: cfg.logLevel,
@@ -103,7 +115,9 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     pinLength: cfg.pinLength,
     onFinished: (g) => void hooks.gameService?.notifyFinished(g),
   });
-  const gameService = new GameService(cfg, gameRepo, quizzes, games, app.log);
+  const attempts = new AttemptRepo(db);
+  const testService = new TestService(cfg, gameRepo, attempts, quizzes, games, app.log, now);
+  const gameService = new GameService(cfg, gameRepo, quizzes, games, app.log, (p) => testService.isOpenPin(p));
   hooks.gameService = gameService;
 
   let templateCache: Buffer | undefined;
@@ -117,6 +131,9 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     gameService,
     auth: createAuthProvider(cfg.authProvider, accounts),
     loginLimiter: new RateLimiter(10, 60_000),
+    attempts,
+    testService,
+    now,
     kahootTemplate: () => {
       if (!templateCache) {
         if (!existsSync(cfg.kahootTemplatePath)) throw new HttpError(500, 'Chybí šablona Kahoot (fixtures/kahoot-template.xlsx).', 'template_missing');
@@ -228,6 +245,17 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
   await app.register(quizRoutes(services), { prefix: '/api/v1' });
   await app.register(gameRoutes(services), { prefix: '/api/v1' });
   await app.register(openapiRoutes(services), { prefix: '/api/v1' });
+  await app.register(playTestRoutes(services), { prefix: '/play/test' });
+
+  // D5.6: expire attempts after their deadline and close tests (every 5 s)
+  const testTimer = setInterval(() => {
+    try {
+      testService.tick();
+    } catch (err) {
+      app.log.error({ err }, 'test tick failed');
+    }
+  }, 5000);
+  testTimer.unref();
 
   // ---------- static web app (SPA) ----------
   const indexHtml = join(cfg.webDist, 'index.html');
@@ -235,13 +263,14 @@ export async function buildApp(cfg: Config): Promise<{ app: FastifyInstance; io:
     await app.register(fastifyStatic, { root: cfg.webDist, wildcard: false, index: false, maxAge: '1h' });
   }
   app.setNotFoundHandler((req, reply) => {
-    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
+    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
       return reply.type('text/html').header('cache-control', 'no-cache').send(readFileSync(indexHtml));
     }
     return sendError(reply, 404, 'Nenalezeno.', 'not_found');
   });
 
   app.addHook('preClose', async () => {
+    clearInterval(testTimer);
     games.shutdown();
     io.disconnectSockets(true);
   });

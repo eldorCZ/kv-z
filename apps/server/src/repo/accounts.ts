@@ -3,7 +3,9 @@ import type { Db } from '../db/index.js';
 import { apiTokens, auditLog, sessions, teachers } from '../db/schema.js';
 import { newId, sha256 } from '../util.js';
 
-export const TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read'] as const;
+export const TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read', 'results:pii'] as const;
+/** Scopes a new token gets when none are specified; results:pii (student names) must be requested explicitly. */
+export const DEFAULT_TOKEN_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read'] as const;
 /** Only teacher sessions hold this scope; API tokens can never get it (contract 2.1, 2.5). */
 export const APPROVE_SCOPE = 'quizzes:approve';
 export type Scope = (typeof TOKEN_SCOPES)[number] | typeof APPROVE_SCOPE;

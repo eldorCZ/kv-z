@@ -200,6 +200,25 @@ export const quizMetaPatchSchema = z.object({
   settings: quizSettingsSchema.partial().optional(),
 });
 
+
+export const SHOW_RESULTS = ['none', 'score', 'full'] as const;
+
+/** Test mode settings (docs/TESTOVACI-REZIM.md, D2). */
+export const testSettingsSchema = z
+  .object({
+    timeLimitMin: z.number().int().min(1).max(240).nullable().default(20),
+    opensAt: z.string().datetime({ offset: true }).nullable().default(null),
+    closesAt: z.string().datetime({ offset: true }).nullable().default(null),
+    requireName: z.boolean().default(true),
+    allowBackNavigation: z.boolean().default(true),
+    showResultsToStudent: z.enum(SHOW_RESULTS).default('score'),
+  })
+  .superRefine((t, ctx) => {
+    if (t.opensAt && t.closesAt && Date.parse(t.closesAt) <= Date.parse(t.opensAt)) {
+      fail(ctx, ['closesAt'], 'invalid_range', 'Termín uzavření musí být po začátku testu.');
+    }
+  });
+
 export const gameSettingsSchema = z.object({
   shuffleQuestions: z.boolean().optional(),
   shuffleOptions: z.boolean().optional(),
@@ -208,10 +227,15 @@ export const gameSettingsSchema = z.object({
   partialMulti: z.boolean().default(false),
   allowLateJoin: z.boolean().default(false),
   ignoreDiacritics: z.boolean().default(true),
+  test: testSettingsSchema.optional(),
 });
 
 export const createGameSchema = z.object({
-  mode: z.enum(['live', 'selfpaced']).default('live'),
+  // "selfpaced" (original contract) is accepted as a synonym of "test"
+  mode: z
+    .enum(['live', 'test', 'selfpaced'])
+    .default('live')
+    .transform((m) => (m === 'selfpaced' ? 'test' : m)),
   settings: gameSettingsSchema.default({
     showLeaderboard: true,
     streakBonus: false,
@@ -230,4 +254,5 @@ export type QuestionPatch = z.output<typeof questionPatchSchema>;
 export type QuizSettings = z.output<typeof quizSettingsSchema>;
 export type GameSettings = z.output<typeof gameSettingsSchema>;
 export type CreateGameInput = z.output<typeof createGameSchema>;
+export type TestSettings = z.output<typeof testSettingsSchema>;
 export type SourceRef = z.output<typeof sourceRefSchema>;

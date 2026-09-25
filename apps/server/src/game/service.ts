@@ -27,6 +27,7 @@ export class GameService {
     private readonly quizzes: QuizRepo,
     private readonly manager: GameManager,
     private readonly log: FastifyBaseLogger,
+    private readonly isTestPin: (pin: string) => boolean = () => false,
   ) {}
 
   urls(gameId: string, pin: string, hostKey?: string) {
@@ -39,7 +40,6 @@ export class GameService {
   }
 
   create(quiz: StoredQuiz, input: CreateGameInput) {
-    if (input.mode !== 'live') throw new HttpError(422, 'Samostatný režim (selfpaced) zatím není podporován. Použijte mode "live".', 'unsupported_mode');
     const playable = playableQuestions(quiz);
     if (playable.length === 0) {
       throw new HttpError(
@@ -55,7 +55,7 @@ export class GameService {
     };
     const ordered: StoredQuestion[] = settings.shuffleQuestions ? permutation(playable.length).map((i) => playable[i]!) : playable;
     const hostKey = randomBytes(32).toString('base64url');
-    const pin = this.manager.allocatePin();
+    const pin = this.manager.allocatePin(this.isTestPin);
     const row = this.repo.create({
       id: newId(),
       quizId: quiz.id,

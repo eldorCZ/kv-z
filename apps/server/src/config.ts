@@ -8,6 +8,8 @@ export interface Config {
   port: number;
   pinLength: number;
   retentionDays: number;
+  /** test mode: student names are replaced by "Žák N" after this many days (D9) */
+  testNameRetentionDays: number;
   webhookUrl: string;
   webhookSecret: string;
   kahootMaxQ: number;
@@ -47,6 +49,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     port: int(env.APP_PORT, 3000),
     pinLength: int(env.GAME_PIN_LENGTH, 6),
     retentionDays: int(env.RETENTION_DAYS, 365),
+    testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
     webhookUrl: env.API_WEBHOOK_URL ?? '',
     webhookSecret: env.API_WEBHOOK_SECRET ?? '',
     kahootMaxQ: int(env.EXPORT_KAHOOT_MAX_Q, 95),

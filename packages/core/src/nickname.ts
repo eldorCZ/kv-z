@@ -40,3 +40,15 @@ export function checkNickname(raw: unknown): NicknameCheck {
   if (containsProfanity(nickname)) return { ok: false, error: 'Tuto přezdívku nelze použít. Zvolte prosím jinou.' };
   return { ok: true, nickname };
 }
+
+/** Test mode (requireName): first name and surname, 3–60 characters, no profanity. */
+export function checkStudentName(raw: unknown): NicknameCheck {
+  if (typeof raw !== 'string') return { ok: false, error: 'Zadejte jméno a příjmení.' };
+  const name = raw.normalize('NFC').replace(INVISIBLE, '').replace(/\s+/g, ' ').trim();
+  const len = [...name].length;
+  if (len < 3) return { ok: false, error: 'Zadejte jméno a příjmení.' };
+  if (len > 60) return { ok: false, error: 'Jméno může mít nejvýše 60 znaků.' };
+  if (!/\p{L}/u.test(name)) return { ok: false, error: 'Jméno musí obsahovat písmena.' };
+  if (containsProfanity(name)) return { ok: false, error: 'Toto jméno nelze použít.' };
+  return { ok: true, nickname: name };
+}

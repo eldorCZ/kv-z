@@ -2,11 +2,11 @@ import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { sendError, type Services } from '../app.js';
-import { TOKEN_SCOPES } from '../repo/accounts.js';
+import { DEFAULT_TOKEN_SCOPES, TOKEN_SCOPES } from '../repo/accounts.js';
 
 const createToken = z.object({
   name: z.string().trim().min(1).max(80),
-  scopes: z.array(z.enum(TOKEN_SCOPES)).min(1).default([...TOKEN_SCOPES]),
+  scopes: z.array(z.enum(TOKEN_SCOPES)).min(1).default([...DEFAULT_TOKEN_SCOPES]),
   expiresInDays: z.number().int().min(1).max(3650).nullable().optional(),
 });
 

@@ -113,6 +113,27 @@ export const MIGRATIONS: string[] = [
   );
   CREATE INDEX audit_at ON audit_log(at);
   `,
+  // 2: test mode (docs/TESTOVACI-REZIM.md, D4)
+  `
+  CREATE TABLE attempts (
+    id TEXT PRIMARY KEY,
+    game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+    player_id TEXT NOT NULL UNIQUE REFERENCES players(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    started_at INTEGER,
+    deadline_at INTEGER,
+    submitted_at INTEGER,
+    allow_return INTEGER NOT NULL DEFAULT 0,
+    percent INTEGER,
+    score REAL,
+    max_score REAL,
+    question_ids_json TEXT NOT NULL,
+    option_perms_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX attempts_game ON attempts(game_id);
+  CREATE INDEX attempts_deadline ON attempts(status, deadline_at);
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

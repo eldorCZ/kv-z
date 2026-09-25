@@ -3,16 +3,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AddressInfo } from 'node:net';
 import request from 'supertest';
-import { buildApp } from '../src/app.js';
+import { buildApp, type BuildOptions } from '../src/app.js';
 import { loadConfig, type Config } from '../src/config.js';
 
 export const root = join(import.meta.dirname, '../../..');
 export const fixture = (p: string) => JSON.parse(readFileSync(join(root, 'fixtures/quizzes', p), 'utf8'));
 
-export async function startApp(overrides: Partial<Config> = {}) {
+export async function startApp(overrides: Partial<Config> = {}, opts: BuildOptions = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'kvizhub-test-'));
   const cfg = loadConfig({ LOG_LEVEL: 'silent' } as NodeJS.ProcessEnv, { dbPath: join(dir, 'test.db'), webDist: join(dir, 'nodist'), logLevel: 'silent', seedSampleQuiz: false, ...overrides });
-  const built = await buildApp(cfg);
+  const built = await buildApp(cfg, opts);
   await built.app.listen({ host: '127.0.0.1', port: 0 });
   const port = (built.app.server.address() as AddressInfo).port;
   const url = `http://127.0.0.1:${port}`;

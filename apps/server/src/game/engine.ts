@@ -2,10 +2,10 @@ import {
   LATENCY_GRACE_MS,
   checkAnswer,
   checkNickname,
+  mapDisplayedPayload,
   computePoints,
   correctText,
   shuffleOptions,
-  toOriginal,
   toPublicQuestion,
   type GameOverEvent,
   type GamePhase,
@@ -355,26 +355,8 @@ export class LiveGame {
     return { accepted: true };
   }
 
-  /** Map a client payload (displayed indices) to original indices, dropping anything unexpected. */
-  private mapPayload(r: Round, payload: unknown): { original: unknown; displayed: number[] | null } {
-    const p = (payload && typeof payload === 'object' ? payload : {}) as Record<string, unknown>;
-    const ints = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is number => Number.isInteger(x)).slice(0, 10) : []);
-    switch (r.q.type) {
-      case 'single':
-      case 'truefalse':
-      case 'multi': {
-        const displayed = [...new Set(ints(p.indices))];
-        return { original: { indices: toOriginal(r.shuffled.perm, displayed) }, displayed };
-      }
-      case 'order': {
-        const displayed = ints(p.order);
-        return { original: { order: toOriginal(r.shuffled.perm, displayed) }, displayed: null };
-      }
-      case 'short':
-        return { original: { text: typeof p.text === 'string' ? p.text.slice(0, 100) : '' }, displayed: null };
-      case 'numeric':
-        return { original: { value: typeof p.value === 'string' || typeof p.value === 'number' ? String(p.value).slice(0, 40) : '' }, displayed: null };
-    }
+  private mapPayload(r: Round, payload: unknown) {
+    return mapDisplayedPayload(r.q.type, r.shuffled.perm, payload);
   }
 
   private connectedPlayers(): number {
@@ -541,10 +523,11 @@ export class GameManager {
     private readonly deps: Omit<GameDeps, 'onFinished'> & { pinLength: number; onFinished?: (g: LiveGame) => void },
   ) {}
 
-  allocatePin(): string {
+  /** Unique among live games and (via `isTaken`) open tests. */
+  allocatePin(isTaken: (pin: string) => boolean = () => false): string {
     for (let i = 0; i < 1000; i++) {
       const pin = randomPin(this.deps.pinLength);
-      if (!this.byPin.has(pin)) return pin;
+      if (!this.byPin.has(pin) && !isTaken(pin)) return pin;
     }
     throw new Error('Nepodařilo se přidělit PIN.');
   }
