@@ -19,21 +19,33 @@ export interface GameRow {
   createdAt: number;
   endsAt: number | null;
   finishedAt: number | null;
+  // Dodatek 3
+  classId: string | null;
+  activityId: string | null;
+  allowGuests: boolean;
+  audience: string[] | null;
+  snapshot: unknown[] | null;
+  played: string[] | null;
 }
 
 function toGame(r: typeof games.$inferSelect): GameRow {
+  const { audienceJson, snapshotJson, playedJson, allowGuests, ...rest } = r;
   return {
-    ...r,
+    ...rest,
     status: r.status as GameStatus,
     settings: JSON.parse(r.settingsJson),
     questionIds: JSON.parse(r.questionIdsJson),
+    allowGuests: allowGuests === 1,
+    audience: audienceJson ? JSON.parse(audienceJson) : null,
+    snapshot: snapshotJson ? JSON.parse(snapshotJson) : null,
+    played: playedJson ? JSON.parse(playedJson) : null,
   };
 }
 
 export class GameRepo {
   constructor(private readonly db: Db) {}
 
-  create(g: Omit<GameRow, 'createdAt' | 'finishedAt' | 'status'>): GameRow {
+  create(g: Omit<GameRow, 'createdAt' | 'finishedAt' | 'status' | 'classId' | 'activityId' | 'allowGuests' | 'audience' | 'snapshot' | 'played'>): GameRow {
     this.db
       .insert(games)
       .values({
@@ -87,10 +99,36 @@ export class GameRepo {
       .run();
   }
 
-  addPlayer(gameId: string, nickname: string, tokenHash: string): string {
+  addPlayer(gameId: string, nickname: string, tokenHash: string, student?: { studentId: string | null; isGuest: boolean }): string {
     const id = newId();
-    this.db.insert(players).values({ id, gameId, nickname, tokenHash, joinedAt: Date.now() }).run();
+    this.db
+      .insert(players)
+      .values({ id, gameId, nickname, tokenHash, joinedAt: Date.now(), studentId: student?.studentId ?? null, isGuest: student?.isGuest ? 1 : 0 })
+      .run();
     return id;
+  }
+
+  setPlayerToken(playerId: string, tokenHash: string) {
+    this.db.update(players).set({ tokenHash }).where(eq(players.id, playerId)).run();
+  }
+
+  /** Class columns of a game (Dodatek 3). */
+  setClassInfo(id: string, info: { classId: string; activityId: string; allowGuests: boolean; audience: string[] | null; snapshot: unknown[] }) {
+    this.db
+      .update(games)
+      .set({
+        classId: info.classId,
+        activityId: info.activityId,
+        allowGuests: info.allowGuests ? 1 : 0,
+        audienceJson: info.audience ? JSON.stringify(info.audience) : null,
+        snapshotJson: JSON.stringify(info.snapshot),
+      })
+      .where(eq(games.id, id))
+      .run();
+  }
+
+  setPlayed(id: string, questionIds: string[]) {
+    this.db.update(games).set({ playedJson: JSON.stringify(questionIds) }).where(eq(games.id, id)).run();
   }
 
   removePlayer(playerId: string) {
@@ -119,7 +157,11 @@ export class GameRepo {
   }
 
   players(gameId: string) {
-    return this.db.select({ id: players.id, nickname: players.nickname }).from(players).where(eq(players.gameId, gameId)).all();
+    return this.db
+      .select({ id: players.id, nickname: players.nickname, studentId: players.studentId, isGuest: players.isGuest })
+      .from(players)
+      .where(eq(players.gameId, gameId))
+      .all();
   }
 
   answers(gameId: string) {

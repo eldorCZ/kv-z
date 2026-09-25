@@ -28,13 +28,14 @@ export const playTestRoutes =
       if (joinLimiter.hit(`l:${req.ip}`)) return sendError(reply, 429, 'Příliš mnoho pokusů. Zkuste to za minutu.', 'rate_limited');
       const found = s.testService.lookup(String(req.query.pin ?? '').replace(/\D/g, ''));
       if (!found) return sendError(reply, 404, 'Test s tímto PINem neexistuje.', 'not_found');
-      return found.info;
+      // class tests: identity by personal code, never names or counts (C5.1)
+      return { ...found.info, identity: found.g.classId ? 'roster' : 'name', allowGuests: !!found.g.classId && found.g.allowGuests };
     });
 
     app.post<{ Body: { pin?: string; name?: string } }>('/join', { config: { public: true } }, async (req, reply) => {
       if (joinLimiter.hit(req.ip)) return sendError(reply, 429, 'Příliš mnoho pokusů o připojení. Zkuste to za minutu.', 'rate_limited');
-      const body = (req.body ?? {}) as { pin?: unknown; name?: unknown };
-      return reply.code(201).send(s.testService.join(String(body.pin ?? '').replace(/\D/g, ''), body.name));
+      const body = (req.body ?? {}) as { pin?: unknown; name?: unknown; ticket?: unknown };
+      return reply.code(201).send(s.testService.join(String(body.pin ?? '').replace(/\D/g, ''), body.name, body.ticket));
     });
 
     app.post('/start', { config: { public: true } }, async (req, reply) => {

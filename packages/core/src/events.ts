@@ -21,6 +21,8 @@ export type GamePhase = 'lobby' | 'question' | 'reveal' | 'leaderboard' | 'finis
 export interface PlayerSummary {
   id: string;
   nickname: string;
+  /** class games: guest without a code (visible to hosts in the lobby list) */
+  guest?: boolean;
 }
 
 export interface RankEntry {
@@ -87,6 +89,11 @@ export interface HostState {
   answeredCount: number;
   paused: boolean;
   locked: boolean;
+  /** class games (Dodatek 3): public names of students who have not joined yet, only sent to hosts */
+  notJoined?: { studentId: string; publicName: string }[];
+  /** repeated wrong personal codes in this game (C5.4) */
+  codeAlert?: boolean;
+  classGame?: boolean;
 }
 
 export type Ack<T = object> = (res: ({ ok: true } & T) | { ok: false; error: string }) => void;
@@ -121,8 +128,11 @@ export interface ClientToServerEvents {
   end: (ack?: Ack) => void;
   kick_player: (e: { playerId: string }, ack?: Ack) => void;
   lock_lobby: (e: { locked: boolean }, ack?: Ack) => void;
+  /** class games: let a student take over their player from another device (C5.3) */
+  allow_return: (e: { playerId: string }, ack?: Ack) => void;
   // player
-  join: (e: { pin: string; nickname: string }, ack: Ack<JoinResult>) => void;
+  /** nickname join, or a class game join with a one-time ticket from /play/roster/identify */
+  join: (e: { pin: string; nickname?: string; ticket?: string }, ack: Ack<JoinResult>) => void;
   reconnect_player: (e: { token: string }, ack: Ack<JoinResult>) => void;
   answer: (e: { questionId: string; payload: unknown }, ack?: Ack<{ accepted: boolean }>) => void;
 }

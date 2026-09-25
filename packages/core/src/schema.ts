@@ -233,6 +233,13 @@ export const gameSettingsSchema = z.object({
   allowLateJoin: z.boolean().default(false),
   ignoreDiacritics: z.boolean().default(true),
   test: testSettingsSchema.optional(),
+  // Dodatek 3 (C6.1, C10.3): class game
+  classId: z.string().min(1).max(40).optional(),
+  label: z.string().trim().min(1).max(60).optional(),
+  allowGuests: z.boolean().default(false),
+  countInStats: z.boolean().default(true),
+  /** selected students (UI only); omitted = all active students of the class */
+  audience: z.array(z.string().min(1).max(40)).max(200).optional(),
 });
 
 export const createGameSchema = z.object({
@@ -247,6 +254,8 @@ export const createGameSchema = z.object({
     partialMulti: false,
     allowLateJoin: false,
     ignoreDiacritics: true,
+    allowGuests: false,
+    countInStats: true,
   }),
   endsAt: z.string().datetime().optional(),
 });

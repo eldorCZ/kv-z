@@ -6,6 +6,7 @@ import type { GameRepo, GameRow } from '../repo/games.js';
 import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
 import { hmac, newId, sha256 } from '../util.js';
 import type { GameManager, LiveGame } from './engine.js';
+import type { ClassGameInfo, ClassGames } from '../classes/class-games.js';
 
 export class HttpError extends Error {
   constructor(
@@ -30,6 +31,8 @@ export class GameService {
     private readonly isTestPin: (pin: string) => boolean = () => false,
   ) {}
 
+  classGames?: ClassGames;
+
   urls(gameId: string, pin: string, hostKey?: string) {
     return {
       joinUrl: `${this.cfg.publicUrl}/play`,
@@ -39,7 +42,7 @@ export class GameService {
     };
   }
 
-  create(quiz: StoredQuiz, input: CreateGameInput) {
+  create(quiz: StoredQuiz, input: CreateGameInput, classInfo: ClassGameInfo | null = null) {
     const playable = playableQuestions(quiz);
     if (playable.length === 0) {
       throw new HttpError(
@@ -56,7 +59,7 @@ export class GameService {
     const ordered: StoredQuestion[] = settings.shuffleQuestions ? permutation(playable.length).map((i) => playable[i]!) : playable;
     const hostKey = randomBytes(32).toString('base64url');
     const pin = this.manager.allocatePin(this.isTestPin);
-    const row = this.repo.create({
+    let row = this.repo.create({
       id: newId(),
       quizId: quiz.id,
       teacherId: quiz.teacherId,
@@ -67,6 +70,10 @@ export class GameService {
       questionIds: ordered.map((q) => q.id),
       endsAt: input.endsAt ? Date.parse(input.endsAt) : null,
     });
+    if (classInfo && this.classGames) {
+      this.classGames.attach(row, classInfo, quiz, ordered, 'quiz', Date.now());
+      row = this.repo.get(row.id)!;
+    }
     this.manager.create(row, quiz.title, ordered);
     return {
       gameId: row.id,

@@ -25,6 +25,7 @@ import type { GameRepo, GameRow } from '../repo/games.js';
 import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
 import { newId, sha256 } from '../util.js';
 import { guardOf, type ClientEvent, type LeaveGuardService } from './leave-guard.js';
+import { ALREADY_JOINED_MSG, type ClassGameInfo, type ClassGames } from '../classes/class-games.js';
 
 /** Answers are accepted this long after the deadline (network latency). */
 export const DEADLINE_GRACE_MS = 5000;
@@ -55,19 +56,24 @@ export class TestService {
     readonly guard: LeaveGuardService,
   ) {}
 
+  classGames?: ClassGames;
+  /** called after an attempt was finalized (class records, C7.1) */
+  onFinalize?: (g: GameRow) => void;
+
   isOpenPin(pin: string) {
     return !!this.attempts.openTestByPin(pin);
   }
 
   // ------------------------------------------------------------------ teacher
 
-  create(quiz: StoredQuiz, input: CreateGameInput) {
-    const playable = playableQuestions(quiz);
+  create(quiz: StoredQuiz, input: CreateGameInput, classInfo: ClassGameInfo | null = null, rootActivityId: string | null = null, snapshot: StoredQuestion[] | null = null) {
+    const playable = snapshot ?? playableQuestions(quiz);
     if (playable.length === 0) {
       throw new HttpError(409, 'Kvíz nemá žádnou hratelnou otázku: všechny otázky čekají na kontrolu (flagged). Učitel je musí nejdřív schválit v aplikaci.', 'no_playable_questions');
     }
     const now = this.now();
     const test = { ...(input.settings.test ?? testSettingsSchema.parse({})) };
+    const t = test;
     if (!test.closesAt) test.closesAt = new Date(now + 7 * DAY).toISOString();
     if (Date.parse(test.closesAt) <= now) {
       throw new HttpError(422, 'Termín uzavření testu musí být v budoucnosti.', 'invalid_closes_at');
@@ -92,6 +98,9 @@ export class TestService {
       endsAt: Date.parse(test.closesAt),
     });
     this.games.setStatus(row.id, 'running');
+    if (classInfo && this.classGames) {
+      this.classGames.attach(row, classInfo, quiz, playable, 'test', t.opensAt ? Date.parse(t.opensAt) : now, rootActivityId);
+    }
     return {
       gameId: row.id,
       mode: 'test' as const,
@@ -107,6 +116,11 @@ export class TestService {
 
   /** Questions of the game (current quiz content), in the given id order; deleted questions are skipped. */
   private questionsFor(g: GameRow, ids: string[]): StoredQuestion[] {
+    if (g.snapshot) {
+      // class games play the questions as they were when the game was created (C3)
+      const snap = new Map((g.snapshot as StoredQuestion[]).map((q) => [q.id, q]));
+      return ids.map((id) => snap.get(id)).filter((q): q is StoredQuestion => !!q);
+    }
     const quiz = this.quizzes.get(g.quizId);
     const byId = new Map(quiz?.questions.map((q) => [q.id, q]));
     return ids.map((id) => byId.get(id)).filter((q): q is StoredQuestion => !!q && q.qa.status !== 'flagged');
@@ -121,6 +135,7 @@ export class TestService {
   finalize(g: GameRow, a: Attempt, status: 'submitted' | 'expired', at: number) {
     const r = this.grade(g, a);
     this.attempts.update(a.id, { status, submittedAt: at, percent: r.percent, score: r.score, maxScore: r.maxScore });
+    if (g.classId) this.onFinalize?.(g);
     return r;
   }
 
@@ -140,19 +155,25 @@ export class TestService {
     return { gameId: g.id, quizId: g.quizId, mode: 'test', status: g.status, pin: g.pin, counts: this.counts(g), closesAt: testOf(g).closesAt, createdAt: g.createdAt };
   }
 
-  /** Dashboard rows (D8.2). */
-  dashboard(g: GameRow) {
+  /** Dashboard rows (D8.2). `fullNames` only for a teacher session with owner/editor role (C6.2). */
+  dashboard(g: GameRow, opts: { fullNames?: boolean } = {}) {
     const now = this.now();
     const quizCount = g.questionIds.length;
+    const list = this.attempts.listForGame(g.id);
+    const names = g.classId && opts.fullNames && this.classGames ? this.classGames.fullNames(g.classId) : null;
+    const joined = new Set(list.map((x) => x.attempt.studentId).filter((x): x is string => !!x));
     return {
       ...this.status(g),
+      classGame: !!g.classId,
+      ...(g.classId && this.classGames ? { codeAlert: this.classGames.codeAlert(g.id), notJoined: this.classGames.notJoined(g, joined) } : {}),
       title: this.quizzes.get(g.quizId)?.title ?? '',
       settings: testOf(g),
       qrUrl: `${this.cfg.publicUrl}/play?pin=${g.pin}`,
       joinUrl: `${this.cfg.publicUrl}/play`,
-      students: this.attempts.listForGame(g.id).map(({ attempt: a, nickname }) => ({
+      students: list.map(({ attempt: a, nickname }) => ({
         attemptId: a.id,
-        student: nickname,
+        student: (a.studentId && names?.get(a.studentId)) || nickname,
+        guest: !!a.isGuest,
         status: a.status,
         answered: this.attempts.answers(a.playerId).size,
         total: a.questionIds.length || quizCount,
@@ -357,7 +378,7 @@ export class TestService {
     return { g, info: { mode: 'test' as const, title: this.quizzes.get(g.quizId)?.title ?? '', questionCount: g.questionIds.length, ...t } };
   }
 
-  join(pin: string, rawName: unknown) {
+  join(pin: string, rawName: unknown, ticket?: unknown) {
     const found = this.lookup(pin);
     if (!found) throw new HttpError(404, 'Test s tímto PINem neexistuje nebo už je uzavřený. Zkontrolujte PIN.', 'not_found');
     const { g } = found;
@@ -365,6 +386,7 @@ export class TestService {
     const now = this.now();
     if (t.opensAt && Date.parse(t.opensAt) > now) throw new HttpError(409, `Test ještě nezačal. Začíná ${new Date(t.opensAt).toLocaleString('cs-CZ')}.`, 'not_open');
     if (t.closesAt && Date.parse(t.closesAt) <= now) throw new HttpError(409, 'Termín testu už vypršel.', 'closed');
+    if (g.classId && this.classGames) return this.joinClass(g, rawName, ticket);
     const name = t.requireName ? checkStudentName(rawName) : checkNickname(rawName);
     if (!name.ok) throw new HttpError(422, name.error, 'invalid_name');
     const token = randomBytes(24).toString('base64url');
@@ -384,6 +406,41 @@ export class TestService {
     for (const q of order) perms[q.id] = shuffleOptions(q, g.settings.shuffleOptions).perm;
     const a = this.attempts.create(g.id, name.nickname, sha256(token), order.map((q) => q.id), perms, now);
     return { playerToken: token, attemptId: a.id, name: name.nickname, returned: false };
+  }
+
+  /** Class test (C5.1): a student with a one-time ticket, or a guest with a nickname when allowed (C6.3). */
+  private joinClass(g: GameRow, rawName: unknown, ticket: unknown) {
+    const now = this.now();
+    const token = randomBytes(24).toString('base64url');
+    const list = this.attempts.listForGame(g.id);
+    if (ticket !== undefined && ticket !== null && ticket !== '') {
+      const { student } = this.classGames!.consumeTicket(ticket, g.id);
+      const existing = list.find((x) => x.attempt.studentId === student.id);
+      if (existing) {
+        if (!existing.attempt.allowReturn) throw new HttpError(409, ALREADY_JOINED_MSG, 'already_joined');
+        this.attempts.setPlayerToken(existing.attempt.playerId, sha256(token));
+        this.attempts.update(existing.attempt.id, { allowReturn: false });
+        return { playerToken: token, attemptId: existing.attempt.id, name: student.publicName, returned: true };
+      }
+      const a = this.newAttempt(g, student.publicName, token, now, { studentId: student.id, isGuest: false });
+      return { playerToken: token, attemptId: a.id, name: student.publicName, returned: false };
+    }
+    const nick = checkNickname(rawName);
+    if (!nick.ok) throw new HttpError(422, nick.error, 'invalid_name');
+    this.classGames!.assertGuestAllowed(g, nick.nickname);
+    if (list.some((x) => x.nickname.toLocaleLowerCase('cs') === nick.nickname.toLocaleLowerCase('cs'))) {
+      throw new HttpError(409, 'Tuto přezdívku už někdo v testu má. Zvolte jinou.', 'name_taken');
+    }
+    const a = this.newAttempt(g, nick.nickname, token, now, { studentId: null, isGuest: true });
+    return { playerToken: token, attemptId: a.id, name: nick.nickname, returned: false };
+  }
+
+  private newAttempt(g: GameRow, nickname: string, token: string, now: number, who: { studentId: string | null; isGuest: boolean }) {
+    const qs = this.questionsFor(g, g.questionIds);
+    const order = g.settings.shuffleQuestions ? permutation(qs.length).map((i) => qs[i]!) : qs;
+    const perms: Record<string, number[]> = {};
+    for (const q of order) perms[q.id] = shuffleOptions(q, g.settings.shuffleOptions).perm;
+    return this.attempts.create(g.id, nickname, sha256(token), order.map((q) => q.id), perms, now, who);
   }
 
   /** Resolve the student from a player token; lazily expires an attempt past its deadline. */

@@ -22,7 +22,13 @@ export const gameRoutes =
       if (!quiz) return sendError(reply, 404, 'Kvíz nenalezen (nebo k němu nemáte přístup).', 'not_found');
       const input = validateWith(createGameSchema, req.body ?? {});
       if (!input.ok) return reply.code(422).send({ errors: input.errors });
-      const res = input.data.mode === 'test' ? s.testService.create(quiz, input.data) : s.gameService.create(quiz, input.data);
+      let classInfo = null;
+      if (input.data.settings.classId) {
+        if (!req.auth!.scopes.has('classes:read')) return sendError(reply, 403, 'API token nemá oprávnění classes:read.', 'forbidden');
+        if (req.auth!.kind === 'token' && input.data.settings.audience) return sendError(reply, 422, 'Výběr žáků je možný jen v aplikaci.', 'audience_ui_only');
+        classInfo = s.classGames.prepare(req.auth!.teacherId, input.data);
+      }
+      const res = input.data.mode === 'test' ? s.testService.create(quiz, input.data, classInfo) : s.gameService.create(quiz, input.data, classInfo);
       return reply.code(201).send(res);
     });
 
@@ -62,10 +68,23 @@ export const gameRoutes =
       return g;
     };
     type AttemptParams = { Params: { id: string; aid: string } };
+    const namesLogged = new Map<string, number>();
 
-    app.get<GameParams>('/games/:id/dashboard', { config: { sessionOnly: true } }, async (req, reply) => {
+    app.get<GameParams & { Querystring: { names?: string } }>('/games/:id/dashboard', { config: { sessionOnly: true } }, async (req, reply) => {
       const g = ownedTest(req.params.id, req.auth!.teacherId, reply);
-      if (g) return s.testService.dashboard(g);
+      if (!g) return;
+      let fullNames = false;
+      if (req.query.names === 'full' && g.classId) {
+        s.classes.assertClassAccess(req.auth!.teacherId, g.classId, 'editor');
+        fullNames = true;
+        // the dashboard polls every 3 s: log a names view at most once per 10 minutes and game
+        const key = `${req.auth!.teacherId}:${g.id}`;
+        if ((namesLogged.get(key) ?? 0) < Date.now() - 600_000) {
+          namesLogged.set(key, Date.now());
+          s.classes.log(req.auth!.teacherId, 'names_view', g.classId);
+        }
+      }
+      return s.testService.dashboard(g, { fullNames });
     });
 
     app.get<AttemptParams>('/games/:id/attempts/:aid', { config: { sessionOnly: true } }, async (req, reply) => {

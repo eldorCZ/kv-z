@@ -182,6 +182,16 @@
       },
       "requireName": "Žák zadá jméno a příjmení",
       "allowBack": "Povolit návrat k předchozím otázkám"
+    },
+    "class": {
+      "label": "Třída",
+      "none": "Bez třídy",
+      "notice": "Výsledky se zapíšou do evidence třídy {{name}}. Žáci se přihlásí osobním kódem.",
+      "recordLabel": "Název záznamu v evidenci",
+      "all": "Všichni aktivní žáci třídy",
+      "selected": "Vybraní žáci",
+      "allowGuests": "Povolit hosty bez kódu",
+      "countInStats": "Započítat do evidence třídy (vypněte pro zkušební hru)"
     }
   },
   "export": {
@@ -303,7 +313,13 @@
     },
     "revealStats": "Správně odpovědělo {{correct}} z {{total}} žáků.",
     "leaderboard": "Průběžné pořadí",
-    "podium": "Vítězové"
+    "podium": "Vítězové",
+    "codeAlert": "Opakované chybné kódy – někdo možná zkouší hádat. Zadávání kódů se na chvíli zablokovalo.",
+    "guest": "host",
+    "allowReturn": "Povolit návrat (žák se připojí z jiného zařízení)",
+    "notJoined_one": "Ještě se nepřipojil {{count}} žák",
+    "notJoined_few": "Ještě se nepřipojili {{count}} žáci",
+    "notJoined_other": "Ještě se nepřipojilo {{count}} žáků"
   },
   "play": {
     "pin": "PIN hry",
@@ -388,7 +404,8 @@
     "eventGap": "nepotvrzená nepřítomnost nebo výpadek spojení",
     "duration": "{{sec}} s",
     "stillAway": "stále mimo okno",
-    "notCounted": "nepočítá se, kratší než limit"
+    "notCounted": "nepočítá se, kratší než limit",
+    "fullNames": "Zobrazit celá jména (jen v tomto prohlížeči)"
   },
   "guard": {
     "mode": {
@@ -577,5 +594,16 @@
     "saved": "Kód je uložený. Při připojení do třídní hry ho nebudeš muset opisovat.",
     "notSaved": "Kód se neuložil. Při připojení ho opiš z karty.",
     "forget": "Zapomenout kód na tomto zařízení"
+  },
+  "rosterLogin": {
+    "title": "Osobní kód",
+    "code": "Opiš kód ze své karty",
+    "hint": "8 znaků, např. K7MQ-2XRT. Pomlčky a malá písmena nevadí.",
+    "continue": "Pokračovat",
+    "isItYou": "Jsi to ty, {{name}}?",
+    "yes": "Ano, pokračovat",
+    "no": "Ne, zadat jiný kód",
+    "noCode": "Nemám kód",
+    "askTeacher": "Požádej učitele o nový kód."
   }
 }

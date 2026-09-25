@@ -43,6 +43,9 @@ export const rooms = {
 interface LivePlayer {
   id: string;
   nickname: string;
+  studentId?: string | null;
+  isGuest?: boolean;
+  allowReturn?: boolean;
   tokenHash: string;
   score: number;
   streak: number;
@@ -70,6 +73,9 @@ export interface GameDeps {
   log: FastifyBaseLogger;
   hostTimeoutMs: number;
   onFinished: (game: LiveGame) => void;
+  onStarted?: (game: LiveGame) => void;
+  /** class games: extra host information (not joined students, wrong code alert) */
+  hostExtras?: (game: LiveGame) => Partial<HostState>;
 }
 
 export class LiveGame {
@@ -79,6 +85,8 @@ export class LiveGame {
   paused = false;
   hostSockets = 0;
   readonly players = new Map<string, LivePlayer>();
+  /** question ids skipped by the host (not written to class records) */
+  readonly skipped = new Set<string>();
   private round?: Round;
   private lastReveal?: RevealEvent;
   private hostTimer?: NodeJS.Timeout;
@@ -116,7 +124,16 @@ export class LiveGame {
   // ---------- state snapshots ----------
 
   lobby(): LobbyUpdate {
-    return { pin: this.pin, locked: this.locked, players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname })) };
+    return {
+      pin: this.pin,
+      locked: this.locked,
+      players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname, ...(p.isGuest ? { guest: true } : {}) })),
+    };
+  }
+
+  /** Questions that were actually played (started, not skipped) – for class records. */
+  playedQuestionIds(): string[] {
+    return this.questions.slice(0, this.index + 1).map((q) => q.id).filter((id) => !this.skipped.has(id));
   }
 
   hostState(): HostState {
@@ -128,6 +145,7 @@ export class LiveGame {
       answeredCount: this.round?.answers.size ?? 0,
       paused: this.paused,
       locked: this.locked,
+      ...(this.deps.hostExtras?.(this) ?? {}),
     };
   }
 
@@ -205,6 +223,7 @@ export class LiveGame {
     if (this.players.size === 0) throw new GameError('Počkejte, až se připojí alespoň jeden žák.');
     if (!this.settings.allowLateJoin) this.locked = true;
     this.deps.repo.setStatus(this.id, 'running');
+    this.deps.onStarted?.(this);
     this.startQuestion(0);
   }
 
@@ -246,6 +265,7 @@ export class LiveGame {
       }
     }
     this.deps.repo.deleteAnswers(this.id, r.q.id);
+    this.skipped.add(r.q.id);
     this.advance();
   }
 
@@ -430,7 +450,36 @@ export class LiveGame {
     return null;
   }
 
-  join(rawNickname: unknown): { player: LivePlayer; token: string } {
+  /** Class game: join as a roster student (C5.1). A second connection is refused unless the host allowed a return. */
+  joinStudent(student: { id: string; publicName: string }): { player: LivePlayer; token: string } {
+    const existing = [...this.players.values()].find((p) => p.studentId === student.id);
+    const token = randomBytes(24).toString('base64url');
+    if (existing) {
+      if (!existing.allowReturn) throw new GameError('Tento žák už je ve hře připojen. Požádej učitele o obnovení.');
+      // take over the player (score stays), the old token stops working
+      existing.allowReturn = false;
+      existing.tokenHash = sha256(token);
+      this.deps.repo.setPlayerToken(existing.id, existing.tokenHash);
+      return { player: existing, token };
+    }
+    const blocked = this.canJoin();
+    if (blocked) throw new GameError(blocked);
+    const tokenHash = sha256(token);
+    const id = this.deps.repo.addPlayer(this.id, student.publicName, tokenHash, { studentId: student.id, isGuest: false });
+    const player: LivePlayer = { id, nickname: student.publicName, tokenHash, score: 0, streak: 0, sockets: 0, studentId: student.id, isGuest: false };
+    this.players.set(id, player);
+    this.emitAll('lobby_update', this.lobby());
+    this.broadcastHostState();
+    return { player, token };
+  }
+
+  allowReturn(playerId: string) {
+    const p = this.players.get(playerId);
+    if (!p || !p.studentId) throw new GameError('Návrat lze povolit jen žákovi třídy.');
+    p.allowReturn = true;
+  }
+
+  join(rawNickname: unknown, opts: { isGuest?: boolean } = {}): { player: LivePlayer; token: string } {
     const blocked = this.canJoin();
     if (blocked) throw new GameError(blocked);
     const nick = checkNickname(rawNickname);
@@ -439,8 +488,8 @@ export class LiveGame {
     for (const p of this.players.values()) if (p.nickname.toLocaleLowerCase('cs') === key) throw new GameError('Tuto přezdívku už někdo ve hře má. Zvolte jinou.');
     const token = randomBytes(24).toString('base64url');
     const tokenHash = sha256(token);
-    const id = this.deps.repo.addPlayer(this.id, nick.nickname, tokenHash);
-    const player: LivePlayer = { id, nickname: nick.nickname, tokenHash, score: 0, streak: 0, sockets: 0 };
+    const id = this.deps.repo.addPlayer(this.id, nick.nickname, tokenHash, opts.isGuest ? { studentId: null, isGuest: true } : undefined);
+    const player: LivePlayer = { id, nickname: nick.nickname, tokenHash, score: 0, streak: 0, sockets: 0, isGuest: opts.isGuest };
     this.players.set(id, player);
     this.emitAll('lobby_update', this.lobby());
     this.broadcastHostState();
@@ -522,6 +571,11 @@ export class GameManager {
   constructor(
     private readonly deps: Omit<GameDeps, 'onFinished'> & { pinLength: number; onFinished?: (g: LiveGame) => void },
   ) {}
+
+  /** Late wiring of optional hooks (class games). */
+  setHooks(hooks: Pick<GameDeps, 'onStarted' | 'hostExtras'>) {
+    Object.assign(this.deps, hooks);
+  }
 
   /** Unique among live games and (via `isTaken`) open tests. */
   allocatePin(isTaken: (pin: string) => boolean = () => false): string {

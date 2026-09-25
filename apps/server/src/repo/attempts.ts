@@ -28,6 +28,9 @@ export interface Attempt {
   guardExempt: boolean;
   lastHeartbeatAt: number | null;
   fullscreenSupported: boolean | null;
+  // Dodatek 3 (from players)
+  studentId?: string | null;
+  isGuest?: boolean;
 }
 
 type Row = typeof attempts.$inferSelect;
@@ -85,11 +88,11 @@ export class AttemptRepo {
   constructor(private readonly db: Db) {}
 
   /** Creates the player and their attempt in one transaction. */
-  create(gameId: string, nickname: string, tokenHash: string, questionIds: string[], optionPerms: Record<string, number[]>, now: number) {
+  create(gameId: string, nickname: string, tokenHash: string, questionIds: string[], optionPerms: Record<string, number[]>, now: number, who?: { studentId: string | null; isGuest: boolean }) {
     const playerId = newId();
     const id = newId();
     this.db.transaction((tx) => {
-      tx.insert(players).values({ id: playerId, gameId, nickname, tokenHash, joinedAt: now }).run();
+      tx.insert(players).values({ id: playerId, gameId, nickname, tokenHash, joinedAt: now, studentId: who?.studentId ?? null, isGuest: who?.isGuest ? 1 : 0 }).run();
       tx.insert(attempts)
         .values({ id, gameId, playerId, status: 'not_started', questionIdsJson: JSON.stringify(questionIds), optionPermsJson: JSON.stringify(optionPerms), createdAt: now })
         .run();
@@ -116,13 +119,13 @@ export class AttemptRepo {
   /** Attempts of a game with the player's nickname, in join order. */
   listForGame(gameId: string) {
     return this.db
-      .select({ a: attempts, nickname: players.nickname, joinedAt: players.joinedAt })
+      .select({ a: attempts, nickname: players.nickname, joinedAt: players.joinedAt, studentId: players.studentId, isGuest: players.isGuest })
       .from(attempts)
       .innerJoin(players, eq(players.id, attempts.playerId))
       .where(eq(attempts.gameId, gameId))
       .orderBy(asc(players.joinedAt), asc(attempts.id))
       .all()
-      .map((r) => ({ attempt: toAttempt(r.a), nickname: r.nickname }));
+      .map((r) => ({ attempt: { ...toAttempt(r.a), studentId: r.studentId, isGuest: r.isGuest === 1 }, nickname: r.nickname }));
   }
 
   update(id: string, patch: AttemptPatch) {

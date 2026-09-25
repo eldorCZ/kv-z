@@ -1,5 +1,5 @@
 import QRCode from 'qrcode';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { api, ApiError } from '../api';
@@ -45,6 +45,25 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
   });
   // Dodatek 2, G2 defaults
   const [guard, setGuard] = useState({ mode: 'warn' as 'off' | 'log' | 'warn', maxLeaves: 2, onExceed: 'notify' as 'notify' | 'lock', requireFullscreen: false, minLeaveMs: 1000 });
+  // Dodatek 3 (C6.1): class game
+  const [classes, setClasses] = useState<{ id: string; name: string; status: string; role?: string }[]>([]);
+  const [cls, setCls] = useState({ classId: '', label: quiz.title.slice(0, 60), audienceAll: true, audience: [] as string[], allowGuests: false, countInStats: true });
+  const [students, setStudents] = useState<{ id: string; publicName: string; familyName: string; givenName: string; active: boolean }[]>([]);
+  useEffect(() => {
+    api<{ classes: typeof classes }>('GET', '/api/v1/classes')
+      .then((r) => setClasses(r.classes.filter((c) => c.status === 'active' && (c.role === 'owner' || c.role === 'editor'))))
+      .catch(() => setClasses([]));
+  }, []);
+  useEffect(() => {
+    if (!cls.classId || cls.audienceAll) return;
+    api<{ students: typeof students }>('GET', `/api/v1/classes/${cls.classId}`)
+      .then((r) => setStudents(r.students.filter((x) => x.active)))
+      .catch(() => setStudents([]));
+  }, [cls.classId, cls.audienceAll]);
+  const className = classes.find((c) => c.id === cls.classId)?.name;
+  const classSettings = cls.classId
+    ? { classId: cls.classId, label: cls.label || quiz.title.slice(0, 60), allowGuests: cls.allowGuests, countInStats: cls.countInStats, ...(cls.audienceAll ? {} : { audience: cls.audience }) }
+    : {};
   const [created, setCreated] = useState<Created | null>(null);
   const [qr, setQr] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
@@ -56,10 +75,11 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     try {
       const body =
         mode === 'live'
-          ? { mode, settings }
+          ? { mode, settings: { ...settings, ...classSettings } }
           : {
               mode,
               settings: {
+                ...classSettings,
                 shuffleQuestions: settings.shuffleQuestions,
                 shuffleOptions: settings.shuffleOptions,
                 partialMulti: settings.partialMulti,
@@ -106,6 +126,58 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             ))}
           </div>
           {quiz.stats.flagged > 0 && <p className="rounded bg-amber-50 p-2 text-sm text-amber-900">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
+          {classes.length > 0 && (
+            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="class-settings">
+              <Field label={t('game.class.label')}>
+                <select className={inputCls} value={cls.classId} onChange={(e) => setCls({ ...cls, classId: e.target.value })} data-testid="game-class">
+                  <option value="">{t('game.class.none')}</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              {cls.classId && (
+                <>
+                  <p className="rounded bg-sky-50 p-2 text-sm text-sky-900">{t('game.class.notice', { name: className })}</p>
+                  <Field label={t('game.class.recordLabel')}>
+                    <input className={inputCls} maxLength={60} value={cls.label} onChange={(e) => setCls({ ...cls, label: e.target.value })} data-testid="game-label" />
+                  </Field>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" checked={cls.audienceAll} onChange={() => setCls({ ...cls, audienceAll: true })} /> {t('game.class.all')}
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" checked={!cls.audienceAll} onChange={() => setCls({ ...cls, audienceAll: false })} /> {t('game.class.selected')}
+                    </label>
+                  </div>
+                  {!cls.audienceAll && (
+                    <ul className="grid max-h-40 gap-1 overflow-y-auto text-sm sm:grid-cols-2">
+                      {students.map((st) => (
+                        <li key={st.id}>
+                          <label className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={cls.audience.includes(st.id)}
+                              onChange={(e) => setCls({ ...cls, audience: e.target.checked ? [...cls.audience, st.id] : cls.audience.filter((x) => x !== st.id) })}
+                            />
+                            {`${st.familyName} ${st.givenName}`.trim()}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={cls.allowGuests} onChange={(e) => setCls({ ...cls, allowGuests: e.target.checked })} /> {t('game.class.allowGuests')}
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={cls.countInStats} onChange={(e) => setCls({ ...cls, countInStats: e.target.checked })} /> {t('game.class.countInStats')}
+                  </label>
+                </>
+              )}
+            </fieldset>
+          )}
           {mode === 'test' && (
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label={t('game.test.timeLimit')} hint={t('game.test.timeLimitHint')}>
@@ -124,10 +196,12 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
                 </select>
               </Field>
               <div className="space-y-2 pt-6">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" className="h-4 w-4" checked={test.requireName} onChange={(e) => setTest({ ...test, requireName: e.target.checked })} />
-                  {t('game.test.requireName')}
-                </label>
+                {!cls.classId && (
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" className="h-4 w-4" checked={test.requireName} onChange={(e) => setTest({ ...test, requireName: e.target.checked })} />
+                    {t('game.test.requireName')}
+                  </label>
+                )}
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" className="h-4 w-4" checked={test.allowBackNavigation} onChange={(e) => setTest({ ...test, allowBackNavigation: e.target.checked })} />
                   {t('game.test.allowBack')}

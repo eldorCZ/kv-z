@@ -187,9 +187,14 @@ export default function Host() {
               <p className="mt-6 text-2xl">
                 {t('host.players', { count: lobby.players.length })} {lobby.locked && `· 🔒 ${t('host.locked')}`}
               </p>
+              {state.codeAlert && (
+                <p role="alert" className="mt-3 rounded bg-amber-400 px-3 py-2 text-lg font-semibold text-slate-900">
+                  ⚠ {t('host.codeAlert')}
+                </p>
+              )}
               <ul className="mt-3 flex flex-wrap gap-2" aria-live="polite">
                 {lobby.players.map((p) => (
-                  <li key={p.id}>
+                  <li key={p.id} className="flex items-center gap-1">
                     <button
                       className="rounded-full bg-white/10 px-4 py-2 text-xl hover:bg-red-600"
                       title={t('host.kick')}
@@ -198,10 +203,22 @@ export default function Host() {
                       }}
                     >
                       {p.nickname}
+                      {p.guest ? ` (${t('host.guest')})` : ''}
                     </button>
+                    {state.classGame && !p.guest && (
+                      <button className="rounded-full bg-white/10 px-2 py-2 text-lg hover:bg-white/25" title={t('host.allowReturn')} aria-label={t('host.allowReturn')} onClick={() => void cmd('allow_return', { playerId: p.id })}>
+                        ↺
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
+              {state.notJoined && state.notJoined.length > 0 && (
+                <div className="mt-4 text-lg text-slate-300" data-testid="host-not-joined">
+                  <p>{t('host.notJoined', { count: state.notJoined.length })}</p>
+                  <p className="text-base">{state.notJoined.map((x) => x.publicName).join(', ')}</p>
+                </div>
+              )}
             </div>
             {qr && <img src={qr} alt={t('game.qrAlt')} className="h-80 w-80 rounded-lg bg-white p-2" />}
           </div>

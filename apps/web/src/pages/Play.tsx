@@ -2,6 +2,7 @@ import type { GameOverEvent, JoinResult, LeaderboardEvent, PublicQuestion, Revea
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
+import RosterCodeStep from '../classes/RosterCodeStep';
 import { ANSWER_STYLES, Shape } from '../components/Shapes';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
 
@@ -95,39 +96,66 @@ export default function Play() {
     };
   }, []);
 
-  /** A PIN can belong to a live game or to a test (self-paced); tests have their own screen. */
-  const isTest = async (p: string) => {
-    if (!p) return false;
+  /** A PIN can belong to a live game or a test; class games need a personal code (Dodatek 3, C5). */
+  const [roster, setRoster] = useState<{ allowGuests: boolean } | null>(null);
+  const [guest, setGuest] = useState(false);
+  const lookup = async (p: string): Promise<{ mode: string; identity: string; allowGuests: boolean } | null> => {
+    if (!p) return null;
     try {
-      return (await fetch(`/play/test/lookup?pin=${encodeURIComponent(p)}`)).ok;
+      const r = await fetch(`/play/roster/lookup?pin=${encodeURIComponent(p)}`);
+      return r.ok ? await r.json() : null;
     } catch {
-      return false;
+      return null;
     }
   };
 
   useEffect(() => {
     const p = params.get('pin')?.replace(/\D/g, '');
     if (p && !readToken())
-      void isTest(p).then((test) => {
-        if (test) navigate(`/test?pin=${p}`, { replace: true });
+      void lookup(p).then((info) => {
+        if (info?.mode === 'test') navigate(`/test?pin=${p}`, { replace: true });
+        else if (info?.identity === 'roster') setRoster({ allowGuests: info.allowGuests });
       });
   }, []);
+
+  const finishJoin = (r: { ok: true } & JoinResult) => {
+    writeToken(r.token);
+    setMe(r);
+    setView((v) => (v === 'join' ? 'lobby' : v));
+  };
 
   const join = async (e: FormEvent) => {
     e.preventDefault();
     if (!sock.current) return;
     setBusy(true);
     setError('');
-    if (await isTest(pin)) {
+    const info = await lookup(pin);
+    if (info?.mode === 'test') {
       setBusy(false);
       return navigate(`/test?pin=${pin}&name=${encodeURIComponent(nickname)}`);
+    }
+    if (info?.identity === 'roster' && !guest) {
+      setBusy(false);
+      return setRoster({ allowGuests: info.allowGuests });
+    }
+    if (!nickname.trim()) {
+      setBusy(false);
+      return setError(t('play.nicknameHint'));
     }
     const r = await call<JoinResult>(sock.current, 'join', { pin, nickname });
     setBusy(false);
     if (!r.ok) return setError(r.error);
-    writeToken(r.token);
-    setMe(r);
-    setView((v) => (v === 'join' ? 'lobby' : v));
+    finishJoin(r);
+  };
+
+  const joinWithTicket = async (ticket: string) => {
+    if (!sock.current) return;
+    const r = await call<JoinResult>(sock.current, 'join', { pin, ticket });
+    if (!r.ok) {
+      setRoster(null);
+      return setError(r.error);
+    }
+    finishJoin(r);
   };
 
   const answer = async (payload: unknown) => {
@@ -158,6 +186,13 @@ export default function Play() {
     </div>
   );
 
+  if (view === 'join' && roster && !guest)
+    return shell(
+      <div className="m-auto flex w-full justify-center">
+        <RosterCodeStep pin={pin} allowGuests={roster.allowGuests} onTicket={(ticket) => joinWithTicket(ticket)} onGuest={() => setGuest(true)} dark />
+      </div>,
+    );
+
   if (view === 'join')
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-slate-900 shadow-lg">
@@ -180,9 +215,7 @@ export default function Play() {
           <input
             className="w-full rounded-md border border-slate-300 px-3 py-3 text-xl"
             autoComplete="off"
-            minLength={2}
             maxLength={20}
-            required
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             aria-label={t('play.nickname')}

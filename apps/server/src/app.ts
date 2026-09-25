@@ -9,7 +9,7 @@ import { Server } from 'socket.io';
 import { createAuthProvider, type AuthProvider } from './auth/provider.js';
 import type { Config } from './config.js';
 import { openDb, type Db } from './db/index.js';
-import { GameManager } from './game/engine.js';
+import { GameManager, type LiveGame } from './game/engine.js';
 import { GameService, HttpError } from './game/service.js';
 import { SESSION_COOKIE, setupSockets } from './game/socket.js';
 import { AccountRepo, APPROVE_SCOPE, TOKEN_SCOPES, type Scope } from './repo/accounts.js';
@@ -18,6 +18,8 @@ import { QuizRepo } from './repo/quizzes.js';
 import { AttemptRepo } from './repo/attempts.js';
 import { ClassService } from './classes/service.js';
 import { EvidenceService } from './classes/evidence.js';
+import { ClassGames } from './classes/class-games.js';
+import { rosterRoutes } from './routes/roster.js';
 import { classRoutes } from './routes/classes.js';
 import { TestService } from './test-mode/service.js';
 import { LeaveGuardService } from './test-mode/leave-guard.js';
@@ -65,6 +67,7 @@ export interface Services {
   attempts: AttemptRepo;
   classes: ClassService;
   evidence: EvidenceService;
+  classGames: ClassGames;
   testService: TestService;
   now: () => number;
 }
@@ -112,14 +115,17 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     pingTimeout: 10_000,
   });
 
-  const hooks: { gameService?: GameService } = {};
+  const hooks: { gameService?: GameService; onLiveFinished?: (g: LiveGame) => void } = {};
   const games = new GameManager({
     io,
     repo: gameRepo,
     log: app.log,
     hostTimeoutMs: cfg.hostTimeoutMs,
     pinLength: cfg.pinLength,
-    onFinished: (g) => void hooks.gameService?.notifyFinished(g),
+    onFinished: (g) => {
+      hooks.onLiveFinished?.(g);
+      void hooks.gameService?.notifyFinished(g);
+    },
   });
   const attempts = new AttemptRepo(db);
   const leaveGuard = new LeaveGuardService(db, attempts, cfg.heartbeatGapSec * 1000);
@@ -128,6 +134,29 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   hooks.gameService = gameService;
 
   let templateCache: Buffer | undefined;
+  const classes = new ClassService(cfg, db, now);
+  const evidence = new EvidenceService(cfg, db, now, gameRepo);
+  const classGames = new ClassGames(classes, evidence, gameRepo, games, () => testService, now);
+  gameService.classGames = classGames;
+  testService.classGames = classGames;
+  // class records (C7.1): tests are written on every finalisation, live games when they end
+  testService.onFinalize = (g) => evidence.materializeGame(g.id);
+  hooks.onLiveFinished = (g) => {
+    if (!g.row.classId) return;
+    gameRepo.setPlayed(g.id, g.playedQuestionIds());
+    evidence.materializeGame(g.id);
+  };
+  games.setHooks({
+    onStarted: (g) => {
+      if (g.row.activityId) evidence.setPlayedAt(g.row.activityId, now());
+    },
+    hostExtras: (g) => {
+      if (!g.row.classId) return {};
+      const joined = new Set([...g.players.values()].map((p) => p.studentId).filter((x): x is string => !!x));
+      return { classGame: true, notJoined: classGames.notJoined(g.row, joined), codeAlert: classGames.codeAlert(g.id) };
+    },
+  });
+
   const services: Services = {
     cfg,
     db,
@@ -139,8 +168,9 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     auth: createAuthProvider(cfg.authProvider, accounts),
     loginLimiter: new RateLimiter(10, 60_000),
     attempts,
-    classes: new ClassService(cfg, db, now),
-    evidence: new EvidenceService(cfg, db, now),
+    classes,
+    evidence,
+    classGames,
     testService,
     now,
     kahootTemplate: () => {
@@ -152,7 +182,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     },
   };
 
-  setupSockets({ io, games, accounts, log: app.log, trustProxy: cfg.trustProxy, publicUrl: cfg.publicUrl, joinLimit: cfg.joinRateLimit });
+  setupSockets({ io, games, accounts, log: app.log, trustProxy: cfg.trustProxy, publicUrl: cfg.publicUrl, joinLimit: cfg.joinRateLimit, classGames });
 
   await app.register(cookie);
   await app.register(helmet, {
@@ -260,6 +290,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   await app.register(openapiRoutes(services), { prefix: '/api/v1' });
   await app.register(classRoutes(services), { prefix: '/api/v1' });
   await app.register(playTestRoutes(services), { prefix: '/play/test' });
+  await app.register(rosterRoutes(services), { prefix: '/play/roster' });
 
   // D5.6: expire attempts after their deadline and close tests (every 5 s)
   const testTimer = setInterval(() => {
@@ -277,7 +308,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     await app.register(fastifyStatic, { root: cfg.webDist, wildcard: false, index: false, maxAge: '1h' });
   }
   app.setNotFoundHandler((req, reply) => {
-    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
+    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/play/roster/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
       return reply.type('text/html').header('cache-control', 'no-cache').send(readFileSync(indexHtml));
     }
     return sendError(reply, 404, 'Nenalezeno.', 'not_found');

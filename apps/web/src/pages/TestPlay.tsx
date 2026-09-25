@@ -2,6 +2,7 @@ import type { PublicQuestion } from '@kvizhub/core';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
+import RosterCodeStep from '../classes/RosterCodeStep';
 import { ANSWER_STYLES, Shape } from '../components/Shapes';
 import { GuardController, type HeartbeatStatus } from '../leave-guard-client';
 import { useCountdown } from '../socket';
@@ -80,7 +81,8 @@ export default function TestPlay() {
   const [params] = useSearchParams();
   const [pin, setPin] = useState(params.get('pin')?.replace(/\D/g, '') ?? '');
   const [name, setName] = useState(params.get('name') ?? '');
-  const [info, setInfo] = useState<{ title: string; requireName: boolean; questionCount: number; timeLimitMin: number | null } | null>(null);
+  const [info, setInfo] = useState<{ title: string; requireName: boolean; questionCount: number; timeLimitMin: number | null; identity?: 'roster' | 'name'; allowGuests?: boolean } | null>(null);
+  const [guest, setGuest] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [view, setView] = useState<AttemptView | null>(null);
   const [error, setError] = useState('');
@@ -238,6 +240,18 @@ export default function TestPlay() {
     );
   };
 
+  const joinWithTicket = async (ticket: string) => {
+    setError('');
+    try {
+      const r = await studentApi<{ playerToken: string }>('POST', '/join', null, { pin, ticket });
+      writeTestToken(pin, r.playerToken);
+      setToken(r.playerToken);
+      await reload(r.playerToken);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   const join = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -327,6 +341,13 @@ export default function TestPlay() {
       </div>,
     );
 
+  if ((!token || !view) && info?.identity === 'roster' && !guest)
+    return shell(
+      <div className="m-auto flex w-full justify-center">
+        <RosterCodeStep pin={pin} allowGuests={!!info.allowGuests} onTicket={(ticket) => joinWithTicket(ticket)} onGuest={() => setGuest(true)} />
+      </div>,
+    );
+
   if (!token || !view)
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-4 rounded-xl bg-white p-6 shadow">
@@ -336,9 +357,9 @@ export default function TestPlay() {
           <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-2xl tracking-widest" inputMode="numeric" required value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
         </label>
         <label className="block text-sm">
-          <span className="mb-1 block font-medium">{info?.requireName === false ? t('play.nickname') : t('test.name')}</span>
+          <span className="mb-1 block font-medium">{info?.requireName === false || guest ? t('play.nickname') : t('test.name')}</span>
           <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-lg" autoComplete="name" required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} data-testid="test-name" />
-          <span className="mt-1 block text-xs text-slate-500">{info?.requireName === false ? t('play.nicknameHint') : t('test.nameHint')}</span>
+          <span className="mt-1 block text-xs text-slate-500">{info?.requireName === false || guest ? t('play.nicknameHint') : t('test.nameHint')}</span>
         </label>
         <button type="submit" disabled={busy} className="w-full rounded-md bg-indigo-600 py-3 text-lg font-bold text-white hover:bg-indigo-700 disabled:bg-indigo-300">
           {t('test.continue')}

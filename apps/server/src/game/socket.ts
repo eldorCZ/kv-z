@@ -1,4 +1,6 @@
-import type { ClientToServerEvents, ServerToClientEvents } from '@kvizhub/core';
+import { checkNickname, type ClientToServerEvents, type ServerToClientEvents } from '@kvizhub/core';
+import type { ClassGames } from '../classes/class-games.js';
+import { HttpError } from './service.js';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Server, Socket } from 'socket.io';
 import type { AccountRepo } from '../repo/accounts.js';
@@ -34,6 +36,7 @@ export interface SocketDeps {
   publicUrl: string;
   /** join attempts per IP per minute */
   joinLimit?: number;
+  classGames?: ClassGames;
 }
 
 function clientIp(socket: S, trustProxy: boolean): string {
@@ -99,6 +102,7 @@ export function setupSockets(deps: SocketDeps) {
     socket.on('end', hostCmd('end', (g) => g.end()));
     socket.on('kick_player', (e, ack) => hostCmd('kick', (g) => g.kick(String(e?.playerId ?? '')))(ack));
     socket.on('lock_lobby', (e, ack) => hostCmd('lock', (g) => g.lockLobby(!!e?.locked))(ack));
+    socket.on('allow_return', (e, ack) => hostCmd('allow_return', (g) => g.allowReturn(String(e?.playerId ?? '')))(ack));
 
     const attachPlayer = (g: LiveGame, playerId: string) => {
       socket.data = { role: 'player', gameId: g.id, playerId };
@@ -113,12 +117,25 @@ export function setupSockets(deps: SocketDeps) {
       const g = games.getByPin(pin);
       if (!g) return fail(ack, 'Hra s tímto PINem neexistuje. Zkontrolujte PIN.');
       try {
-        const { player, token } = g.join(e?.nickname);
+        // class games (Dodatek 3): a student joins with a one-time ticket, a guest with a nickname when allowed
+        let joined;
+        if (g.row.classId && deps.classGames) {
+          if (e?.ticket) {
+            const { student } = deps.classGames.consumeTicket(e.ticket, g.id);
+            joined = g.joinStudent(student);
+          } else {
+            const nick = checkNickname(e?.nickname);
+            if (!nick.ok) return fail(ack, nick.error);
+            deps.classGames.assertGuestAllowed(g.row, nick.nickname);
+            joined = g.join(e?.nickname, { isGuest: true });
+          }
+        } else joined = g.join(e?.nickname);
+        const { player, token } = joined;
         attachPlayer(g, player.id);
         ok(ack, { token, playerId: player.id, nickname: player.nickname, score: 0 });
         g.syncPlayer(player.id);
       } catch (err) {
-        if (err instanceof GameError) return fail(ack, err.message);
+        if (err instanceof GameError || err instanceof HttpError) return fail(ack, err.message);
         log.error({ err }, 'join failed');
         fail(ack, 'Interní chyba serveru.');
       }
