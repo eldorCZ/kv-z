@@ -136,7 +136,9 @@
     "saving": "Ukládám…",
     "saved": "✓ Uloženo",
     "invalid": "Změny zatím nejsou uložené, opravte chyby.",
-    "error": "Uložení selhalo: {{message}}"
+    "error": "Uložení selhalo: {{message}}",
+    "topic": "Téma (nepovinné)",
+    "topicHint": "1–4 slova, např. „Lom světla“. Stejné téma pojmenujte ve všech kvízech stejně – podle něj se v třídách sleduje zvládnutí učiva."
   },
   "game": {
     "startTitle": "Spustit hru",

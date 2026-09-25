@@ -304,6 +304,77 @@ export class ClassOverview {
     return `\ufeff${lines.join('\r\n')}\r\n`;
   }
 
+  /**
+   * C10.3 summary for the agent: aggregates only, no names, codes or individual results.
+   * Groups below MIN_AGGREGATE_STUDENTS become null with the note "malá skupina".
+   */
+  summary(c: ClassRow, q: { from?: string; to?: string }) {
+    const min = this.cfg.minAggregateStudents;
+    const p = this.period(c, { from: q.from?.slice(0, 10), to: q.to?.slice(0, 10) });
+    const { acts, mActs, mResults } = this.data(c.id);
+    const roots = countedRoots(mActs, p.from, p.to);
+    const students = this.classes.students(c.id);
+    const small = students.filter((x) => x.active).length < min;
+    const notes: string[] = [];
+    if (small) notes.push(`malá skupina: třída má méně než ${min} aktivních žáků, souhrny se neposkytují`);
+    const activities = roots.map((a) => {
+      const st = activityStats(a, mActs, mResults);
+      const tiny = small || st.n < min;
+      return {
+        activityId: a.id,
+        label: acts.find((x) => x.id === a.id)!.label,
+        kind: a.kind,
+        playedAt: new Date(a.playedAt).toISOString(),
+        n: st.n,
+        participationRate: small ? null : st.participationRate,
+        avgPercent: tiny ? null : st.avg,
+        medianPercent: tiny ? null : st.median,
+        ...(tiny && !small ? { note: 'malá skupina' } : {}),
+      };
+    });
+    const sums = students.map((s) => studentSummary(this.mStudent(s), mActs, mResults, c.settings, { from: p.from, to: p.to }));
+    const avg = (xs: (number | null)[]) => {
+      const v = xs.filter((x): x is number => x !== null);
+      return v.length >= min ? roundHalfUp(v.reduce((a, b) => a + b, 0) / v.length) : null;
+    };
+    const items = this.items(c.id, { period: p });
+    const weakTopics = small
+      ? []
+      : classTopics(items, this.cfg.minTopicItems)
+          .filter((t) => t.percent !== null && t.students >= min)
+          .slice(0, 5)
+          .map((t) => ({ topic: t.topic, successRate: t.percent!, items: t.items }));
+    const quizOf = this.sql.prepare('SELECT quiz_id AS quizId FROM questions WHERE id = ?');
+    const weakQs = small
+      ? []
+      : weakQuestions(items, Math.max(this.cfg.minTopicItems, min), 5).map((w) => ({
+          quizId: w.questionId ? ((quizOf.get(w.questionId) as { quizId: string } | undefined)?.quizId ?? null) : null,
+          questionId: w.questionId,
+          prompt: w.prompt,
+          successRate: w.successRate,
+          answers: w.answers,
+        }));
+    return {
+      classId: c.id,
+      className: c.name,
+      period: { from: Number.isFinite(p.from) ? new Date(p.from).toISOString() : null, to: Number.isFinite(p.to) ? new Date(p.to).toISOString() : null },
+      activeStudents: students.filter((x) => x.active).length,
+      activities,
+      testAvg: small ? null : avg(sums.map((x) => x.testAvg)),
+      quizAvg: small ? null : avg(sums.map((x) => x.quizAvg)),
+      participationRate: small ? null : avg(sums.map((x) => x.participation)),
+      weakTopics,
+      weakQuestions: weakQs,
+      notes,
+    };
+  }
+
+  /** Topics used by the teacher so far (C10.3 GET /topics). */
+  teacherTopics(teacherId: string): string[] {
+    const rows = this.sql.prepare('SELECT DISTINCT q.topic FROM questions q JOIN quizzes z ON z.id = q.quiz_id WHERE z.teacher_id = ? AND q.topic IS NOT NULL').all(teacherId) as { topic: string }[];
+    return rows.map((r) => r.topic).sort((a, b) => a.localeCompare(b, 'cs'));
+  }
+
   /** Every activity row, for API summaries (C10.3). */
   activityRows(classId: string): ActivityRow[] {
     return this.evidence.activities(classId);

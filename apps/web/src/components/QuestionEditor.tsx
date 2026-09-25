@@ -14,6 +14,8 @@ export interface EditableQuestion {
   numericAnswer: number | null;
   numericTolerance: number | null;
   explanation: string;
+  /** Dodatek 3 (C10.1): topic for tracking mastery in classes */
+  topic?: string | null;
   timeLimitSec: number;
   points: 'standard' | 'double' | 'none';
   bloom?: string | null;
@@ -25,7 +27,7 @@ export interface EditableQuestion {
 
 type Draft = Omit<EditableQuestion, 'id' | 'approvedAt' | 'qa'>;
 
-const EDITABLE_KEYS = ['type', 'prompt', 'options', 'correctIndices', 'acceptedAnswers', 'numericAnswer', 'numericTolerance', 'explanation', 'timeLimitSec', 'points'] as const;
+const EDITABLE_KEYS = ['type', 'prompt', 'options', 'correctIndices', 'acceptedAnswers', 'numericAnswer', 'numericTolerance', 'explanation', 'topic', 'timeLimitSec', 'points'] as const;
 
 function toDraft(q: EditableQuestion): Draft {
   const { id: _id, approvedAt: _a, qa: _qa, ...rest } = q;
@@ -62,6 +64,18 @@ function changeType(d: Draft, type: QuestionType): Draft {
 
 const draftKey = (qid: string) => `kvizhub-draft-${qid}`;
 
+// topics used so far by the teacher, loaded once per page for the suggestions
+let topicsPromise: Promise<string[]> | null = null;
+function loadTopics(): Promise<string[]> {
+  topicsPromise ??= api<{ topics: string[] }>('GET', '/api/v1/topics')
+    .then((r) => r.topics)
+    .catch(() => {
+      topicsPromise = null;
+      return [];
+    });
+  return topicsPromise;
+}
+
 export default function QuestionEditor({ quizId, question, onSaved }: { quizId: string; question: EditableQuestion; onSaved: (q: EditableQuestion) => void }) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => {
@@ -79,6 +93,10 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
   const [serverError, setServerError] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const first = useRef(true);
+  const [topics, setTopics] = useState<string[]>([]);
+  useEffect(() => {
+    void loadTopics().then(setTopics);
+  }, []);
 
   useEffect(() => {
     if (first.current) {
@@ -91,7 +109,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     } catch {
       /* storage may be unavailable */
     }
-    const v = validateQuestion({ ...draft, qa: question.qa, sourceRef: question.sourceRef ?? null });
+    const v = validateQuestion({ ...draft, topic: draft.topic?.trim() || null, qa: question.qa, sourceRef: question.sourceRef ?? null });
     if (!v.ok) {
       setErrors(v.errors);
       return;
@@ -101,7 +119,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     timer.current = setTimeout(async () => {
       setState('saving');
       try {
-        const body = Object.fromEntries(EDITABLE_KEYS.map((k) => [k, draft[k]]));
+        const body = Object.fromEntries(EDITABLE_KEYS.map((k) => [k, k === 'topic' ? draft.topic?.trim() || null : draft[k]]));
         const r = await api<{ question: EditableQuestion }>('PATCH', `/api/v1/quizzes/${quizId}/questions/${question.id}`, body);
         localStorage.removeItem(draftKey(question.id));
         setState('saved');
@@ -303,7 +321,16 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
         <textarea className={inputCls} rows={2} maxLength={300} value={draft.explanation} onChange={(e) => set('explanation', e.target.value)} />
         <ErrList path="explanation" />
       </Field>
-      {errors.filter((e) => !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation)/.test(e.path)).map((e, i) => (
+      <Field label={t('editor.topic')} hint={t('editor.topicHint')}>
+        <input className={inputCls} list={`topics-${question.id}`} maxLength={60} value={draft.topic ?? ''} onChange={(e) => set('topic', e.target.value)} data-testid="topic" />
+        <datalist id={`topics-${question.id}`}>
+          {topics.map((x) => (
+            <option key={x} value={x} />
+          ))}
+        </datalist>
+        <ErrList path="topic" />
+      </Field>
+      {errors.filter((e) => !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(e.path)).map((e, i) => (
         <p key={i} className="text-xs text-red-700">
           {e.path}: {e.message}
         </p>

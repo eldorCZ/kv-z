@@ -25,7 +25,7 @@ import type { GameRepo, GameRow } from '../repo/games.js';
 import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
 import { newId, sha256 } from '../util.js';
 import { guardOf, type ClientEvent, type LeaveGuardService } from './leave-guard.js';
-import { ALREADY_JOINED_MSG, type ClassGameInfo, type ClassGames } from '../classes/class-games.js';
+import { ALREADY_JOINED_MSG, type ClassGameInfo, type ClassGames, type PlayerNaming } from '../classes/class-games.js';
 
 /** Answers are accepted this long after the deadline (network latency). */
 export const DEADLINE_GRACE_MS = 5000;
@@ -282,10 +282,10 @@ export class TestService {
   }
 
   /** D3.3 results. `pii` = names allowed (teacher session or results:pii scope). */
-  results(g: GameRow, pii: boolean) {
+  results(g: GameRow, pii: boolean, naming?: PlayerNaming) {
     const list = this.attempts.listForGame(g.id);
     const students = list.map(({ attempt: a, nickname }, i) => ({
-      student: pii ? nickname : `Žák ${i + 1}`,
+      student: naming ? naming({ studentId: a.studentId ?? null, nickname }, i) : pii ? nickname : `Žák ${i + 1}`,
       attemptId: a.id,
       percent: a.percent,
       status: a.status,
@@ -335,8 +335,8 @@ export class TestService {
     };
   }
 
-  resultsCsv(g: GameRow): string {
-    const res = this.results(g, true);
+  resultsCsv(g: GameRow, naming?: PlayerNaming): string {
+    const res = this.results(g, true, naming);
     const cell = (v: unknown) => {
       let s = String(v ?? '');
       if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;

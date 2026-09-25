@@ -7,6 +7,11 @@ Usage:
   python post_quiz.py --game <quizId> --mode test [--time-limit 20] [--closes-at 2026-10-01T18:00:00+02:00] [--show-results none|score|full]
       [--leave-guard off|log|warn] [--max-leaves 2] [--on-exceed notify|lock] [--fullscreen]
   python post_quiz.py --results <gameId>
+  python post_quiz.py --classes                                   (class names and counts only)
+  python post_quiz.py --game <quizId> [--mode test ...] --class <classId> [--label "Písemka 2"] [--allow-guests] [--no-stats]
+  python post_quiz.py --makeup <classId> <activityId>             (makeup test for absent students)
+  python post_quiz.py --class-summary <classId> [--from 2026-09-01] [--to 2027-01-31]   (aggregates only)
+  python post_quiz.py --topics                                    (topics used so far)
 
 Address and token come ONLY from the environment: KVIZHUB_URL, KVIZHUB_TOKEN. The token is never printed.
 Exit codes: 0 success (JSON on stdout), 2 validation errors (422 list on stdout) or refused input, 1 other error (Czech message on stderr).
@@ -22,6 +27,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import quote, urlencode
 
 MAX_ATTEMPTS = 3
 TIMEOUT_S = 30
@@ -138,17 +144,72 @@ def post_quiz(path: Path, dry_run: bool, params: str, new_key: bool) -> tuple[in
     return 0, body
 
 
-def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = None) -> tuple[int, object]:
+def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = None, klass: dict | None = None) -> tuple[int, object]:
     settings: dict = {"showLeaderboard": leaderboard}
     if mode == "test":
         settings = {"test": {k: v for k, v in (test or {}).items() if v is not None}}
+    if klass:
+        # class game (Dodatek 3): students log in with their personal code; audience is always the whole class
+        settings |= {k: v for k, v in klass.items() if v is not None}
     status, _h, body = request("POST", f"/quizzes/{quiz_id}/games", {"mode": mode, "settings": settings})
     if status == 422:
         return 2, {"errors": (body or {}).get("errors", [])}
     if status != 201:
         raise ApiFailure(error_message(status, body), status, body)
-    keys = ("gameId", "mode", "pin", "joinUrl", "qrUrl", "dashboardUrl", "closesAt") if mode == "test" else ("gameId", "pin", "joinUrl", "hostUrl")
-    return 0, {k: body[k] for k in keys if k in body} | {"questionCount": body.get("questionCount")}
+    keys = ("gameId", "mode", "pin", "joinUrl", "qrUrl", "dashboardUrl", "hostUrl", "closesAt") if mode == "test" else ("gameId", "pin", "joinUrl", "hostUrl")
+    out = {k: body[k] for k in keys if k in body} | {"questionCount": body.get("questionCount")}
+    if klass:
+        out["classId"] = klass.get("classId")
+    return 0, out
+
+
+# ---------------------------------------------------------------- classes (Dodatek 3): aggregates only
+
+CLASS_KEYS = ("id", "name", "schoolYear", "subject", "status", "activeStudents")
+ACTIVITY_KEYS = ("activityId", "label", "kind", "playedAt", "n", "participationRate", "avgPercent", "medianPercent", "note")
+
+
+def list_classes() -> tuple[int, object]:
+    status, _h, body = request("GET", "/classes")
+    if status != 200:
+        raise ApiFailure(error_message(status, body), status, body)
+    # whitelist: the agent never handles anything but class names and counts
+    return 0, {"classes": [{k: c.get(k) for k in CLASS_KEYS} for c in (body or {}).get("classes", [])]}
+
+
+def makeup(class_id: str, activity_id: str) -> tuple[int, object]:
+    status, _h, body = request("POST", f"/classes/{quote(class_id)}/activities/{quote(activity_id)}/makeup", {})
+    if status not in (200, 201):
+        raise ApiFailure(error_message(status, body), status, body)
+    keys = ("gameId", "pin", "joinUrl", "hostUrl", "resultsUrl", "audienceSize", "reused")
+    return 0, {k: body[k] for k in keys if k in body}
+
+
+def class_summary(class_id: str, date_from: str | None, date_to: str | None) -> tuple[int, object]:
+    query = urlencode({k: v for k, v in (("from", date_from), ("to", date_to)) if v})
+    status, _h, body = request("GET", f"/classes/{quote(class_id)}/summary" + (f"?{query}" if query else ""))
+    if status != 200:
+        raise ApiFailure(error_message(status, body), status, body)
+    b = body or {}
+    return 0, {
+        "className": b.get("className"),
+        "period": b.get("period"),
+        "activeStudents": b.get("activeStudents"),
+        "testAvg": b.get("testAvg"),
+        "quizAvg": b.get("quizAvg"),
+        "participationRate": b.get("participationRate"),
+        "activities": [{k: a.get(k) for k in ACTIVITY_KEYS if k in a} for a in b.get("activities", [])],
+        "weakTopics": [{k: t.get(k) for k in ("topic", "successRate", "items")} for t in b.get("weakTopics", [])],
+        "weakQuestions": [{k: q.get(k) for k in ("quizId", "questionId", "prompt", "successRate", "answers")} for q in b.get("weakQuestions", [])],
+        "notes": b.get("notes", []),
+    }
+
+
+def topics() -> tuple[int, object]:
+    status, _h, body = request("GET", "/topics")
+    if status != 200:
+        raise ApiFailure(error_message(status, body), status, body)
+    return 0, {"topics": (body or {}).get("topics", [])}
 
 
 def results(game_id: str) -> tuple[int, object]:
@@ -199,7 +260,21 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--on-exceed", choices=["notify", "lock"], help="test: reakce po překročení")
     ap.add_argument("--fullscreen", action="store_true", help="test: vyžadovat celou obrazovku")
     ap.add_argument("--results", metavar="GAME_ID")
+    ap.add_argument("--classes", action="store_true", help="seznam tříd (jen názvy a počty)")
+    ap.add_argument("--class", dest="class_id", metavar="CLASS_ID", help="s --game: třídní hra (žáci se přihlásí osobním kódem)")
+    ap.add_argument("--label", help="s --class: název záznamu v evidenci třídy (max 60 znaků)")
+    ap.add_argument("--allow-guests", action="store_true", help="s --class: povolit hosty bez kódu")
+    ap.add_argument("--no-stats", action="store_true", help="s --class: nezapočítat do evidence (zkušební hra)")
+    ap.add_argument("--makeup", nargs=2, metavar=("CLASS_ID", "ACTIVITY_ID"), help="náhradní termín testu pro nepřítomné")
+    ap.add_argument("--class-summary", metavar="CLASS_ID", help="souhrn třídy (jen agregace)")
+    ap.add_argument("--from", dest="date_from", help="s --class-summary: od data (ISO)")
+    ap.add_argument("--to", dest="date_to", help="s --class-summary: do data (ISO)")
+    ap.add_argument("--topics", action="store_true", help="dosud použitá témata otázek")
     args = ap.parse_args(argv)
+    if (args.label or args.allow_guests or args.no_stats) and not args.class_id:
+        ap.error("--label, --allow-guests a --no-stats patří k --class")
+    if args.class_id and not args.game:
+        ap.error("--class se používá s --game <quizId>")
 
     token = os.environ.get("KVIZHUB_TOKEN", "")
     try:
@@ -210,14 +285,25 @@ def main(argv: list[str] | None = None) -> int:
             guard = {k: v for k, v in guard.items() if v is not None}
             if guard:
                 test["leaveGuard"] = guard
-            code, out = create_game(args.game, mode, not args.no_leaderboard, test)
+            klass = None
+            if args.class_id:
+                klass = {"classId": args.class_id, "label": args.label, "allowGuests": True if args.allow_guests else None, "countInStats": False if args.no_stats else None}
+            code, out = create_game(args.game, mode, not args.no_leaderboard, test, klass)
+        elif args.classes:
+            code, out = list_classes()
+        elif args.makeup:
+            code, out = makeup(*args.makeup)
+        elif args.class_summary:
+            code, out = class_summary(args.class_summary, args.date_from, args.date_to)
+        elif args.topics:
+            code, out = topics()
         elif args.results:
             code, out = results(args.results)
         elif args.quiz:
             code, out = post_quiz(args.quiz, args.dry_run, args.params, args.new_key)
         else:
             ap.print_usage(sys.stderr)
-            print("Zadejte soubor s kvízem, --game <quizId> nebo --results <gameId>.", file=sys.stderr)
+            print("Zadejte soubor s kvízem, --game <quizId>, --results <gameId>, --classes, --class-summary <classId>, --makeup <classId> <activityId> nebo --topics.", file=sys.stderr)
             return 1
     except ApiFailure as e:
         print(redact(str(e), token), file=sys.stderr)

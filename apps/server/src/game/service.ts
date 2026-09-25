@@ -6,7 +6,7 @@ import type { GameRepo, GameRow } from '../repo/games.js';
 import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
 import { hmac, newId, sha256 } from '../util.js';
 import type { GameManager, LiveGame } from './engine.js';
-import type { ClassGameInfo, ClassGames } from '../classes/class-games.js';
+import type { ClassGameInfo, ClassGames, PlayerNaming } from '../classes/class-games.js';
 
 export class HttpError extends Error {
   constructor(
@@ -99,8 +99,8 @@ export class GameService {
     };
   }
 
-  results(row: GameRow) {
-    const players = this.repo.players(row.id);
+  results(row: GameRow, naming?: PlayerNaming) {
+    const players = this.repo.players(row.id).map((p, i) => (naming ? { ...p, nickname: naming({ studentId: p.studentId ?? null, nickname: p.nickname }, i) } : p));
     const answers = this.repo.answers(row.id);
     const quiz = this.quizzes.get(row.quizId);
     const qmap = new Map(quiz?.questions.map((q) => [q.id, q]));
@@ -125,8 +125,8 @@ export class GameService {
   }
 
   /** CSV with nickname, score and answers only (no personal data). Semicolon separated + BOM for Czech Excel. */
-  resultsCsv(row: GameRow): string {
-    const res = this.results(row);
+  resultsCsv(row: GameRow, naming?: PlayerNaming): string {
+    const res = this.results(row, naming);
     const answers = this.repo.answers(row.id);
     const quiz = this.quizzes.get(row.quizId);
     const qmap = new Map(quiz?.questions.map((q) => [q.id, q]));

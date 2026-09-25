@@ -228,3 +228,133 @@ def test_create_test_with_leave_guard(mock, capsys):
     code, _, _ = run(capsys, "--game", "q1", "--mode", "test", "--leave-guard", "warn", "--max-leaves", "1", "--on-exceed", "lock", "--fullscreen")
     assert code == 0
     assert mock.requests[-1]["body"]["settings"]["test"]["leaveGuard"] == {"mode": "warn", "maxLeaves": 1, "onExceed": "lock", "requireFullscreen": True}
+
+
+# ---------------------------------------------------------------- classes (Dodatek 3)
+
+NAMES = ["Nováková", "Jana", "K7MQ-2XRT"]
+
+
+def test_classes_whitelist(mock, capsys):
+    mock.queue.append((200, {"classes": [{"id": "c1", "name": "8.A Fyzika", "schoolYear": "2026/2027", "subject": "Fyzika", "status": "active", "activeStudents": 24, "students": [{"familyName": "Nováková"}]}]}, {}))
+    code, out, _ = run(capsys, "--classes")
+    assert code == 0
+    assert json.loads(out) == {"classes": [{"id": "c1", "name": "8.A Fyzika", "schoolYear": "2026/2027", "subject": "Fyzika", "status": "active", "activeStudents": 24}]}
+    assert "Nováková" not in out
+    assert mock.requests[0]["path"] == "/api/v1/classes"
+
+
+def test_class_game(mock, capsys):
+    mock.queue.append((201, {"gameId": "g1", "mode": "test", "pin": "482913", "joinUrl": "http://x/join/482913", "hostUrl": "http://x/host/g1#key=abc", "dashboardUrl": "http://x/tests/g1", "questionCount": 10}, {}))
+    code, out, _ = run(capsys, "--game", "q1", "--mode", "test", "--time-limit", "20", "--class", "c1", "--label", "Písemka 2", "--allow-guests", "--no-stats")
+    assert code == 0
+    body = mock.requests[0]["body"]
+    assert body == {"mode": "test", "settings": {"test": {"timeLimitMin": 20}, "classId": "c1", "label": "Písemka 2", "allowGuests": True, "countInStats": False}}
+    assert json.loads(out)["pin"] == "482913"
+
+
+def test_class_game_defaults_live(mock, capsys):
+    mock.queue.append((201, {"gameId": "g1", "pin": "1", "joinUrl": "j", "hostUrl": "h", "questionCount": 3}, {}))
+    run(capsys, "--game", "q1", "--class", "c1")
+    assert mock.requests[0]["body"] == {"mode": "live", "settings": {"showLeaderboard": True, "classId": "c1"}}
+
+
+@pytest.mark.parametrize("status,msg", [(404, "Třída nenalezena."), (409, "Třída je archivovaná."), (422, None)])
+def test_class_game_errors(mock, capsys, status, msg):
+    mock.queue.append((status, {"error": msg} if msg else {"errors": [{"path": "settings.label", "code": "too_big", "message": "Příliš dlouhé."}]}, {}))
+    code, out, err = run(capsys, "--game", "q1", "--class", "c1", "--label", "x")
+    if status == 422:
+        assert code == 2 and json.loads(out)["errors"][0]["path"] == "settings.label"
+    else:
+        assert code == 1 and msg in err
+
+
+def test_class_flags_need_class(capsys):
+    with pytest.raises(SystemExit):
+        post_quiz.main(["--game", "q1", "--label", "x"])
+    with pytest.raises(SystemExit):
+        post_quiz.main(["--class", "c1"])
+
+
+def test_makeup(mock, capsys):
+    mock.queue.append((201, {"gameId": "g2", "pin": "111222", "joinUrl": "j", "hostUrl": "h", "resultsUrl": "r", "audienceSize": 2, "reused": False, "audience": ["s1"]}, {}))
+    code, out, _ = run(capsys, "--makeup", "c1", "a1")
+    assert code == 0
+    assert mock.requests[0]["method"] == "POST" and mock.requests[0]["path"] == "/api/v1/classes/c1/activities/a1/makeup"
+    data = json.loads(out)
+    assert data["audienceSize"] == 2 and "audience" not in data
+
+
+def test_makeup_reused_and_conflict(mock, capsys):
+    mock.queue.append((200, {"gameId": "g2", "pin": "1", "joinUrl": "j", "hostUrl": "h", "resultsUrl": "r", "audienceSize": 2, "reused": True}, {}))
+    code, out, _ = run(capsys, "--makeup", "c1", "a1")
+    assert code == 0 and json.loads(out)["reused"] is True
+    mock.queue.append((409, {"error": "Nikdo z třídy v tomto testu nechybí."}, {}))
+    code, _, err = run(capsys, "--makeup", "c1", "a1")
+    assert code == 1 and "nechybí" in err
+
+
+def test_class_summary_whitelist(mock, capsys):
+    mock.queue.append(
+        (
+            200,
+            {
+                "className": "8.A",
+                "period": {"from": "2026-09-01", "to": None},
+                "activeStudents": 24,
+                "testAvg": 68,
+                "quizAvg": 72,
+                "participationRate": 92,
+                "activities": [{"activityId": "a1", "label": "Test 1", "kind": "test", "playedAt": "2026-09-10", "n": 23, "participationRate": 96, "avgPercent": 68, "medianPercent": 70, "students": ["Nováková Jana"]}],
+                "weakTopics": [{"topic": "Lom světla", "successRate": 54, "items": 120}],
+                "weakQuestions": [{"quizId": "q1", "questionId": "x", "prompt": "Co je lom?", "successRate": 30, "answers": 23}],
+                "notes": [],
+                "students": [{"name": "Nováková Jana", "code": "K7MQ-2XRT"}],
+            },
+            {},
+        )
+    )
+    code, out, _ = run(capsys, "--class-summary", "c1", "--from", "2026-09-01")
+    assert code == 0
+    assert mock.requests[0]["path"] == "/api/v1/classes/c1/summary?from=2026-09-01"
+    for word in NAMES:
+        assert word not in out
+    data = json.loads(out)
+    assert data["weakTopics"][0]["topic"] == "Lom světla"
+    assert "students" not in data and "students" not in data["activities"][0]
+
+
+def test_class_summary_small_group(mock, capsys):
+    mock.queue.append((200, {"className": "Malá", "testAvg": None, "quizAvg": None, "participationRate": None, "activities": [], "weakTopics": [], "weakQuestions": [], "notes": ["malá skupina: třída má méně než 5 aktivních žáků"]}, {}))
+    code, out, _ = run(capsys, "--class-summary", "c1")
+    assert code == 0 and json.loads(out)["notes"][0].startswith("malá skupina")
+
+
+@pytest.mark.parametrize("status", [404, 403])
+def test_class_summary_errors(mock, capsys, status):
+    mock.queue.append((status, {"error": "Třída nenalezena." if status == 404 else "API token nemá oprávnění classes:read."}, {}))
+    code, _, err = run(capsys, "--class-summary", "c1")
+    assert code == 1 and "KvizHub vrátil" in err
+
+
+def test_class_summary_retries_429_and_500(mock, capsys):
+    mock.queue += [(429, {"error": "slow down"}, {"Retry-After": "1"}), (500, {"error": "boom"}, {}), (200, {"className": "8.A", "activities": []}, {})]
+    code, out, _ = run(capsys, "--class-summary", "c1")
+    assert code == 0 and len(mock.requests) == 3
+
+
+def test_class_summary_outage(monkeypatch, capsys):
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        port = s.getsockname()[1]
+    monkeypatch.setenv("KVIZHUB_URL", f"http://127.0.0.1:{port}")
+    monkeypatch.setenv("KVIZHUB_TOKEN", TOKEN)
+    monkeypatch.setenv("KVIZHUB_RETRY_BASE", "0.01")
+    code, _, err = run(capsys, "--class-summary", "c1")
+    assert code == 1 and "neodpovídá" in err
+
+
+def test_topics(mock, capsys):
+    mock.queue.append((200, {"topics": ["Lom světla", "Zrcadla"]}, {}))
+    code, out, _ = run(capsys, "--topics")
+    assert code == 0 and json.loads(out)["topics"] == ["Lom světla", "Zrcadla"]

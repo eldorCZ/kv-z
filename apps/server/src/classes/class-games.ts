@@ -32,6 +32,8 @@ export interface ClassGameInfo {
  * Class games (Dodatek 3, C5, C6): preparation, identification by personal code with a one-time ticket,
  * guessing protection. Codes are only ever read from request bodies and never logged.
  */
+export type PlayerNaming = (p: { studentId: string | null; nickname: string }, index: number) => string;
+
 export class ClassGames {
   private tickets = new Map<string, { gameId: string; studentId: string; publicName: string; exp: number }>();
   private failures = new Map<string, { at: number[]; blockedUntil: number; alert: boolean }>();
@@ -165,6 +167,17 @@ export class ClassGames {
   }
 
   /** studentId -> "Příjmení Jméno" (only for a logged-in teacher with owner/editor role, C6.2). */
+  /**
+   * Names in game results of a class game (C10.3): "Žák N" for API tokens without results:pii,
+   * otherwise family and given name (guests keep their nickname).
+   */
+  naming(g: GameRow, pii: boolean): PlayerNaming | undefined {
+    if (!g.classId) return undefined;
+    if (!pii) return (_p, i) => `Žák ${i + 1}`;
+    const names = this.fullNames(g.classId);
+    return (p) => (p.studentId && names.get(p.studentId)) || (p.studentId ? p.nickname : `${p.nickname} (host)`);
+  }
+
   fullNames(classId: string): Map<string, string> {
     return new Map(this.classes.students(classId).map((s) => [s.id, `${s.familyName} ${s.givenName}`.trim()]));
   }

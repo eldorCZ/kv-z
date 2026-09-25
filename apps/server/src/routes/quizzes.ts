@@ -62,6 +62,9 @@ export const quizRoutes =
     });
 
     // ---------- list ----------
+    /** Topics used in the teacher's questions so far, for consistent naming (C10.3). */
+    app.get('/topics', { config: { scope: 'quizzes:read' } }, async (req) => ({ topics: s.overview.teacherTopics(req.auth!.teacherId) }));
+
     app.get<{ Querystring: { q?: string } }>('/quizzes', { config: { scope: 'quizzes:read' } }, async (req) => ({
       quizzes: s.quizzes.list(req.auth!.teacherId, (req.query.q ?? '').slice(0, 100)),
     }));

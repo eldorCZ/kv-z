@@ -28,3 +28,18 @@ def test_templates_and_rules():
     ]:
         assert snippet in SKILL, snippet
     assert len(SKILL.splitlines()) <= 400
+
+
+def test_classes_section():
+    for snippet in [
+        "--classes",
+        "--class <classId>",
+        "--makeup <classId> <activityId>",
+        "--class-summary <classId>",
+        "--topics",
+        "Test pro třídu 8.A je připravený",
+        "Ve třídě je méně než 5 žáků, souhrn se z ohledu na soukromí neposkytuje.",
+        "Soupisku žáků prosím vložte přímo v aplikaci",
+        '"topic": "Lom světla"',
+    ]:
+        assert snippet in SKILL, snippet

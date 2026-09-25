@@ -77,6 +77,12 @@ export const classRoutes =
       return { entries: s.classes.accessLog(c.id) };
     });
 
+    // ---------------- agent API (C10.3): aggregates only; tokens need owner/editor
+    app.get<ClassParams & { Querystring: { from?: string; to?: string } }>('/classes/:id/summary', { config: { scope: 'classes:read' } }, async (req) => {
+      const c = access(req, req.auth!.kind === 'session' ? 'viewer' : 'editor');
+      return s.overview.summary(c, req.query);
+    });
+
     // ---------------- overviews (C8)
     type Q = { period?: string; from?: string; to?: string; kind?: string };
     const sepOf = (q: { sep?: string }) => (q.sep === ',' ? ',' : ';');

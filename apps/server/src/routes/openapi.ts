@@ -99,7 +99,7 @@ export function buildOpenApi(publicUrl: string) {
       },
       '/quizzes/{id}/games': {
         post: {
-          summary: 'Vytvořit živou hru (mode "live") nebo test (mode "test", nastavení v settings.test) (games:write)',
+          summary: 'Vytvořit živou hru (mode "live") nebo test (mode "test", nastavení v settings.test) (games:write). Třídní hra: settings.classId (+ classes:read), label, allowGuests, countInStats; audience je vždy celá třída.',
           parameters: [idParam('id')],
           requestBody: { ...json({ $ref: '#/components/schemas/CreateGame' }) },
           responses: {
@@ -107,7 +107,8 @@ export function buildOpenApi(publicUrl: string) {
               description: 'Hra vytvořena',
               ...json({ type: 'object', properties: { gameId: { type: 'string' }, pin: { type: 'string' }, joinUrl: { type: 'string' }, hostUrl: { type: 'string' } } }),
             },
-            409: { description: 'Kvíz nemá hratelnou otázku (všechny flagged)', ...json(simpleError) },
+            404: { description: 'Neznámý kvíz nebo nepřístupná třída', ...json(simpleError) },
+            409: { description: 'Kvíz nemá hratelnou otázku (všechny flagged) nebo je třída archivovaná', ...json(simpleError) },
             ...std,
           },
         },
@@ -115,7 +116,41 @@ export function buildOpenApi(publicUrl: string) {
       '/games/{id}/end': { post: { summary: 'Ukončit hru nebo test (games:write). U testu se rozpracované pokusy odevzdají.', parameters: [idParam('id')], responses: { 200: { description: 'OK' }, ...std } } },
       '/games/{id}': { get: { summary: 'Stav hry (games:read). Test: {mode:"test", status, counts:{joined, notStarted, inProgress, submitted}, closesAt}', parameters: [idParam('id')], responses: { 200: { description: '{status, playerCount, currentQuestion}' }, ...std } } },
       '/games/{id}/results': {
-        get: { summary: 'Výsledky hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: 'Živá hra: {ranking:[{nickname, score}], perQuestion:[{questionId, successRate, avgTimeMs}]}. Test: {mode:"test", summary:{students, submitted, avgPercent, medianPercent}, students:[{student, percent, status}], perQuestion}. Jména žáků jen s oprávněním results:pii, jinak „Žák N“.' }, ...std } },
+        get: { summary: 'Výsledky hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: 'Živá hra: {ranking:[{nickname, score}], perQuestion:[{questionId, successRate, avgTimeMs}]}. Test: {mode:"test", summary:{students, submitted, avgPercent, medianPercent}, students:[{student, percent, status}], perQuestion}. Jména žáků jen s oprávněním results:pii, jinak „Žák N“. U třídní hry (živé i testu) platí totéž: bez results:pii „Žák N“, s ním příjmení a jméno.' }, ...std } },
+      },
+      '/topics': { get: { summary: 'Dosud použitá témata otázek učitele, pro jednotné pojmenování (quizzes:read). {topics: string[]}', responses: { 200: { description: 'OK' }, ...std } } },
+      '/classes': {
+        get: {
+          summary: 'Třídy, kde je učitel tokenu vlastník nebo editor (classes:read). Bez jmen žáků.',
+          responses: { 200: { description: '{classes:[{id, name, schoolYear, subject, status, activeStudents}]}' }, ...std },
+        },
+      },
+      '/classes/{id}/summary': {
+        get: {
+          summary: 'Souhrn třídy za období (classes:read): jen agregace, žádná jména, kódy ani výsledky jednotlivců. Endpoint pro jednotlivé žáky v API neexistuje.',
+          parameters: [idParam('id'), { name: 'from', in: 'query', schema: { type: 'string', format: 'date' } }, { name: 'to', in: 'query', schema: { type: 'string', format: 'date' } }],
+          responses: {
+            200: {
+              description:
+                '{period, activeStudents, activities:[{activityId, label, kind, playedAt, n, participationRate, avgPercent, medianPercent}], testAvg, quizAvg, participationRate, weakTopics:[{topic, successRate, items}], weakQuestions:[{quizId, questionId, prompt, successRate, answers}], notes}. Pod MIN_AGGREGATE_STUDENTS aktivních žáků (nebo výsledků u aktivity) jsou hodnoty null s poznámkou „malá skupina“.',
+            },
+            404: { description: 'Třída neexistuje nebo k ní token nemá přístup', ...json(simpleError) },
+            ...std,
+          },
+        },
+      },
+      '/classes/{id}/activities/{activityId}/makeup': {
+        post: {
+          summary: 'Náhradní termín testu pro nepřítomné žáky (games:write + classes:read, idempotentní). Audience určí server.',
+          parameters: [idParam('id'), idParam('activityId')],
+          responses: {
+            200: { description: 'Existující náhradní termín se stejnou audiencí {gameId, pin, joinUrl, hostUrl, resultsUrl, audienceSize, reused:true}' },
+            201: { description: 'Vytvořen {gameId, pin, joinUrl, hostUrl, resultsUrl, audienceSize, reused:false}' },
+            404: { description: 'Třída nebo aktivita nenalezena', ...json(simpleError) },
+            409: { description: 'Archivovaná třída, aktivita není test, nikdo nechybí', ...json(simpleError) },
+            ...std,
+          },
+        },
       },
     },
   };
