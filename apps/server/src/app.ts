@@ -18,7 +18,7 @@ import { QuizRepo } from './repo/quizzes.js';
 import { AttemptRepo } from './repo/attempts.js';
 import { ClassService } from './classes/service.js';
 import { EvidenceService } from './classes/evidence.js';
-import { ClassGames } from './classes/class-games.js';
+import { ClassGameAdmin, ClassGames } from './classes/class-games.js';
 import { rosterRoutes } from './routes/roster.js';
 import { classRoutes } from './routes/classes.js';
 import { TestService } from './test-mode/service.js';
@@ -68,6 +68,7 @@ export interface Services {
   classes: ClassService;
   evidence: EvidenceService;
   classGames: ClassGames;
+  classAdmin: ClassGameAdmin;
   testService: TestService;
   now: () => number;
 }
@@ -171,6 +172,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     classes,
     evidence,
     classGames,
+    classAdmin: new ClassGameAdmin(classGames, classes, evidence, gameRepo, quizzes, () => testService, cfg, now),
     testService,
     now,
     kahootTemplate: () => {

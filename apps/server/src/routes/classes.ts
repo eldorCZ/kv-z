@@ -77,6 +77,13 @@ export const classRoutes =
       return { entries: s.classes.accessLog(c.id) };
     });
 
+    // ---------------- makeup test (C6.4, C10.3): games:write + classes:read, idempotent
+    app.post<{ Params: { id: string; aid: string } }>('/classes/:id/activities/:aid/makeup', { config: { scope: 'games:write' } }, async (req, reply) => {
+      if (!req.auth!.scopes.has('classes:read')) return sendError(reply, 403, 'API token nemá oprávnění classes:read.', 'forbidden');
+      const r = s.classAdmin.makeup(req.auth!.teacherId, req.params.id, req.params.aid);
+      return reply.code(r.reused ? 200 : 201).send(r);
+    });
+
     // ---------------- roster
     app.post<ClassParams>('/classes/:id/students/preview', { config: { sessionOnly: true } }, async (req) => {
       const c = access(req, 'editor');

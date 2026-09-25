@@ -1,9 +1,10 @@
-import type { CreateGameInput } from '@kvizhub/core';
+import { createGameSchema, type CreateGameInput } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
 import type { GameManager } from '../game/engine.js';
 import { HttpError } from '../game/service.js';
 import type { GameRepo, GameRow } from '../repo/games.js';
-import type { StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
+import type { QuizRepo, StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
+import type { Config } from '../config.js';
 import type { TestService } from '../test-mode/service.js';
 import type { EvidenceService } from './evidence.js';
 import type { ClassService, StudentRow } from './service.js';
@@ -173,5 +174,106 @@ export class ClassGames {
     if (!g.classId) return [];
     const eligible = this.classes.students(g.classId).filter((s) => s.active && (!g.audience || g.audience.includes(s.id)));
     return eligible.filter((s) => !joinedStudentIds.has(s.id)).map((s) => ({ studentId: s.id, publicName: s.publicName }));
+  }
+}
+
+export interface MakeupResult {
+  gameId: string;
+  pin: string;
+  joinUrl: string;
+  hostUrl: string;
+  resultsUrl: string;
+  audienceSize: number;
+  reused: boolean;
+}
+
+/** Guests and makeup tests (C6.3, C6.4) – kept apart from the join flow above. */
+export class ClassGameAdmin {
+  constructor(
+    private readonly cg: ClassGames,
+    private readonly classes: ClassService,
+    private readonly evidence: EvidenceService,
+    private readonly games: GameRepo,
+    private readonly quizzes: QuizRepo,
+    private readonly tests: () => TestService,
+    private readonly cfg: Config,
+    private readonly now: () => number,
+  ) {}
+
+  /** Guests of a class game and the students who can still get a result in its activity. */
+  guests(g: GameRow) {
+    if (!g.classId || !g.activityId) return { guests: [], candidates: [] };
+    const players = this.games.players(g.id).filter((p) => p.isGuest === 1);
+    const withResult = new Set(this.evidence.resultStudentIds(g.activityId));
+    const candidates = this.classes
+      .students(g.classId)
+      .filter((s) => s.active && !withResult.has(s.id) && !this.games.players(g.id).some((p) => p.studentId === s.id))
+      .map((s) => ({ studentId: s.id, publicName: s.publicName, name: `${s.familyName} ${s.givenName}`.trim() }));
+    return { guests: players.map((p) => ({ playerId: p.id, nickname: p.nickname })), candidates };
+  }
+
+  /** Assign a guest to a student (C6.3): the result is written into the records. */
+  assignGuest(g: GameRow, playerId: string, studentId: string) {
+    const { guests, candidates } = this.guests(g);
+    if (!guests.some((x) => x.playerId === playerId)) throw new HttpError(404, 'Host nenalezen.', 'not_found');
+    if (!candidates.some((c) => c.studentId === studentId)) throw new HttpError(409, 'Tento žák už v aktivitě výsledek má nebo není aktivní.', 'conflict');
+    this.evidence.db.prepare('UPDATE players SET student_id = ?, is_guest = 0 WHERE id = ?').run(studentId, playerId);
+    this.evidence.materializeGame(g.id);
+  }
+
+  /**
+   * Makeup test for students who missed the original (C6.4): same questions (snapshot), same settings,
+   * audience = eligible active students without a result in the original or its makeups. Idempotent.
+   */
+  makeup(teacherId: string, classId: string, activityId: string): MakeupResult {
+    const cls = this.classes.assertClassAccess(teacherId, classId, 'editor');
+    if (cls.status !== 'active') throw new HttpError(409, 'Třída je archivovaná.', 'archived');
+    const act = this.evidence.activity(activityId);
+    if (!act || act.classId !== classId) throw new HttpError(404, 'Aktivita nenalezena.', 'not_found');
+    const rootId = act.rootActivityId ?? act.id;
+    const root = this.evidence.activity(rootId)!;
+    if (root.kind !== 'test') throw new HttpError(409, 'Náhradní termín lze vytvořit jen pro test.', 'not_a_test');
+    const missing = this.evidence.missingStudents(root, this.classes.students(classId));
+    const chain = this.evidence.chain(rootId);
+    // reuse a running makeup with the same audience (idempotent)
+    for (const a of chain) {
+      if (!a.rootActivityId || !a.gameId) continue;
+      const g = this.games.get(a.gameId);
+      if (g && g.status === 'running' && g.audience && [...g.audience].sort().join() === missing.map((s) => s.id).sort().join()) {
+        return this.makeupResult(g, missing.length, true);
+      }
+    }
+    if (missing.length === 0) throw new HttpError(409, 'Nikdo z třídy v tomto testu nechybí.', 'nobody_missing');
+    const source = chain.map((a) => (a.gameId ? this.games.get(a.gameId) : undefined)).find((g): g is GameRow => !!g && !!g.snapshot);
+    if (!source) throw new HttpError(409, 'Původní test už není k dispozici (byl smazán podle doby uchování).', 'source_missing');
+    const quiz = this.quizzes.get(source.quizId);
+    if (!quiz) throw new HttpError(409, 'Kvíz původního testu byl smazán.', 'quiz_missing');
+    const test = { ...((source.settings as { test?: Record<string, unknown> }).test ?? {}), opensAt: null, closesAt: new Date(this.now() + 7 * 86_400_000).toISOString() };
+    const input = createGameSchema.parse({
+      mode: 'test',
+      settings: {
+        shuffleQuestions: source.settings.shuffleQuestions,
+        shuffleOptions: source.settings.shuffleOptions,
+        partialMulti: source.settings.partialMulti,
+        ignoreDiacritics: source.settings.ignoreDiacritics,
+        test,
+      },
+    });
+    const info: ClassGameInfo = {
+      classId,
+      className: cls.name,
+      allowGuests: false,
+      audience: missing.map((s) => s.id),
+      label: root.label,
+      countInStats: root.countInStats,
+      rosterSize: missing.length,
+    };
+    const created = this.tests().create(quiz, input, info, rootId, source.snapshot as StoredQuestion[]);
+    return this.makeupResult(this.games.get(created.gameId)!, missing.length, false);
+  }
+
+  private makeupResult(g: GameRow, audienceSize: number, reused: boolean): MakeupResult {
+    const base = this.cfg.publicUrl;
+    return { gameId: g.id, pin: g.pin, joinUrl: `${base}/play`, hostUrl: `${base}/tests/${g.id}`, resultsUrl: `${base}/games/${g.id}`, audienceSize, reused };
   }
 }

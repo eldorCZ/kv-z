@@ -5,6 +5,47 @@ import type { Db } from '../db/index.js';
 import type { GameRepo } from '../repo/games.js';
 import { newId } from '../util.js';
 
+export interface ActivityRow {
+  id: string;
+  classId: string;
+  gameId: string | null;
+  kind: 'quiz' | 'test';
+  label: string;
+  quizId: string | null;
+  quizTitle: string;
+  playedAt: number;
+  countInStats: boolean;
+  rootActivityId: string | null;
+  rosterSize: number;
+}
+
+function toActivity(r: Record<string, unknown>): ActivityRow {
+  return {
+    id: r.id as string,
+    classId: r.class_id as string,
+    gameId: (r.game_id as string | null) ?? null,
+    kind: r.kind as ActivityRow['kind'],
+    label: r.label as string,
+    quizId: (r.quiz_id as string | null) ?? null,
+    quizTitle: r.quiz_title as string,
+    playedAt: r.played_at as number,
+    countInStats: r.count_in_stats === 1,
+    rootActivityId: (r.root_activity_id as string | null) ?? null,
+    rosterSize: r.roster_size as number,
+  };
+}
+
+/** since/left_at are dates (YYYY-MM-DD, local school day): eligible when played between them (C7.2). */
+export function dayStart(date: string): number {
+  return Date.parse(`${date}T00:00:00`);
+}
+export function dayEnd(date: string): number {
+  return Date.parse(`${date}T23:59:59.999`);
+}
+export function studentEligible(s: { since: string; leftAt: string | null }, playedAt: number): boolean {
+  return playedAt >= dayStart(s.since) && (s.leftAt === null || playedAt <= dayEnd(s.leftAt));
+}
+
 export interface NewActivity {
   classId: string;
   gameId: string;
@@ -20,7 +61,10 @@ export interface NewActivity {
 
 /** Year-long records of a class (Dodatek 3, C7, C8). */
 export class EvidenceService {
-  protected readonly sql: Database.Database;
+  readonly db: Database.Database;
+  protected get sql() {
+    return this.db;
+  }
 
   constructor(
     protected readonly cfg: Config,
@@ -28,7 +72,7 @@ export class EvidenceService {
     protected readonly now: () => number,
     protected readonly games: GameRepo,
   ) {
-    this.sql = db.$client;
+    this.db = db.$client;
   }
 
   createActivity(a: NewActivity): string {
@@ -39,6 +83,31 @@ export class EvidenceService {
       )
       .run(id, a.classId, a.gameId, a.kind, a.label, a.quizId, a.quizTitle, a.playedAt, a.countInStats ? 1 : 0, a.rootActivityId, a.rosterSize, this.now());
     return id;
+  }
+
+  activity(id: string): ActivityRow | undefined {
+    const r = this.sql.prepare('SELECT * FROM class_activities WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    return r ? toActivity(r) : undefined;
+  }
+
+  activities(classId: string): ActivityRow[] {
+    return (this.sql.prepare('SELECT * FROM class_activities WHERE class_id = ? ORDER BY played_at, id').all(classId) as Record<string, unknown>[]).map(toActivity);
+  }
+
+  /** The original activity and all its makeups. */
+  chain(rootId: string): ActivityRow[] {
+    return (this.sql.prepare('SELECT * FROM class_activities WHERE id = ? OR root_activity_id = ? ORDER BY played_at').all(rootId, rootId) as Record<string, unknown>[]).map(toActivity);
+  }
+
+  resultStudentIds(activityId: string): string[] {
+    return (this.sql.prepare('SELECT student_id AS s FROM activity_results WHERE activity_id = ? AND student_id IS NOT NULL').all(activityId) as { s: string }[]).map((r) => r.s);
+  }
+
+  /** Active students eligible for the root activity (C7.2) without a result in it or its makeups. */
+  missingStudents<S extends { id: string; active: boolean; since: string; leftAt: string | null }>(root: ActivityRow, students: S[]): S[] {
+    const ids = this.chain(root.id).map((a) => a.id);
+    const have = new Set(ids.flatMap((id) => this.resultStudentIds(id)));
+    return students.filter((s) => s.active && !have.has(s.id) && studentEligible(s, root.playedAt));
   }
 
   setPlayedAt(activityId: string, at: number) {

@@ -125,6 +125,24 @@ export const gameRoutes =
       return s.testService.dashboard(g);
     });
 
+    // ---------- class games (Dodatek 3): guests (C6.3) ----------
+    app.get<GameParams>('/games/:id/guests', { config: { sessionOnly: true } }, async (req, reply) => {
+      const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
+      if (!g) return;
+      if (!g.classId) return { guests: [], candidates: [] };
+      s.classes.assertClassAccess(req.auth!.teacherId, g.classId, 'editor');
+      return s.classAdmin.guests(g);
+    });
+
+    app.post<{ Params: { id: string; pid: string } }>('/games/:id/guests/:pid/assign', { config: { sessionOnly: true } }, async (req, reply) => {
+      const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
+      if (!g) return;
+      if (!g.classId) return sendError(reply, 409, 'Hra není třídní.', 'not_class_game');
+      s.classes.assertClassAccess(req.auth!.teacherId, g.classId, 'editor');
+      s.classAdmin.assignGuest(g, req.params.pid, String((req.body as { studentId?: unknown } | undefined)?.studentId ?? ''));
+      return s.classAdmin.guests(g);
+    });
+
     app.post<GameParams>('/games/:id/end', { config: { scope: 'games:write' } }, async (req, reply) => {
       const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
       if (!g) return;
