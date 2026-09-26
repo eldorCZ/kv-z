@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { registerAndToken } from './helpers';
+import { registerAndToken, submitAuth } from './helpers';
 
 const theme = (page: import('@playwright/test').Page) => page.evaluate(() => document.documentElement.getAttribute('data-theme'));
 
@@ -69,8 +69,7 @@ test("a teacher's appearance follows them to another device (V5.3)", async ({ pa
   expect(await theme(p2)).toBe('light');
   await p2.getByLabel('E-mail').fill(email);
   await p2.getByLabel('Heslo').fill('bezpecne-heslo-123');
-  await p2.getByRole('button', { name: 'Přihlásit se' }).click();
-  await expect(p2.getByRole('heading', { name: 'Moje kvízy' })).toBeVisible();
+  await submitAuth(p2, 'Přihlásit se');
   await expect.poll(() => theme(p2)).toBe('dark');
   await other.close();
 });

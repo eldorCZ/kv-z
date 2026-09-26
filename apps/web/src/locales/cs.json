@@ -200,6 +200,25 @@
       "selected": "Vybraní žáci",
       "allowGuests": "Povolit hosty bez kódu",
       "countInStats": "Započítat do evidence třídy (vypněte pro zkušební hru)"
+    },
+    "secondsLeft_one": "Zbývá {{count}} sekunda",
+    "secondsLeft_few": "Zbývají {{count}} sekundy",
+    "secondsLeft_other": "Zbývá {{count}} sekund",
+    "points_one": "{{count}} bod",
+    "points_few": "{{count}} body",
+    "points_other": "{{count}} bodů",
+    "fullscreen": "Celá obrazovka",
+    "exitFullscreen": "Ukončit celou obrazovku",
+    "shortcuts": "Klávesové zkratky",
+    "shortcutsHint": "Klávesové zkratky (?)",
+    "keys": {
+      "next": "Spustit / další krok",
+      "reveal": "Odhalit odpověď",
+      "answer": "Vybrat odpověď A–E",
+      "confirm": "Potvrdit odpověď",
+      "scheme": "Přepnout světlý / tmavý režim",
+      "fullscreen": "Celá obrazovka",
+      "help": "Tento přehled"
     }
   },
   "export": {
@@ -329,7 +348,10 @@
     "allowReturn": "Povolit návrat (žák se připojí z jiného zařízení)",
     "notJoined_one": "Ještě se nepřipojil {{count}} žák",
     "notJoined_few": "Ještě se nepřipojili {{count}} žáci",
-    "notJoined_other": "Ještě se nepřipojilo {{count}} žáků"
+    "notJoined_other": "Ještě se nepřipojilo {{count}} žáků",
+    "correctLabel": "Správně",
+    "answeredShort": "odpovědí",
+    "waiting": "Čekáme na hráče…"
   },
   "play": {
     "pin": "PIN hry",
@@ -359,7 +381,10 @@
     "numericHint": "Desetinná čárka i tečka jsou v pořádku.",
     "numberLabel": "Vaše číselná odpověď",
     "textLabel": "Vaše odpověď",
-    "submit": "Odeslat"
+    "submit": "Odeslat",
+    "inGameAs": "Jste ve hře, {{name}}",
+    "youAre": "Hrajete jako {{name}}",
+    "sent": "Odesláno"
   },
   "dash": {
     "test": "Test",

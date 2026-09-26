@@ -16,6 +16,10 @@
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  /* surfaces floating above a motive: at least 90 % opaque in play, fully opaque in focus (V6.3) */
+  --color-panel: color-mix(in srgb, var(--surface) calc(var(--surface-alpha) * 100%), transparent);
+  --color-panel-2: color-mix(in srgb, var(--surface-2) calc(var(--surface-alpha) * 100%), transparent);
+  --color-scrim: var(--scrim);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-line: var(--line);
@@ -228,3 +232,19 @@ body {
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+
+/* ---------- game stage (V9.3, V9.4). Motion only transforms and opacity; all of it off with reduced motion. */
+.stage-idle, .stage-idle * { cursor: none !important; }
+@keyframes bubble-in { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes bubble-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.bubble { animation: bubble-in .35s cubic-bezier(.2, .9, .3, 1.3) both; }
+.bubble > span { display: inline-block; animation: bubble-float 6s ease-in-out infinite; }
+@keyframes reveal-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.reveal-pulse { animation: reveal-pulse .6s ease-out 1; }
+@keyframes pop-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pop-in { animation: pop-in .3s ease-out both; }
+@keyframes rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.podium-col { transform-origin: bottom; animation: rise .7s cubic-bezier(.2, .8, .2, 1) both; }
+.timer-ring circle.progress { transition: stroke-dashoffset .25s linear; }
+/* answer tiles sink into their own darker edge instead of the primary shadow */
+[data-mood='play'] .shadow-tile { box-shadow: 0 5px 0 rgb(0 0 0 / 0.22); }

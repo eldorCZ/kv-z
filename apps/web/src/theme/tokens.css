@@ -13,7 +13,7 @@
   --canvas: #f7f5ff;
   --surface: #ffffff;
   --surface-2: #efebff;
-  --surface-alpha: 0.92;
+  --surface-alpha: 0.94;
   --fg: #1b1640;
   --muted: #56517c;
   --line: #ddd8f3;
@@ -76,7 +76,7 @@
   --canvas: #0f0b2a;
   --surface: #1a1445;
   --surface-2: #241c5c;
-  --surface-alpha: 0.9;
+  --surface-alpha: 0.94;
   --fg: #f4f1ff;
   --muted: #bab4e2;
   --line: #342a78;
@@ -115,7 +115,7 @@
 /* playful mood (lobby, live game, podium): richer colours, rounder shapes, solid "button" shadow */
 [data-mood='play'] {
   --canvas: #ece5ff;
-  --surface-2: #e4dcff;
+  --surface-2: #e7e0ff;
   --radius-md: 18px;
   --radius-lg: 28px;
   --shadow-pop: 0 5px 0 var(--primary-shadow);
@@ -123,7 +123,7 @@
 [data-theme='dark'] [data-mood='play'],
 [data-theme='dark'][data-mood='play'] {
   --canvas: #150e3d;
-  --surface-2: #251c5e;
+  --surface-2: #1f1752;
 }
 
 /* calm mood (test, results, classes, editor): flat cards, no decorative motion */

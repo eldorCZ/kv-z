@@ -11,3 +11,6 @@ export * from './leave-guard.js';
 export * from './classes.js';
 export * from './class-metrics.js';
 export * from './ui-prefs.js';
+export * from './color.js';
+export * from './motives.js';
+export * from './accents.js';

@@ -67,3 +67,35 @@ for (const scheme of ['light', 'dark'] as const) {
     await audit(page, 'kod');
   });
 }
+
+test('live game screens have no serious a11y issues (light and dark)', async ({ page, browser }) => {
+  const token = await registerAndToken(page);
+  const auth = { authorization: `Bearer ${token}` };
+  const { quizId } = await (await page.request.post('/api/v1/quizzes', { headers: auth, data: quiz })).json();
+  for (const scheme of ['light', 'dark'] as const) {
+    await page.emulateMedia({ colorScheme: scheme });
+    const game = await (await page.request.post(`/api/v1/quizzes/${quizId}/games`, { headers: auth, data: { mode: 'live' } })).json();
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(new URL(game.hostUrl).pathname + new URL(game.hostUrl).hash);
+    await expect(page.getByTestId('host-pin')).toBeVisible();
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, colorScheme: scheme });
+    const phone = await ctx.newPage();
+    await phone.goto(`/play?pin=${game.pin}`);
+    await phone.getByLabel('Přezdívka').fill('novak12');
+    await phone.getByRole('button', { name: 'Připojit se' }).click();
+    await expect(phone.getByTestId('player-lobby')).toBeVisible();
+    await expect(page.getByTestId('host-players')).toContainText('novak12');
+    await audit(page, `${scheme} host-lobby`);
+    await audit(phone, `${scheme} player-lobby`);
+    await page.keyboard.press('Space');
+    await expect(phone.getByTestId('player-prompt')).toBeVisible();
+    await audit(page, `${scheme} host-question`);
+    await audit(phone, `${scheme} player-question`);
+    await phone.getByTestId('option-1').click();
+    await expect(phone.getByTestId('player-reveal')).toBeVisible();
+    await expect(page.getByTestId('host-reveal-box')).toBeVisible();
+    await audit(page, `${scheme} host-reveal`);
+    await audit(phone, `${scheme} player-reveal`);
+    await ctx.close();
+  }
+});

@@ -3,7 +3,7 @@
  * (Dodatek 4, V12). Needs a built web app (pnpm build). Starts a throw-away server with the sample quiz
  * and the demo class (pseudonyms), never touches a real database.
  */
-import { chromium, type Page } from '@playwright/test';
+import { chromium, type Browser, type Page } from '@playwright/test';
 import { mkdirSync, mkdtempSync } from 'node:fs';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -60,6 +60,69 @@ const studentShots: Shot[] = [{ name: 'zak-zadani-pinu', viewport: { width: 390,
 
 export const SHOTS = { teacherShots, studentShots };
 
+const PROJECTOR = { width: 1280, height: 720 };
+const PHONE = { width: 390, height: 844 };
+
+/** A short live game: projector at 1280x720 and three phones (V9.3, V9.4). */
+async function gameShots(browser: Browser, teacher: Page, ctx: ScreenCtx, scheme: 'light' | 'dark', shot: (p: Page, name: string) => Promise<void>) {
+  await teacher.setViewportSize({ width: 1280, height: 800 });
+  await teacher.goto(`${ctx.url}/quizzes/${ctx.quizId}`);
+  await teacher.getByTestId('start-game').click();
+  await teacher.getByTestId('confirm-start').click();
+  const pin = (await teacher.getByTestId('pin').textContent())!.replace(/\s/g, '');
+  const hostHref = (await teacher.getByTestId('open-host').getAttribute('href'))!;
+  const host = await teacher.context().newPage();
+  await host.setViewportSize(PROJECTOR);
+  await host.goto(new URL(hostHref, ctx.url).href);
+  await host.getByTestId('host-pin').waitFor();
+
+  const phones: Page[] = [];
+  for (const nick of ['novak12', 'mala4', 'erben7']) {
+    const c = await browser.newContext({ viewport: PHONE, colorScheme: scheme, reducedMotion: 'reduce' });
+    const p = await c.newPage();
+    await p.goto(`${ctx.url}/play?pin=${pin}`);
+    await p.getByLabel('Přezdívka').fill(nick);
+    await p.getByRole('button', { name: 'Připojit se' }).click();
+    await p.getByTestId('player-lobby').waitFor();
+    phones.push(p);
+  }
+  await host.getByText('3 hráči').waitFor();
+  await shot(host, 'hra-lobby');
+  await shot(phones[0]!, 'zak-lobby');
+
+  await host.keyboard.press('Space');
+  await host.getByTestId('host-prompt').waitFor();
+  await phones[0]!.getByTestId('player-prompt').waitFor();
+  await shot(phones[0]!, 'zak-otazka');
+  // two players answer, the projector shows the running question
+  const options = phones[0]!.locator('[data-testid^="option-"]');
+  if (await options.count()) {
+    await options.first().click();
+    await phones[1]!.locator('[data-testid^="option-"]').nth(1).click();
+    await phones[1]!.getByTestId('player-answered').waitFor();
+  }
+  await host.waitForTimeout(300);
+  await shot(host, 'hra-otazka');
+  await shot(phones[1]!, 'zak-odeslano');
+  await host.keyboard.press('Enter');
+  await host.getByTestId('host-reveal-box').waitFor();
+  await phones[0]!.getByTestId('player-reveal').waitFor();
+  await host.waitForTimeout(700);
+  await shot(host, 'hra-odhaleni');
+  await shot(phones[0]!, 'zak-vysledek');
+  await host.keyboard.press('Space');
+  await host.getByTestId('leaderboard').waitFor();
+  await host.waitForTimeout(900);
+  await shot(host, 'hra-poradi');
+  host.once('dialog', (d) => void d.accept());
+  await host.getByRole('button', { name: 'Ukončit' }).click();
+  await host.getByTestId('podium').waitFor();
+  await host.waitForTimeout(900);
+  await shot(host, 'hra-podium');
+  for (const p of phones) await p.context().close();
+  await host.close();
+}
+
 async function main() {
   const dir = mkdtempSync(join(tmpdir(), 'jiskra-screens-'));
   const cfg = loadConfig({} as NodeJS.ProcessEnv, {
@@ -97,6 +160,8 @@ async function main() {
       await page.screenshot({ path: join(OUT, `${shot.name}-${scheme === 'light' ? 'svetly' : 'tmavy'}.png`), fullPage: shot.fullPage ?? false });
       await page.keyboard.press('Escape');
     }
+    const suffix = scheme === 'light' ? 'svetly' : 'tmavy';
+    await gameShots(browser, page, ctx, scheme, async (p, name) => void (await p.screenshot({ path: join(OUT, `${name}-${suffix}.png`) })));
     await context.close();
   }
   await browser.close();

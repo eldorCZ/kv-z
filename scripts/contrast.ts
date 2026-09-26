@@ -7,7 +7,9 @@
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { contrast, deltaE00, simulate, type Cvd } from '../apps/web/src/theme/color.js';
+import { ACCENTS } from '../packages/core/src/accents.js';
+import { contrast, deltaE00, over, parseHex, simulate, toHex, type Cvd } from '../packages/core/src/color.js';
+import { MOTIVE_LIST, motiveColours, scrimAlpha } from '../packages/core/src/motives.js';
 
 export type Vars = Record<string, string>;
 type Kind = 'text' | 'large' | 'ui';
@@ -114,6 +116,49 @@ export function checkContrast(ctxs: Context[]): { failures: Failure[]; worst: nu
   return { failures, worst };
 }
 
+/** Every accent (V6.2) replaces the primary family; the whole manifest must still pass. */
+export function checkAccents(ctxs: Context[]): Failure[] {
+  const out: Failure[] = [];
+  for (const acc of ACCENTS) {
+    const withAccent = ctxs.map((c) => {
+      const scheme = c.name.startsWith('dark') ? 'dark' : 'light';
+      return { name: `${c.name} akcent ${acc.id}`, vars: { ...c.vars, ...acc.tokens[scheme] } };
+    });
+    out.push(...checkContrast(withAccent).failures);
+  }
+  return out;
+}
+
+/** text tokens drawn on a surface that floats above a motive */
+const ON_SURFACE = ['fg', 'muted', 'primary', 'danger'];
+
+/**
+ * Worst case for every motive × scheme × mood (V6.3, V12): a text surface (surface or surface-2 with
+ * --surface-alpha) lies over the scrim, which lies over any colour of the motive. Text must keep 4.5:1.
+ */
+export function checkMotives(ctxs: Context[]): Failure[] {
+  const out: Failure[] = [];
+  for (const c of ctxs.filter((x) => !x.name.endsWith('/more'))) {
+    const scheme = c.name.startsWith('dark') ? 'dark' : 'light';
+    const mood = c.name.includes('/play') ? 'play' : 'focus';
+    const alpha = Number(c.vars['surface-alpha'] ?? 1);
+    for (const m of MOTIVE_LIST) {
+      const scrim = scrimAlpha(m.id, scheme, mood);
+      for (const colour of motiveColours(m.id, scheme)) {
+        const under = over(resolve(c.vars, 'scrim'), scrim, parseHex(colour));
+        for (const surface of ['surface', 'surface-2']) {
+          const bg = toHex(over(resolve(c.vars, surface), alpha, under));
+          for (const fg of ON_SURFACE) {
+            const ratio = contrast(resolve(c.vars, fg), bg);
+            if (ratio < THRESHOLD.text) out.push({ context: `${c.name} motiv ${m.id} (${colour})`, pair: `--${fg} na --${surface}`, ratio, need: THRESHOLD.text });
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 const CVDS: (Cvd | 'normal')[] = ['normal', 'deuteranopia', 'protanopia', 'tritanopia'];
 
 /** Adjacent answer colours must differ by ΔE00 ≥ 10 for normal vision and every simulated deficiency. */
@@ -139,11 +184,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const ctxs = contexts(css);
   const { failures } = checkContrast(ctxs);
   const cvd = checkAnswers(ctxs);
+  failures.push(...checkAccents(ctxs), ...checkMotives(ctxs));
   for (const f of failures) console.error(`✗ ${f.context}: ${f.pair} = ${f.ratio.toFixed(2)}:1 (potřeba ${f.need}:1)`);
   for (const f of cvd) console.error(`✗ ${f}`);
   if (failures.length || cvd.length) {
     console.error(`Kontrast: ${failures.length} chyb, barvoslepost: ${cvd.length} chyb.`);
     process.exit(1);
   }
-  console.log(`Kontrast v pořádku: ${ctxs.length} kontextů × ${MANIFEST.length} dvojic; odpovědi rozlišitelné i při deuteranopii, protanopii a tritanopii.`);
+  console.log(`Kontrast v pořádku: ${ctxs.length} kontextů × ${MANIFEST.length} dvojic; ${ACCENTS.length} akcentů, ${MOTIVE_LIST.length} motivů v nejhorším případě; odpovědi rozlišitelné i při deuteranopii, protanopii a tritanopii.`);
 }

@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { contrast, deltaE00, over, parseHex, simulate } from '../../apps/web/src/theme/color.js';
-import { checkAnswers, checkContrast, contexts, parseTokens } from '../contrast.js';
+import { contrast, deltaE00, over, parseHex, simulate } from '../../packages/core/src/color.js';
+import { checkAccents, checkAnswers, checkContrast, checkMotives, contexts, parseTokens } from '../contrast.js';
 
 const css = readFileSync(join(import.meta.dirname, '../../apps/web/src/theme/tokens.css'), 'utf8');
 
@@ -37,6 +37,15 @@ describe('pnpm check:contrast', () => {
     const ctxs = contexts(css);
     expect(checkContrast(ctxs).failures).toEqual([]);
     expect(checkAnswers(ctxs)).toEqual([]);
+  });
+  it('every accent and every motive × scheme × mood passes in the worst case (V6.2, V6.3)', () => {
+    const ctxs = contexts(css);
+    expect(checkAccents(ctxs)).toEqual([]);
+    expect(checkMotives(ctxs)).toEqual([]);
+  });
+  it('a too transparent surface over a motive is reported', () => {
+    const ctxs = contexts(css.replace('--surface-alpha: 0.94;', '--surface-alpha: 0.3;'));
+    expect(checkMotives(ctxs).some((f) => f.context.startsWith('light/play motiv'))).toBe(true);
   });
   it('a weak pair and indistinguishable answers are reported', () => {
     const bad = css.replace('--muted: #56517c;', '--muted: #b0acc8;').replace('--answer-5: #b79cff;', '--answer-5: #1f63d9;');
