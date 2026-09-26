@@ -1,0 +1,2442 @@
+{
+  "schemaVersion": 1,
+  "title": "Optika: lom světla",
+  "language": "cs",
+  "gradeLevel": "8. ročník ZŠ",
+  "sourceFiles": [
+    {
+      "name": "optika.pdf",
+      "sha256": "3f2a9c0d1e4b5a6978c0d1e2f3a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6"
+    }
+  ],
+  "settings": {
+    "shuffleQuestions": false,
+    "shuffleOptions": true
+  },
+  "questions": [
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    }
+  ]
+}

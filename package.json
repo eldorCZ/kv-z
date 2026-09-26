@@ -1,0 +1,37 @@
+{
+  "name": "kvizhub",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @kvizhub/server --filter @kvizhub/web dev",
+    "build": "pnpm --filter @kvizhub/web build && pnpm --filter @kvizhub/server build",
+    "start": "node apps/server/dist/index.js",
+    "typecheck": "tsc -p packages/core && tsc -p packages/export && tsc -p apps/server && tsc -p apps/web && tsc -p scripts",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:skill": "cd agent-skill/kviz-z-materialu && (test -x .venv/bin/python && .venv/bin/python -m pytest -q || python3 -m pytest -q)",
+    "loadtest": "tsx scripts/loadtest.ts",
+    "demo": "tsx scripts/demo.ts",
+    "seed:demo-class": "tsx scripts/seed-demo-class.ts",
+    "check": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@kvizhub/core": "workspace:*",
+    "@playwright/test": "1.56.1",
+    "@types/node": "^22.20.4",
+    "eslint": "^10.11.0",
+    "exceljs": "^4.4.0",
+    "globals": "^17.12.0",
+    "socket.io-client": "^4.8.4",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.2"
+  }
+}

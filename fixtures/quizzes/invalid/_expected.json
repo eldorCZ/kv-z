@@ -1,0 +1,140 @@
+{
+  "out-of-range-index": [
+    {
+      "path": "questions[0].correctIndices[0]",
+      "code": "out_of_range"
+    }
+  ],
+  "single-two-correct": [
+    {
+      "path": "questions[0].correctIndices",
+      "code": "correct_count"
+    }
+  ],
+  "single-too-few-options": [
+    {
+      "path": "questions[0].options",
+      "code": "option_count"
+    }
+  ],
+  "multi-all-correct": [
+    {
+      "path": "questions[2].correctIndices",
+      "code": "correct_count"
+    }
+  ],
+  "multi-one-correct": [
+    {
+      "path": "questions[2].correctIndices",
+      "code": "correct_count"
+    }
+  ],
+  "duplicate-options": [
+    {
+      "path": "questions[0].options[1]",
+      "code": "duplicate"
+    }
+  ],
+  "empty-prompt": [
+    {
+      "path": "questions[0].prompt",
+      "code": "empty"
+    }
+  ],
+  "prompt-too-long": [
+    {
+      "path": "questions[0].prompt",
+      "code": "too_long"
+    }
+  ],
+  "bad-time-limit": [
+    {
+      "path": "questions[0].timeLimitSec",
+      "code": "invalid_time_limit"
+    }
+  ],
+  "bad-type": [
+    {
+      "path": "questions[0].type",
+      "code": "invalid_value"
+    }
+  ],
+  "flagged-without-notes": [
+    {
+      "path": "questions[0].qa.notes",
+      "code": "notes_required"
+    }
+  ],
+  "truefalse-bad-options": [
+    {
+      "path": "questions[1].options",
+      "code": "truefalse_options"
+    }
+  ],
+  "short-no-answers": [
+    {
+      "path": "questions[3].acceptedAnswers",
+      "code": "accepted_count"
+    }
+  ],
+  "short-with-options": [
+    {
+      "path": "questions[3].options",
+      "code": "options_not_allowed"
+    }
+  ],
+  "numeric-missing-answer": [
+    {
+      "path": "questions[4].numericAnswer",
+      "code": "required"
+    }
+  ],
+  "numeric-negative-tolerance": [
+    {
+      "path": "questions[4].numericTolerance",
+      "code": "too_small"
+    }
+  ],
+  "order-with-correct": [
+    {
+      "path": "questions[5].correctIndices",
+      "code": "correct_not_allowed"
+    }
+  ],
+  "no-questions": [
+    {
+      "path": "questions",
+      "code": "too_few"
+    }
+  ],
+  "missing-title": [
+    {
+      "path": "title",
+      "code": "required"
+    }
+  ],
+  "wrong-schema-version": [
+    {
+      "path": "schemaVersion",
+      "code": "invalid_value"
+    }
+  ],
+  "option-too-long": [
+    {
+      "path": "questions[0].options[1]",
+      "code": "too_long"
+    }
+  ],
+  "quote-too-long": [
+    {
+      "path": "questions[0].sourceRef.quote",
+      "code": "too_long"
+    }
+  ],
+  "too-many-questions": [
+    {
+      "path": "questions",
+      "code": "too_many"
+    }
+  ]
+}

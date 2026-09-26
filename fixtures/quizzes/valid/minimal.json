@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "title": "Minimální kvíz",
+  "questions": [
+    { "type": "truefalse", "prompt": "Země je kulatá.", "correctIndices": [0] }
+  ]
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "title": "Optika: lom světla",
+  "language": "cs",
+  "gradeLevel": "8. ročník ZŠ",
+  "sourceFiles": [
+    {
+      "name": "optika.pdf",
+      "sha256": "3f2a9c0d1e4b5a6978c0d1e2f3a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6"
+    }
+  ],
+  "settings": {
+    "shuffleQuestions": false,
+    "shuffleOptions": true
+  },
+  "questions": [
+    {
+      "type": "single",
+      "prompt": "   ",
+      "options": [
+        "Lom světla",
+        "Odraz světla",
+        "Ohyb světla",
+        "Rozklad světla"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "acceptedAnswers": [],
+      "numericAnswer": null,
+      "numericTolerance": null,
+      "explanation": "Při přechodu do jiného prostředí světlo mění směr, tomu říkáme lom.",
+      "timeLimitSec": 20,
+      "points": "standard",
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 3",
+        "quote": "Změnu směru šíření světla na rozhraní dvou prostředí nazýváme lom světla."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "truefalse",
+      "prompt": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s.",
+      "options": [
+        "Pravda",
+        "Nepravda"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Rychlost světla ve vakuu je asi 300 000 km/s.",
+      "timeLimitSec": 10,
+      "bloom": "remember",
+      "difficulty": "easy",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 1",
+        "quote": "Ve vakuu se světlo šíří rychlostí přibližně 300 000 km/s."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "multi",
+      "prompt": "Která prostředí jsou pro světlo průhledná?",
+      "options": [
+        "Sklo",
+        "Voda",
+        "Dřevo",
+        "Vzduch",
+        "Železo"
+      ],
+      "correctIndices": [
+        0,
+        1,
+        3
+      ],
+      "explanation": "Sklo, voda i vzduch světlo propouštějí, dřevo a železo ne.",
+      "timeLimitSec": 30,
+      "bloom": "understand",
+      "difficulty": "medium",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 2",
+        "quote": "Průhledná prostředí, například vzduch, voda nebo sklo, světlo propouštějí."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "short",
+      "prompt": "Jak se nazývá bod, ve kterém se sbíhají paprsky za spojnou čočkou?",
+      "acceptedAnswers": [
+        "ohnisko",
+        "ohnisko čočky"
+      ],
+      "explanation": "Rovnoběžné paprsky se za spojnou čočkou sbíhají v ohnisku.",
+      "timeLimitSec": 30,
+      "bloom": "remember",
+      "difficulty": "medium",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 5",
+        "quote": "Rovnoběžné paprsky se po průchodu spojnou čočkou sbíhají v ohnisku."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "numeric",
+      "prompt": "Jaký je index lomu vody? Zapište na dvě desetinná místa.",
+      "numericAnswer": 1.33,
+      "numericTolerance": 0.01,
+      "explanation": "Index lomu vody je přibližně 1,33.",
+      "timeLimitSec": 30,
+      "bloom": "remember",
+      "difficulty": "hard",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 4",
+        "quote": "Index lomu vody je přibližně 1,33."
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "order",
+      "prompt": "Seřaďte prostředí od nejmenšího po největší index lomu.",
+      "options": [
+        "Vzduch",
+        "Voda",
+        "Sklo",
+        "Diamant"
+      ],
+      "explanation": "Vzduch 1,00, voda 1,33, sklo asi 1,5, diamant 2,42.",
+      "timeLimitSec": 30,
+      "bloom": "analyze",
+      "difficulty": "hard",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 4",
+        "quote": "vzduch 1,00; voda 1,33; sklo 1,5; diamant 2,42"
+      },
+      "qa": {
+        "status": "ok",
+        "notes": ""
+      }
+    },
+    {
+      "type": "single",
+      "prompt": "Co se stane se světlem při přechodu z vody do vzduchu?",
+      "options": [
+        "Láme se od kolmice",
+        "Láme se ke kolmici",
+        "Nemění směr",
+        "Úplně se pohltí"
+      ],
+      "correctIndices": [
+        0
+      ],
+      "explanation": "Při přechodu do opticky řidšího prostředí se světlo láme od kolmice.",
+      "timeLimitSec": 20,
+      "bloom": "apply",
+      "difficulty": "medium",
+      "sourceRef": {
+        "file": "optika.pdf",
+        "locator": "str. 3",
+        "quote": "Při přechodu do opticky řidšího prostředí se světlo láme od kolmice."
+      },
+      "qa": {
+        "status": "flagged",
+        "notes": "Slepé řešení zvolilo jinou odpověď, ověřte formulaci."
+      }
+    }
+  ]
+}

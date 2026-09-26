@@ -1,0 +1,17 @@
+node_modules/
+dist/
+data/
+*.db
+*.db-*
+.env
+coverage/
+test-results/
+playwright-report/
+__pycache__/
+.pytest_cache/
+.venv/
+work/
+*.tsbuildinfo
+.sandbox-ca.crt
+kviz.log
+data/
