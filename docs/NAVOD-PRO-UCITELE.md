@@ -5,13 +5,13 @@ Kvízy a testy ve třídě na vlastním serveru. Žáci nepotřebují účty, v�
 
 ## Než začnete
 
-Aplikace běží na adrese, kterou máte od správce. Přihlašujete se e-mailem a heslem. **Žáci se nepřihlašují** — do hry vstupují PINem, v testu ještě svým osobním kódem.
+Aplikace běží na adrese, kterou máte od správce. Přihlašujete se e-mailem a heslem. **Žáci se nepřihlašují** — do hry vstupují PINem a přezdívkou; u hry nebo testu spuštěného pro třídu místo přezdívky zadají svůj osobní kód.
 
 ## První kvíz za pět minut
 
 1.  **Přihlaste se** a jděte na **Moje kvízy**.
 2.  **Nový kvíz** → napište název a přidejte otázky. Nebo **Nahrát JSON**, když máte kvíz ze souboru.
-3.  U kvízu dejte **Spustit**. Vyberte, jestli jde o **hru** (společně, na body) nebo **test** (samostatně, se známkou).
+3.  U kvízu dejte **Spustit**. Vyberte, jestli jde o **hru** (společně, na body) nebo **test** (samostatně, výsledek v procentech; známku dáváte vy).
 4.  Na projektor promítněte obrazovku s **PINem a QR kódem**.
 5.  Žáci otevřou adresu na mobilu, zadají PIN a přezdívku. Vy spustíte první otázku.
 
@@ -34,10 +34,10 @@ Aplikace běží na adrese, kterou máte od správce. Přihlašujete se e-mailem
 
 ## Hra ve třídě
 
-Hra je společná: všichni vidí otázku na projektoru, odpovídají na mobilu a po každé otázce se ukáže žebříček. Body jsou za správnost i za rychlost.
+Hra je společná: všichni vidí otázku na projektoru, odpovídají na mobilu a po každé otázce se ukáže žebříček (dá se vypnout). Body jsou za správnost i za rychlost.
 
   - **Projektor** — obrazovka s otázkou, odpočtem a po vyhodnocení s žebříčkem.
-  - **Mobil žáka** — jen barevná tlačítka, otázku čte z projektoru.
+  - **Mobil žáka** — znění otázky a velká barevná tlačítka s odpověďmi.
   - **Konec hry** — pořadí a úspěšnost po otázkách, takže hned vidíte, co třída nepochopila.
 
 
@@ -48,15 +48,17 @@ Hra je společná: všichni vidí otázku na projektoru, odpovídají na mobilu 
 
 ## Test místo hry
 
-Test žáci píší každý svým tempem, bez žebříčku a bez bodů za rychlost. Používá se s třídou, takže víte, kdo co odevzdal.
+Test žáci píší každý svým tempem, bez žebříčku a bez bodů za rychlost. Jde spustit i bez třídy (žák pak zadá jméno), ale s třídou se výsledky zapíšou do evidence a víte, kdo chybí.
 
-  - Žák zadá PIN a pak **svůj osobní kód** — tím se ví, komu výsledek patří.
-  - Aplikace hlídá **opuštění okna**: když žák přepne na jinou aplikaci, zaznamená se to.
+  - U třídního testu žák zadá PIN a pak **svůj osobní kód** — tím se ví, komu výsledek patří.
+  - Aplikace hlídá **opuštění okna** (dá se vypnout): když žák přepne na jinou aplikaci, zaznamená se to a vy to vidíte v přehledu testu. Procenta se kvůli tomu nikdy nesnižují.
   - **Náhradní termín** pro nemocné se zakládá v kartě třídy, v záložce Aktivity.
 
 ## Třídy a osobní kódy
 
-Třída je skupina žáků na jeden školní rok. Zakládá se v menu **Třídy**, žáci se vloží jako soupiska. Každý dostane **osmiznakový kód**, kterým se v testu identifikuje.
+Třída je skupina žáků na jeden školní rok. Zakládá se v menu **Třídy**, žáci se vloží jako soupiska. Každý dostane **osmiznakový kód**, kterým se ve třídní hře a testu identifikuje.
+
+**Soupiska obsahuje jen přihlašovací jména** školních účtů bez domény, např. `novak12` (adresu `novak12@skola.cz` stačí vložit, doména se odstraní), případně číslo v třídním výkazu. Žádná jména a příjmení. Seznam jde vložit po řádcích, nebo nahrát CSV (i export z AD); soubor se zpracuje ve vašem prohlížeči a na server se pošle jen přihlašovací jméno a číslo. Když škola nechce ani přihlašovací jména, vložte čísla nebo pseudonymy.
 
 
 
@@ -75,10 +77,11 @@ Třída je skupina žáků na jeden školní rok. Zakládá se v menu **Třídy*
 
 
 
-## Výsledky a vysvědčení
+## Výsledky a přehledy
 
   - **Hry a výsledky** — přehled odehraných her, úspěšnost po otázkách, pořadí.
-  - **Karta třídy** — matice žáků a aktivit, profil jednotlivého žáka, témata a jejich zvládnutí.
+  - **Karta třídy** — matice žáků a aktivit, profil jednotlivého žáka, témata a jejich zvládnutí. Při promítání skryjte jména přepínačem **Skrýt jména**.
+  - Aplikace počítá a ukazuje, ale **neznámkuje** — známky a závěry jsou na vás.
   - **Export** — kvíz jde vyvézt do **Kahootu**, **Moodlu** (formát GIFT) nebo do JSON. Výsledky třídy jdou do CSV pro Excel.
 
 ## Agent na serveru — jak si ho zařídit
@@ -102,6 +105,7 @@ Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor p�
 
 2.  Token uložte na serveru do souboru — **neposílejte ho chatem**:
     
+        mkdir -p ~/.secrets && chmod 700 ~/.secrets
         read -s -p "Token: " T && printf '%s' "$T" > ~/.secrets/kvizhub.token \
           && chmod 600 ~/.secrets/kvizhub.token && unset T
 
@@ -111,7 +115,7 @@ Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor p�
         cd ~/.claude/skills/kviz-z-materialu
         python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-4.  Nastavte agentovi proměnné prostředí (v souboru, který si jeho relace načítá):
+4.  Nastavte agentovi proměnné prostředí (v souboru, který si jeho relace načítá). Port je ten z `APP_PORT` v `.env` (výchozí 3000; v příkladu 3010):
     
         export KVIZHUB_URL="http://127.0.0.1:3010"
         export KVIZHUB_TOKEN="$(cat ~/.secrets/kvizhub.token)"
@@ -128,7 +132,7 @@ Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor p�
 
 Potřebují žáci účty nebo e-maily?
 
-Ne. Do hry vstupují PINem a přezdívkou, do testu ještě osobním kódem. Ukládá se jen přezdívka nebo kód a odpovědi.
+Ne. Do hry bez třídy vstupují PINem a přezdívkou; ukládá se jen přezdívka a odpovědi. U třídy se ukládá přihlašovací jméno, číslo v třídním výkazu a výsledky; osobní kód se neukládá vůbec (jen jeho otisk), proto ho nejde zobrazit znovu, jen vytvořit nový.
 
 Co když žák zapomene kód?
 
@@ -148,7 +152,7 @@ Ano, exportem do formátu Kahootu (tabulka XLSX). Otázky a odpovědi se při to
 
 Jak dlouho se data drží?
 
-Výsledky her a hráči se po roce mažou, kvízy zůstávají. Dobu nastavuje správce.
+Výsledky her a hráči se po roce mažou, kvízy zůstávají. Evidence třídy se drží dál, ale 12 měsíců po konci školního roku se anonymizuje (přihlašovací jména a kódy se smažou, zůstanou jen souhrny). Doby nastavuje správce.
 
 Může kvíz vytvořit agent úplně sám, bez mé kontroly?
 
@@ -156,7 +160,7 @@ Vloží ho, ale nejisté otázky označí a ty se do hry nedostanou, dokud je ne
 
 Vidí na výsledky někdo jiný?
 
-Ne. Data jsou na vašem serveru a vidí je jen přihlášený učitel. Aplikace nikam nevolá a nepoužívá žádný jazykový model — ten je jen na straně agenta, když kvíz vyrábí.
+Ne. Data jsou na vašem serveru a vidí je jen přihlášený učitel. Agent dostane o třídě jen souhrny (průměry, slabá témata), nikdy jména, kódy ani výsledky jednotlivých žáků. Aplikace nikam nevolá a nepoužívá žádný jazykový model — ten je jen na straně agenta, když kvíz vyrábí.
 
 Co když během hry vypadne internet nebo se zavře stránka?
 
