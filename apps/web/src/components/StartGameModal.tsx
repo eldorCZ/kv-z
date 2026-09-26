@@ -5,6 +5,7 @@ import { Link } from 'react-router';
 import { api, ApiError } from '../api';
 import type { QuizDto } from '../pages/QuizReview';
 import { Button, ErrorBox, Field, inputCls, Modal } from './ui';
+import { ClipboardList, Users } from 'lucide-react';
 
 interface Created {
   gameId: string;
@@ -116,14 +117,27 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     <Modal title={t('game.startTitle')} onClose={onClose}>
       {!created ? (
         <div className="space-y-3">
-          <div className="flex gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
-            {(['live', 'test'] as const).map((m) => (
-              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-primary bg-primary-soft' : 'border-line-strong'}`}>
-                <input type="radio" className="sr-only" name="mode" checked={mode === m} onChange={() => setMode(m)} data-testid={`mode-${m}`} />
-                <span className="block font-semibold">{t(`game.modes.${m}`)}</span>
-                <span className="text-muted">{t(`game.modesHint.${m}`)}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
+            {(['live', 'test'] as const).map((m) => {
+              const Icon = m === 'live' ? Users : ClipboardList;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  onClick={() => setMode(m)}
+                  data-testid={`mode-${m}`}
+                  className={`flex min-h-20 items-start gap-3 rounded-lg border-2 p-3 text-left text-sm transition-colors ${mode === m ? 'border-primary bg-primary-soft text-on-primary-soft' : 'border-line bg-surface text-fg hover:bg-surface-2'}`}
+                >
+                  <Icon className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+                  <span>
+                    <span className="block text-base font-bold">{t(`game.modes.${m}`)}</span>
+                    <span className={mode === m ? '' : 'text-muted'}>{t(`game.modesHint.${m}`)}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
           {quiz.stats.flagged > 0 && <p className="rounded bg-warning-soft p-2 text-sm text-warning">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
           {classes.length > 0 && (

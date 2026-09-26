@@ -8,6 +8,7 @@ import Matrix from './Matrix';
 import Roster from './Roster';
 import Topics from './Topics';
 import { readShowNames, writeShowNames, type ClassDto } from './types';
+import { TabPanel, Tabs } from '../ui/Tabs';
 
 const TABS = ['students', 'activities', 'topics', 'roster', 'settings'] as const;
 type Tab = (typeof TABS)[number];
@@ -65,26 +66,24 @@ export default function ClassDetail() {
         </label>
       </div>
       {cls.anonymizeAt && <p className="text-xs text-muted">{t('classes.anonymizeAt', { date: formatDate(cls.anonymizeAt) })}</p>}
-      <nav className="no-print flex flex-wrap gap-1 border-b border-line" role="tablist">
-        {TABS.map((tb) => (
-          <button
-            key={tb}
-            role="tab"
-            aria-selected={tab === tb}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${tab === tb ? 'border-primary text-primary' : 'border-transparent text-muted'}`}
-            onClick={() => setParams({ tab: tb })}
-            data-testid={`tab-${tb}`}
-          >
-            {t(`classes.tabs.${tb}`)}
-          </button>
-        ))}
-      </nav>
-      <ErrorBox error={error} onClose={() => setError(null)} />
-      {tab === 'students' && <Matrix cls={cls} showNames={showNames} />}
-      {tab === 'activities' && <Activities cls={cls} />}
-      {tab === 'topics' && <Topics cls={cls} />}
-      {tab === 'roster' && <Roster cls={cls} onChanged={load} />}
-      {tab === 'settings' && <Settings cls={cls} onChanged={load} />}
+      <Tabs value={tab} onChange={(v) => setParams({ tab: v })} label={t('classes.title')} items={TABS.map((tb) => ({ value: tb, label: t(`classes.tabs.${tb}`), testId: `tab-${tb}` }))}>
+        <ErrorBox error={error} onClose={() => setError(null)} />
+        <TabPanel value="students">
+          <Matrix cls={cls} showNames={showNames} />
+        </TabPanel>
+        <TabPanel value="activities">
+          <Activities cls={cls} />
+        </TabPanel>
+        <TabPanel value="topics">
+          <Topics cls={cls} />
+        </TabPanel>
+        <TabPanel value="roster">
+          <Roster cls={cls} onChanged={load} />
+        </TabPanel>
+        <TabPanel value="settings">
+          <Settings cls={cls} onChanged={load} />
+        </TabPanel>
+      </Tabs>
     </div>
   );
 }

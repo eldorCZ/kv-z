@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router';
 import App from './App';
 import { AuthProvider } from './auth';
 import { PrefsProvider } from './theme/prefs';
+import { ToastProvider } from './ui/Toast';
+import { TooltipProvider } from './ui/Tooltip';
 import { loadAppConfig } from './app-config';
 import './i18n';
 import './index.css';
@@ -15,7 +17,11 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <PrefsProvider>
         <AuthProvider>
-          <App />
+          <TooltipProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </TooltipProvider>
         </AuthProvider>
       </PrefsProvider>
     </BrowserRouter>

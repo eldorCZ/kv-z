@@ -20,9 +20,11 @@
     "loadtest": "tsx scripts/loadtest.ts",
     "demo": "tsx scripts/demo.ts",
     "seed:demo-class": "tsx scripts/seed-demo-class.ts",
+    "docs:screens": "tsx scripts/screens.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm check:contrast && pnpm test"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^10.0.1",
     "@kvizhub/core": "workspace:*",
     "@playwright/test": "1.56.1",

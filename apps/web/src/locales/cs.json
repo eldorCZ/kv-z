@@ -17,7 +17,10 @@
     "tokens": "API tokeny",
     "logout": "Odhlásit",
     "classes": "Třídy",
-    "home": "Úvod"
+    "home": "Úvod",
+    "expand": "Rozbalit navigaci",
+    "collapse": "Sbalit navigaci",
+    "menu": "Nabídka"
   },
   "login": {
     "introLogin": "Přihlaste se ke svému účtu učitele.",
@@ -49,7 +52,8 @@
     "tooLarge": "Soubor je větší než 2 MB.",
     "invalidJson": "Soubor není platný JSON. Nahrajte export z aplikace {{app}} nebo soubor ve formátu kontraktu (schemaVersion 1).",
     "newTitle": "Nový kvíz",
-    "newQuestion": "Upravte tuto otázku"
+    "newQuestion": "Upravte tuto otázku",
+    "actions": "Akce pro kvíz {{title}}"
   },
   "review": {
     "back": "Zpět na kvízy",
@@ -235,7 +239,9 @@
       "quizzes:write": "vkládat a upravovat kvízy",
       "quizzes:read": "číst kvízy a exporty",
       "games:write": "spouštět hry",
-      "games:read": "číst stav a výsledky her"
+      "games:read": "číst stav a výsledky her",
+      "classes:read": "seznam tříd a souhrny bez jmen",
+      "results:pii": "jména žáků ve výsledcích (jen když je agent opravdu potřebuje)"
     },
     "noApprove": "Oprávnění schvalovat otázky tokenům nelze přidělit.",
     "expires": "Platnost (dní)",
@@ -757,5 +763,11 @@
       "default": "vypnuto",
       "readable": "zapnuto"
     }
+  },
+  "preview": {
+    "title": "Očima žáka",
+    "phone": "Telefon žáka",
+    "projector": "Projektor",
+    "send": "Odeslat"
   }
 }

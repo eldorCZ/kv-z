@@ -153,8 +153,9 @@ export class QuizRepo {
         title: quizzes.title,
         createdAt: quizzes.createdAt,
         updatedAt: quizzes.updatedAt,
-        questionCount: sql<number>`(select count(*) from questions q where q.quiz_id = ${quizzes.id})`,
-        flaggedCount: sql<number>`(select count(*) from questions q where q.quiz_id = ${quizzes.id} and q.qa_status = 'flagged')`,
+        // the outer column must be qualified: an unqualified "id" would resolve to q.id inside the subquery
+        questionCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id")`,
+        flaggedCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id" and q.qa_status = 'flagged')`,
       })
       .from(quizzes)
       .where(where)

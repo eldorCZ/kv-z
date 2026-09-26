@@ -13,13 +13,15 @@ interface TokenDto {
   revokedAt: number | null;
 }
 
-const ALL_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read'];
+// classes:read lets the agent list classes and read aggregates (Dodatek 3); results:pii is off by default
+const ALL_SCOPES = ['quizzes:write', 'quizzes:read', 'games:write', 'games:read', 'classes:read', 'results:pii'];
+const DEFAULT_SCOPES = ALL_SCOPES.filter((s) => s !== 'results:pii');
 
 export default function Tokens() {
   const { t } = useTranslation();
   const [tokens, setTokens] = useState<TokenDto[]>([]);
   const [name, setName] = useState('Agent na Telegramu');
-  const [scopes, setScopes] = useState<string[]>(ALL_SCOPES);
+  const [scopes, setScopes] = useState<string[]>(DEFAULT_SCOPES);
   const [expires, setExpires] = useState('');
   const [created, setCreated] = useState<string | null>(null);
   const [error, setError] = useState<ApiError | null>(null);

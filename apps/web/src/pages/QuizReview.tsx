@@ -5,6 +5,7 @@ import { api, ApiError } from '../api';
 import ExportModal from '../components/ExportModal';
 import QuestionEditor, { type EditableQuestion } from '../components/QuestionEditor';
 import StartGameModal from '../components/StartGameModal';
+import { Check, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { Badge, Button, ErrorBox, inputCls } from '../components/ui';
 
 export interface QuizDto {
@@ -135,12 +136,12 @@ export default function QuizReview() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
         <span>{t('review.stats', { total: quiz.stats.total, ok: quiz.stats.ok })}</span>
-        {quiz.stats.flagged > 0 ? <Badge tone="flagged">⚠ {t('review.flaggedCount', { count: quiz.stats.flagged })}</Badge> : <Badge tone="ok">✓ {t('review.allOk')}</Badge>}
+        {quiz.stats.flagged > 0 ? <Badge tone="flagged">{t('review.flaggedCount', { count: quiz.stats.flagged })}</Badge> : <Badge tone="ok">{t('review.allOk')}</Badge>}
         <label className="ml-auto flex items-center gap-2">
           <input type="checkbox" checked={onlyFlagged} onChange={(e) => setOnlyFlagged(e.target.checked)} />
           {t('review.onlyFlagged')}
         </label>
-        <Button onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/approve-ok`))}>✓ {t('review.approveAllOk')}</Button>
+        <Button icon={<Check className="h-4 w-4" aria-hidden="true" />} onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/approve-ok`))}>{t('review.approveAllOk')}</Button>
         <Button variant="primary" onClick={addQuestion}>
           + {t('review.addQuestion')}
         </Button>
@@ -165,19 +166,19 @@ export default function QuizReview() {
                 setDragId(null);
               }}
               onDragEnd={() => setDragId(null)}
-              className={`rounded-lg border bg-surface p-4 shadow-sm ${q.qa.status === 'flagged' ? 'border-warning-line' : 'border-line'} ${dragId === q.id ? 'opacity-60' : ''}`}
+              className={`rounded-lg border bg-surface p-4 shadow-soft ${q.qa.status === 'flagged' ? 'border-warning-line' : 'border-line'} ${dragId === q.id ? 'opacity-60' : ''}`}
             >
               <div className="flex flex-wrap items-start gap-3">
                 {!onlyFlagged && (
                   <div className="flex flex-col items-center text-muted">
-                    <button className="px-1 hover:text-fg" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
-                      ▲
+                    <button className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md hover:bg-surface-2 hover:text-fg" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
+                      <ChevronUp className="h-5 w-5" aria-hidden="true" />
                     </button>
                     <span className="cursor-grab select-none" title={t('review.dragHint')} aria-hidden="true">
-                      ⠿
+                      <GripVertical className="h-5 w-5" />
                     </span>
-                    <button className="px-1 hover:text-fg" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
-                      ▼
+                    <button className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md hover:bg-surface-2 hover:text-fg" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
+                      <ChevronDown className="h-5 w-5" aria-hidden="true" />
                     </button>
                   </div>
                 )}
@@ -188,11 +189,11 @@ export default function QuizReview() {
                     <span>· {q.timeLimitSec} s</span>
                     {q.points !== 'standard' && <span>· {t(`points.${q.points}`)}</span>}
                     {q.qa.status === 'flagged' ? (
-                      <Badge tone="flagged">⚠ {t('review.badgeFlagged')}</Badge>
+                      <Badge tone="flagged">{t('review.badgeFlagged')}</Badge>
                     ) : q.approvedAt ? (
-                      <Badge tone="approved">✓✓ {t('review.badgeApproved')}</Badge>
+                      <Badge tone="approved">{t('review.badgeApproved')}</Badge>
                     ) : (
-                      <Badge tone="ok">✓ {t('review.badgeOk')}</Badge>
+                      <Badge tone="ok">{t('review.badgeOk')}</Badge>
                     )}
                     {q.difficulty && <span>· {t(`difficulty.${q.difficulty}`)}</span>}
                     {q.bloom && <span>· {t(`bloom.${q.bloom}`)}</span>}
@@ -226,8 +227,8 @@ export default function QuizReview() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {q.qa.status === 'flagged' && (
-                    <Button variant="success" onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/questions/${q.id}/approve`))}>
-                      ✓ {t('review.approve')}
+                    <Button variant="success" icon={<Check className="h-4 w-4" aria-hidden="true" />} onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/questions/${q.id}/approve`))}>
+                      {t('review.approve')}
                     </Button>
                   )}
                   <Button onClick={() => setEditing(isEditing ? null : q.id)}>{isEditing ? t('review.closeEditor') : t('review.edit')}</Button>
@@ -250,6 +251,8 @@ export default function QuizReview() {
                 <QuestionEditor
                   quizId={quiz.id}
                   question={q}
+                  index={index}
+                  total={quiz.questions.length}
                   onSaved={(saved) => setQuiz((cur) => (cur ? { ...cur, questions: cur.questions.map((x) => (x.id === saved.id ? saved : x)) } : cur))}
                 />
               )}

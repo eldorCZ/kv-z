@@ -36,22 +36,22 @@ export function LineChart({ points, title }: { points: SeriesPoint[]; title: str
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full max-w-2xl" role="img" aria-label={title}>
         {[0, 25, 50, 75, 100].map((v) => (
           <g key={v}>
-            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} stroke="#e2e8f0" />
-            <text x={pad.l - 4} y={y(v) + 4} fontSize="10" textAnchor="end" fill="#64748b">
+            <line x1={pad.l} x2={W - pad.r} y1={y(v)} y2={y(v)} className="stroke-line" />
+            <text x={pad.l - 4} y={y(v) + 4} fontSize="10" textAnchor="end" className="fill-muted">
               {v}
             </text>
           </g>
         ))}
         {points.map((p, i) => (
-          <text key={p.activityId} x={x(i)} y={H - 6} fontSize="10" textAnchor="middle" fill="#64748b">
+          <text key={p.activityId} x={x(i)} y={H - 6} fontSize="10" textAnchor="middle" className="fill-muted">
             {shortDate(p.playedAt)}
           </text>
         ))}
-        <path d={path('classMedian')} fill="none" stroke="#94a3b8" strokeWidth="2" strokeDasharray="5 4" />
-        <path d={path('percent')} fill="none" stroke="#4f46e5" strokeWidth="2.5" />
+        <path d={path('classMedian')} fill="none" className="stroke-muted" strokeWidth="2" strokeDasharray="5 4" />
+        <path d={path('percent')} fill="none" className="stroke-primary" strokeWidth="3" />
         {points.map((p, i) =>
           p.percent === null ? null : (
-            <circle key={p.activityId} cx={x(i)} cy={y(p.percent)} r="4" fill="#4f46e5">
+            <circle key={p.activityId} cx={x(i)} cy={y(p.percent)} r="4.5" className="fill-primary">
               <title>{`${p.label}: ${p.percent} %`}</title>
             </circle>
           ),
