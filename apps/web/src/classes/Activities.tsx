@@ -21,7 +21,7 @@ function Distribution({ d }: { d: number[] }) {
   return (
     <div className="flex h-10 items-end gap-0.5" role="img" aria-label={d.map((n, i) => `${labels[i]} %: ${n}`).join(', ')}>
       {d.map((n, i) => (
-        <div key={i} className="w-4 bg-indigo-400" style={{ height: `${Math.max(2, (100 * n) / max)}%` }} title={`${labels[i]} %: ${n}`} />
+        <div key={i} className="w-4 bg-hra-400" style={{ height: `${Math.max(2, (100 * n) / max)}%` }} title={`${labels[i]} %: ${n}`} />
       ))}
     </div>
   );
@@ -61,13 +61,13 @@ export default function Activities({ cls }: { cls: ClassDto }) {
     <div className="space-y-3">
       <ErrorBox error={error} onClose={() => setError(null)} />
       {makeup && (
-        <div className="rounded-lg border border-indigo-300 bg-indigo-50 p-4 text-sm" data-testid="makeup-info">
+        <div className="rounded-lg border border-hra-500 bg-indigo-50 p-4 text-sm" data-testid="makeup-info">
           <p className="font-semibold">{makeup.reused ? t('overview.makeupReused') : t('overview.makeupCreated', { count: makeup.audienceSize })}</p>
           <p className="mt-1">
             PIN <strong className="font-mono text-lg">{makeup.pin}</strong> · {makeup.joinUrl}
           </p>
           <div className="mt-2 flex gap-2">
-            <Link to={`/tests/${makeup.gameId}`} className="text-indigo-700 underline">
+            <Link to={`/tests/${makeup.gameId}`} className="text-hra-700 underline">
               {t('overview.openDashboard')}
             </Link>
             <button className="ml-auto text-slate-600" onClick={() => setMakeup(null)}>
@@ -84,7 +84,7 @@ export default function Activities({ cls }: { cls: ClassDto }) {
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
                   {a.gameId ? (
-                    <Link to={gameLink(a.kind, a.gameId)} className="text-indigo-700 hover:underline">
+                    <Link to={gameLink(a.kind, a.gameId)} className="text-hra-700 hover:underline">
                       {a.label}
                     </Link>
                   ) : (

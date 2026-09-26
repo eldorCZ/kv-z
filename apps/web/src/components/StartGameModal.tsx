@@ -118,7 +118,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
         <div className="space-y-3">
           <div className="flex gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
             {(['live', 'test'] as const).map((m) => (
-              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300'}`}>
+              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-hra-600 bg-indigo-50' : 'border-slate-300'}`}>
                 <input type="radio" className="sr-only" name="mode" checked={mode === m} onChange={() => setMode(m)} data-testid={`mode-${m}`} />
                 <span className="block font-semibold">{t(`game.modes.${m}`)}</span>
                 <span className="text-slate-600">{t(`game.modesHint.${m}`)}</span>
@@ -267,13 +267,13 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             {t('game.joinAt')} <strong>{created.joinUrl}</strong>
           </p>
           {created.mode === 'test' ? (
-            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700" data-testid="open-dashboard">
+            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-dashboard">
               {t('game.openDashboard')}
             </Link>
           ) : (
             <>
               <div className="flex flex-wrap justify-center gap-2">
-                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700" data-testid="open-host">
+                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-host">
                   {t('game.openHost')}
                 </a>
                 <Button onClick={() => navigator.clipboard?.writeText(created.hostUrl ?? '')}>{t('game.copyHost')}</Button>

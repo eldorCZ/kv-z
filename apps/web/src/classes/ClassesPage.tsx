@@ -46,7 +46,7 @@ export default function ClassesPage() {
 
   const card = (c: Card) => (
     <li key={c.id} className="rounded-lg border border-slate-200 bg-white p-4" data-testid="class-card">
-      <Link to={`/classes/${c.id}`} className="text-lg font-semibold text-indigo-700 hover:underline">
+      <Link to={`/classes/${c.id}`} className="text-lg font-semibold text-hra-700 hover:underline">
         {c.name}
       </Link>
       <p className="text-sm text-slate-600">

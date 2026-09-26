@@ -79,7 +79,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
             <div key={c.student.id} className="code-card">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold text-indigo-700">KvizHub · {className}</p>
+                  <p className="text-xs font-semibold text-hra-700">KvizHub · {className}</p>
                   <p className="mt-1 text-lg font-bold">
                     {c.student.publicName}
                     {c.student.rosterNo ? ` (${c.student.rosterNo})` : ''}

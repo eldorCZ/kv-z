@@ -15,12 +15,12 @@ export default function Layout() {
       .catch(() => undefined);
   }, []);
   const link = ({ isActive }: { isActive: boolean }) =>
-    `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-indigo-100 text-indigo-800' : 'text-slate-700 hover:bg-slate-100'}`;
+    `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-hra-100 text-hra-800' : 'text-slate-700 hover:bg-slate-100'}`;
   return (
     <div className="min-h-screen">
       <header className="no-print border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-3">
-          <NavLink to="/quizzes" className="mr-4 text-xl font-bold text-indigo-700">
+          <NavLink to="/quizzes" className="mr-4 text-xl font-bold text-hra-700">
             KvizHub
           </NavLink>
           <nav className="flex flex-wrap gap-1" aria-label={t('nav.main')}>

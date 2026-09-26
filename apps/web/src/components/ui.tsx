@@ -5,7 +5,7 @@ import type { ApiError } from '../api';
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-300',
+  primary: 'bg-hra-600 text-white hover:bg-hra-700 disabled:bg-hra-500',
   secondary: 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 disabled:text-slate-400',
   danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
   success: 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300',
@@ -87,7 +87,7 @@ export function Field({ label, children, hint }: { label: string; children: Reac
   );
 }
 
-export const inputCls = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200';
+export const inputCls = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-hra-500 focus:outline-none focus:ring-2 focus:ring-hra-200';
 
 export function formatDate(ms: number | null | undefined) {
   if (!ms) return '–';

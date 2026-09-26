@@ -116,7 +116,7 @@ export default function Quizzes() {
           {items.map((it) => (
             <li key={it.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <Link to={`/quizzes/${it.id}`} className="font-semibold text-indigo-700 hover:underline">
+                <Link to={`/quizzes/${it.id}`} className="font-semibold text-hra-700 hover:underline">
                   {it.title}
                 </Link>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">

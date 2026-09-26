@@ -42,7 +42,7 @@ export default function ExportModal({ quiz, onClose }: { quiz: QuizDto; onClose:
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('export.format')}>
           {(['kahoot', 'gift', 'json'] as const).map((f) => (
-            <label key={f} className={`cursor-pointer rounded-md border px-3 py-2 text-sm ${format === f ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300'}`}>
+            <label key={f} className={`cursor-pointer rounded-md border px-3 py-2 text-sm ${format === f ? 'border-hra-600 bg-indigo-50' : 'border-slate-300'}`}>
               <input type="radio" className="sr-only" name="format" checked={format === f} onChange={() => setFormat(f)} />
               {t(`export.formats.${f}`)}
             </label>

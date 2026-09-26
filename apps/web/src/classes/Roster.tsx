@@ -84,7 +84,7 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
           <h2 className="font-semibold">{t('roster.add')}</h2>
           <div className="flex flex-wrap gap-2" role="tablist">
             {(['lines', 'csv', 'manual'] as const).map((m) => (
-              <button key={m} role="tab" aria-selected={mode === m} className={`rounded-md border px-3 py-1.5 text-sm ${mode === m ? 'border-indigo-600 bg-indigo-50' : 'border-slate-300'}`} onClick={() => setMode(m)}>
+              <button key={m} role="tab" aria-selected={mode === m} className={`rounded-md border px-3 py-1.5 text-sm ${mode === m ? 'border-hra-600 bg-indigo-50' : 'border-slate-300'}`} onClick={() => setMode(m)}>
                 {t(`roster.modes.${m}`)}
               </button>
             ))}
@@ -187,7 +187,7 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
                 <tr key={s.id} className="border-t border-slate-100">
                   <td className="p-2">{s.rosterNo ?? ''}</td>
                   <td className="p-2">
-                    <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-indigo-700 hover:underline">
+                    <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-hra-700 hover:underline">
                       {fullName(s)}
                     </Link>
                   </td>

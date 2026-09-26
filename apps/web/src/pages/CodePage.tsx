@@ -25,7 +25,7 @@ export default function CodePage() {
     return (
       <div className="mx-auto max-w-sm p-6 text-center">
         <p>{t('kod.invalid')}</p>
-        <Link to="/play" className="mt-4 inline-block text-indigo-700 underline">
+        <Link to="/play" className="mt-4 inline-block text-hra-700 underline">
           {t('kod.toPlay')}
         </Link>
       </div>
@@ -33,7 +33,7 @@ export default function CodePage() {
 
   return (
     <div className="mx-auto max-w-sm space-y-4 p-6">
-      <h1 className="text-xl font-bold text-indigo-700">KvizHub</h1>
+      <h1 className="text-xl font-bold text-hra-700">KvizHub</h1>
       <p>{t('kod.intro')}</p>
       <p className="text-center font-mono text-2xl font-bold tracking-widest">{formatCode(code)}</p>
       {saved === 'none' ? (
@@ -46,7 +46,7 @@ export default function CodePage() {
             </span>
           </label>
           <button
-            className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white"
+            className="w-full rounded-md bg-hra-600 py-3 font-semibold text-white"
             onClick={() => {
               if (remember && saveDeviceCode(code)) setSaved('saved');
               else setSaved('skipped');
@@ -59,7 +59,7 @@ export default function CodePage() {
       ) : (
         <div className="space-y-3 text-center">
           <p>{saved === 'saved' ? t('kod.saved') : t('kod.notSaved')}</p>
-          <Link to="/play" className="inline-block rounded-md bg-indigo-600 px-4 py-2 font-semibold text-white">
+          <Link to="/play" className="inline-block rounded-md bg-hra-600 px-4 py-2 font-semibold text-white">
             {t('kod.toPlay')}
           </Link>
         </div>

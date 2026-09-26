@@ -58,7 +58,7 @@ export function LineChart({ points, title }: { points: SeriesPoint[]; title: str
         )}
       </svg>
       <figcaption className="text-xs text-slate-500">
-        <span className="text-indigo-700">━</span> {t('overview.chartStudent')} · <span className="text-slate-400">╌</span> {t('overview.chartMedian')}
+        <span className="text-hra-700">━</span> {t('overview.chartStudent')} · <span className="text-slate-400">╌</span> {t('overview.chartMedian')}
       </figcaption>
       <details className="mt-1 text-sm">
         <summary className="cursor-pointer text-xs text-slate-600">{t('overview.asTable')}</summary>
@@ -172,7 +172,7 @@ export default function StudentProfile() {
     <div className="space-y-4">
       <PrintWarning />
       <p className="no-print text-sm">
-        <Link to={`/classes/${id}`} className="text-indigo-700 hover:underline">
+        <Link to={`/classes/${id}`} className="text-hra-700 hover:underline">
           ← {t('overview.backToClass')}
         </Link>
       </p>
@@ -293,7 +293,7 @@ export default function StudentProfile() {
                   <td className="p-1 whitespace-nowrap">{shortDate(r.playedAt)}</td>
                   <td className="p-1">
                     {r.gameId ? (
-                      <Link to={gameLink(r.kind, r.gameId)} className="text-indigo-700 hover:underline">
+                      <Link to={gameLink(r.kind, r.gameId)} className="text-hra-700 hover:underline">
                         {r.label}
                       </Link>
                     ) : (

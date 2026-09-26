@@ -42,7 +42,7 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg bg-white p-6 shadow">
-        <h1 className="text-2xl font-bold text-indigo-700">KvizHub</h1>
+        <h1 className="text-2xl font-bold text-hra-700">KvizHub</h1>
         <p className="text-sm text-slate-600">{t(mode === 'login' ? 'login.introLogin' : 'login.introRegister')}</p>
         <Field label={t('login.email')}>
           <input className={inputCls} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -63,7 +63,7 @@ export default function Login() {
           {t(mode === 'login' ? 'login.submitLogin' : 'login.submitRegister')}
         </Button>
         {allowRegistration && (
-          <button type="button" className="w-full text-sm text-indigo-700 hover:underline" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+          <button type="button" className="w-full text-sm text-hra-700 hover:underline" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
             {t(mode === 'login' ? 'login.switchToRegister' : 'login.switchToLogin')}
           </button>
         )}

@@ -43,7 +43,7 @@ export default function GameResults() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-bold">{t('results.title')}</h1>
-        <Link to={`/quizzes/${res.quizId}`} className="text-sm text-indigo-700 hover:underline">
+        <Link to={`/quizzes/${res.quizId}`} className="text-sm text-hra-700 hover:underline">
           {t('results.toQuiz')}
         </Link>
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => setError(e as ApiError))}>{t('results.csv')}</Button>
@@ -115,7 +115,7 @@ function TestResultsView({ res, id, error, onError }: { res: TestResults; id: st
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-bold">{t('results.testTitle')}</h1>
-        <Link to={`/tests/${id}`} className="text-sm text-indigo-700 hover:underline">
+        <Link to={`/tests/${id}`} className="text-sm text-hra-700 hover:underline">
           {t('results.toDashboard')}
         </Link>
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => onError(e as ApiError))}>{t('results.csv')}</Button>

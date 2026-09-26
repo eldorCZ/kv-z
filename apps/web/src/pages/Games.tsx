@@ -31,7 +31,7 @@ export default function Games() {
         {games?.map((g) => (
           <li key={g.id} className="flex flex-wrap items-center gap-3 p-4">
             <div className="flex-1">
-              <Link to={g.mode === 'test' ? `/tests/${g.id}` : `/games/${g.id}`} className="font-semibold text-indigo-700 hover:underline">
+              <Link to={g.mode === 'test' ? `/tests/${g.id}` : `/games/${g.id}`} className="font-semibold text-hra-700 hover:underline">
                 {g.quizTitle}
               </Link>
               {g.mode === 'test' && <span className="ml-2 rounded bg-sky-100 px-1.5 py-0.5 text-xs font-semibold text-sky-800">{t('games.testBadge')}</span>}
@@ -40,7 +40,7 @@ export default function Games() {
               </p>
             </div>
             {g.mode !== 'test' && (g.status === 'lobby' || g.status === 'running') && (
-              <a className="text-sm text-indigo-700 hover:underline" href={`/host/${g.id}`} target="_blank" rel="noreferrer">
+              <a className="text-sm text-hra-700 hover:underline" href={`/host/${g.id}`} target="_blank" rel="noreferrer">
                 {t('games.openHost')}
               </a>
             )}

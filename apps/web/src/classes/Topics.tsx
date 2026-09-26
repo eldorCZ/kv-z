@@ -13,7 +13,7 @@ interface TopicsDto {
 
 export function Bar({ percent }: { percent: number | null }) {
   if (percent === null) return null;
-  const tone = percent < 50 ? 'bg-amber-500' : percent < 75 ? 'bg-indigo-400' : 'bg-emerald-500';
+  const tone = percent < 50 ? 'bg-amber-500' : percent < 75 ? 'bg-hra-400' : 'bg-emerald-500';
   return (
     <div className="h-2 w-full min-w-24 rounded bg-slate-100" aria-hidden>
       <div className={`h-2 rounded ${tone}`} style={{ width: `${percent}%` }} />
@@ -106,7 +106,7 @@ export default function Topics({ cls }: { cls: ClassDto }) {
       </section>
 
       {rename && (
-        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-hra-200 bg-indigo-50 p-3">
           <p className="w-full text-sm">{t('overview.renameHint', { from: rename.from })}</p>
           <Field label={t('overview.newTopic')}>
             <input className={inputCls} list="topic-names" value={rename.to} maxLength={60} onChange={(e) => setRename({ ...rename, to: e.target.value })} />

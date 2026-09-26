@@ -86,7 +86,7 @@ function Cell({ c }: { c: MatrixCell | undefined }) {
     <span className={tone} data-cell="result">
       {c.percent}
       {c.makeup && (
-        <sup className="text-indigo-700" title={t('overview.cell.makeup')}>
+        <sup className="text-hra-700" title={t('overview.cell.makeup')}>
           d
         </sup>
       )}
@@ -179,7 +179,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
             {rows.map((s) => (
               <tr key={s.id} className="border-t border-slate-100" data-testid="matrix-row">
                 <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white p-2 text-left font-medium">
-                  <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-indigo-700 hover:underline">
+                  <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-hra-700 hover:underline">
                     {name(s)}
                   </Link>
                   {!s.active && <span className="ml-1 text-xs text-slate-500">({t('roster.leftShort')})</span>}

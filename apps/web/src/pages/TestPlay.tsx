@@ -311,7 +311,7 @@ export default function TestPlay() {
 
   const shell = (children: React.ReactNode) => (
     <div className="flex min-h-screen flex-col bg-slate-100 text-slate-900">
-      <header className="flex items-center gap-3 bg-indigo-700 px-4 py-2 text-white">
+      <header className="flex items-center gap-3 bg-hra-700 px-4 py-2 text-white">
         <span className="flex-1 truncate font-semibold">{view?.title ?? info?.title ?? 'KvizHub'}</span>
         {view?.status === 'in_progress' && deadline !== null && (
           <span className={`rounded px-2 py-0.5 font-mono text-lg ${remaining <= 60 ? 'bg-amber-400 text-slate-900' : 'bg-white/15'}`} aria-label={t('test.remaining')} data-testid="test-timer">
@@ -351,7 +351,7 @@ export default function TestPlay() {
   if (!token || !view)
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-4 rounded-xl bg-white p-6 shadow">
-        <h1 className="text-xl font-bold text-indigo-700">{info?.title ?? t('test.joinTitle')}</h1>
+        <h1 className="text-xl font-bold text-hra-700">{info?.title ?? t('test.joinTitle')}</h1>
         <label className="block text-sm">
           <span className="mb-1 block font-medium">{t('play.pin')}</span>
           <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-2xl tracking-widest" inputMode="numeric" required value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
@@ -361,7 +361,7 @@ export default function TestPlay() {
           <input className="w-full rounded-md border border-slate-300 px-3 py-2 text-lg" autoComplete="name" required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} data-testid="test-name" />
           <span className="mt-1 block text-xs text-slate-500">{info?.requireName === false || guest ? t('play.nicknameHint') : t('test.nameHint')}</span>
         </label>
-        <button type="submit" disabled={busy} className="w-full rounded-md bg-indigo-600 py-3 text-lg font-bold text-white hover:bg-indigo-700 disabled:bg-indigo-300">
+        <button type="submit" disabled={busy} className="w-full rounded-md bg-hra-600 py-3 text-lg font-bold text-white hover:bg-hra-700 disabled:bg-hra-500">
           {t('test.continue')}
         </button>
       </form>,
@@ -398,7 +398,7 @@ export default function TestPlay() {
       <div className="w-full space-y-4 rounded-xl bg-white p-6 shadow" data-testid="test-done">
         <h1 className="text-2xl font-bold">{view.status === 'expired' ? t('test.expired') : t('test.submitted')}</h1>
         {r?.shown !== 'none' && r?.percent !== undefined && r?.percent !== null && (
-          <p className="text-4xl font-extrabold text-indigo-700" data-testid="test-percent">
+          <p className="text-4xl font-extrabold text-hra-700" data-testid="test-percent">
             {r.percent} %
           </p>
         )}
@@ -441,7 +441,7 @@ export default function TestPlay() {
             onClick={() => setIndex(i)}
             disabled={!view.allowBackNavigation && i < index}
             aria-current={i === index ? 'step' : undefined}
-            className={`h-9 w-9 rounded-md border text-sm font-semibold ${i === index ? 'border-indigo-700 bg-indigo-700 text-white' : answers[x.id] !== undefined ? 'border-emerald-600 bg-emerald-100' : 'border-slate-300 bg-white'} disabled:opacity-40`}
+            className={`h-9 w-9 rounded-md border text-sm font-semibold ${i === index ? 'border-hra-700 bg-hra-700 text-white' : answers[x.id] !== undefined ? 'border-emerald-600 bg-emerald-100' : 'border-slate-300 bg-white'} disabled:opacity-40`}
             aria-label={t('test.goTo', { n: i + 1 })}
           >
             {i + 1}
@@ -467,7 +467,7 @@ export default function TestPlay() {
           </button>
         )}
         {index < qs.length - 1 ? (
-          <button className="ml-auto rounded-md bg-indigo-600 px-4 py-3 font-semibold text-white" onClick={() => setIndex(index + 1)} data-testid="test-next">
+          <button className="ml-auto rounded-md bg-hra-600 px-4 py-3 font-semibold text-white" onClick={() => setIndex(index + 1)} data-testid="test-next">
             {t('test.next')} →
           </button>
         ) : (
@@ -477,29 +477,29 @@ export default function TestPlay() {
         )}
       </div>
       {warning && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-4" role="alertdialog" aria-modal="true" aria-labelledby="guard-warning-text" data-testid="guard-warning">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-hra-900/80 p-4" role="alertdialog" aria-modal="true" aria-labelledby="guard-warning-text" data-testid="guard-warning">
           <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-center">
             <p id="guard-warning-text" className="text-lg font-semibold">
               {t('guard.warning', { count: warning.count, left: warning.left })}
             </p>
-            <button className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white" onClick={() => setWarning(null)} autoFocus>
+            <button className="w-full rounded-md bg-hra-600 py-3 font-semibold text-white" onClick={() => setWarning(null)} autoFocus>
               {t('guard.understood')}
             </button>
           </div>
         </div>
       )}
       {needFullscreen && !isFullscreen && !warning && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/80 p-4" role="alertdialog" aria-modal="true">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-hra-900/80 p-4" role="alertdialog" aria-modal="true">
           <div className="w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-center">
             <p className="font-semibold">{t('guard.fullscreenNeeded')}</p>
-            <button className="w-full rounded-md bg-indigo-600 py-3 font-semibold text-white" onClick={() => void document.documentElement.requestFullscreen?.().catch(() => undefined)} autoFocus>
+            <button className="w-full rounded-md bg-hra-600 py-3 font-semibold text-white" onClick={() => void document.documentElement.requestFullscreen?.().catch(() => undefined)} autoFocus>
               {t('guard.backToFullscreen')}
             </button>
           </div>
         </div>
       )}
       {confirmSubmit && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/60 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-hra-900/60 p-4" role="dialog" aria-modal="true">
           <div className="w-full max-w-sm space-y-3 rounded-xl bg-white p-5">
             <p className="text-lg font-semibold">{t('test.confirmTitle')}</p>
             <p>{answeredCount < qs.length ? t('test.unanswered', { count: qs.length - answeredCount }) : t('test.allAnswered')}</p>
@@ -544,7 +544,7 @@ function TestAnswer({ q, value, onChange, disabled }: { q: PublicQuestion; value
               aria-checked={on}
               disabled={disabled}
               onClick={() => onChange({ indices: multi ? (on ? selected.filter((x) => x !== i) : [...selected, i].sort()) : [i] })}
-              className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left text-lg ${on ? 'border-indigo-700 bg-indigo-50 font-semibold' : 'border-slate-200 bg-white'}`}
+              className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left text-lg ${on ? 'border-hra-700 bg-indigo-50 font-semibold' : 'border-slate-200 bg-white'}`}
               data-testid={`test-option-${i}`}
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${st.bg}`}>

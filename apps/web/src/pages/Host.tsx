@@ -105,7 +105,7 @@ export default function Host() {
 
   if (error && !state)
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-900 p-6 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-hra-900 p-6 text-white">
         <div className="max-w-xl text-center">
           <p className="text-2xl font-semibold" role="alert">
             {error}
@@ -114,7 +114,7 @@ export default function Host() {
         </div>
       </div>
     );
-  if (!state || !lobby) return <div className="min-h-screen bg-slate-900" />;
+  if (!state || !lobby) return <div className="min-h-screen bg-hra-900" />;
 
   const phase = state.phase;
   const controls = (
@@ -158,8 +158,8 @@ export default function Host() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900 text-white">
-      <header className="flex flex-wrap items-center gap-4 bg-slate-950 px-6 py-3">
+    <div className="flex min-h-screen flex-col bg-hra-900 text-white">
+      <header className="flex flex-wrap items-center gap-4 bg-hra-700 px-6 py-3">
         <h1 className="mr-auto truncate text-xl font-semibold">{title}</h1>
         {phase !== 'lobby' && phase !== 'finished' && (
           <span className="text-lg">
@@ -232,7 +232,7 @@ export default function Host() {
               </p>
               {phase === 'question' && (
                 <div className="flex flex-col items-center">
-                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-indigo-600 text-5xl font-bold" aria-label={t('host.remaining')}>
+                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-hra-600 text-5xl font-bold" aria-label={t('host.remaining')}>
                     {remaining}
                   </span>
                   <span className="mt-2 text-xl">{t('host.answered', { answered, total: state.playerCount })}</span>
@@ -297,7 +297,7 @@ export default function Host() {
                   <div key={i} className="flex w-56 flex-col items-center">
                     <span className="mb-2 text-center text-3xl font-bold break-all">{p.nickname}</span>
                     <span className="mb-2 text-2xl">{p.score}</span>
-                    <div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-indigo-600 pt-4 text-6xl`}>{medal}</div>
+                    <div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-hra-600 pt-4 text-6xl`}>{medal}</div>
                   </div>
                 );
               })}

@@ -111,7 +111,7 @@ export default function QuizReview() {
   return (
     <div>
       <p className="mb-2 text-sm">
-        <Link to="/quizzes" className="text-indigo-700 hover:underline">
+        <Link to="/quizzes" className="text-hra-700 hover:underline">
           ← {t('review.back')}
         </Link>
       </p>
@@ -206,7 +206,7 @@ export default function QuizReview() {
                   {!isEditing && <AnswerPreview q={q} />}
                   {(q.sourceRef || q.explanation) && !isEditing && (
                     <details className="mt-2 text-sm">
-                      <summary className="cursor-pointer text-indigo-700">{t('review.sourceAndExplanation')}</summary>
+                      <summary className="cursor-pointer text-hra-700">{t('review.sourceAndExplanation')}</summary>
                       {q.sourceRef && (
                         <div className="mt-2 rounded bg-slate-50 p-2">
                           <p className="text-xs text-slate-500">

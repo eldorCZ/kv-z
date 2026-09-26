@@ -38,7 +38,7 @@ export default function ClassDetail() {
   return (
     <div className="space-y-4">
       <p className="no-print text-sm">
-        <Link to="/classes" className="text-indigo-700 hover:underline">
+        <Link to="/classes" className="text-hra-700 hover:underline">
           ← {t('classes.title')}
         </Link>
       </p>
@@ -71,7 +71,7 @@ export default function ClassDetail() {
             key={tb}
             role="tab"
             aria-selected={tab === tb}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${tab === tb ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-slate-600'}`}
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${tab === tb ? 'border-hra-600 text-hra-700' : 'border-transparent text-slate-600'}`}
             onClick={() => setParams({ tab: tb })}
             data-testid={`tab-${tb}`}
           >

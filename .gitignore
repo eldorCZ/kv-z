@@ -13,3 +13,5 @@ __pycache__/
 work/
 *.tsbuildinfo
 .sandbox-ca.crt
+kviz.log
+data/
