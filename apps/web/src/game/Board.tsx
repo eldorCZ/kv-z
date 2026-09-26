@@ -22,8 +22,9 @@ export function PinDisplay({ pin }: { pin: string }) {
 /** QR code in a white frame (it has to stay dark-on-light to be scannable in dark mode too). */
 export function QrFrame({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="rounded-lg bg-[#ffffff] p-4 shadow-pop">
-      <img src={src} alt={alt} className="h-[min(38vh,20rem)] w-[min(38vh,20rem)]" />
+    // rámeček musí obepínat QR kód, ne roztáhnout se přes celou šířku sloupce
+    <div className="w-fit justify-self-center self-center rounded-lg bg-[#ffffff] p-4 shadow-pop">
+      <img src={src} alt={alt} className="h-[min(38vh,70vw,20rem)] w-[min(38vh,70vw,20rem)]" />
     </div>
   );
 }
