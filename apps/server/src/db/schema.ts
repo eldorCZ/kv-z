@@ -42,6 +42,8 @@ export const quizzes = sqliteTable(
     requestHash: text('request_hash'),
     idempotencyResponse: text('idempotency_response'),
     tagsJson: text('tags_json'),
+    /** look {motive, accent, imageId} (Dodatek 4, V7) */
+    themeJson: text('theme_json'),
     createdAt: integer('created_at').notNull(),
     updatedAt: integer('updated_at').notNull(),
   },
@@ -96,6 +98,8 @@ export const games = sqliteTable(
     audienceJson: text('audience_json'),
     snapshotJson: text('snapshot_json'),
     playedJson: text('played_json'),
+    /** look frozen when the game starts (V7.2) */
+    themeJson: text('theme_json'),
   },
   (t) => [index('games_quiz').on(t.quizId), index('games_created').on(t.createdAt)],
 );

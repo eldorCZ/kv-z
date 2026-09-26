@@ -50,6 +50,17 @@ const teacherShots: Shot[] = [
       await p.getByTestId('mode-live').waitFor();
     },
   },
+  {
+    name: 'ucitel-vyber-vzhledu',
+    go: async (p, c) => {
+      await p.goto(`${c.url}/quizzes/${c.quizId}`);
+      await p.getByTestId('quiz-look').click();
+      await p.getByTestId('motive-vesmir').click();
+      await p.getByTestId('accent-azurova').click();
+      await p.getByTestId('theme-preview').waitFor();
+    },
+  },
+  { name: 'ucitel-vychozi-vzhled', go: async (p, c) => void (await p.goto(`${c.url}/settings/look`), await p.getByTestId('default-look').waitFor()) },
   { name: 'ucitel-trida-matice', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}`), await p.getByTestId('matrix').waitFor()) },
   { name: 'ucitel-trida-temata', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}?tab=topics`), await p.getByTestId('topics').waitFor()) },
   { name: 'ucitel-profil-zaka', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}/students/${c.studentId}`), await p.getByTestId('profile-name').waitFor()) },
@@ -121,6 +132,28 @@ async function gameShots(browser: Browser, teacher: Page, ctx: ScreenCtx, scheme
   await shot(host, 'hra-podium');
   for (const p of phones) await p.context().close();
   await host.close();
+
+  // a test on a phone: calm, static motive under a strong scrim (V9.5)
+  const created = await teacher.evaluate(async (quizId) => {
+    const me = (await (await fetch('/api/auth/me')).json()) as { csrfToken: string };
+    const csrf = me.csrfToken;
+    const r = await fetch(`/api/v1/quizzes/${quizId}/games`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-csrf-token': csrf },
+      body: JSON.stringify({ mode: 'test', settings: { theme: { motive: 'krystaly' }, test: { timeLimitMin: 20 } } }),
+    });
+    return (await r.json()) as { pin: string };
+  }, ctx.quizId);
+  const tc = await browser.newContext({ viewport: PHONE, colorScheme: scheme, reducedMotion: 'reduce' });
+  const tp = await tc.newPage();
+  await tp.goto(`${ctx.url}/test?pin=${created.pin}`);
+  await tp.getByTestId('test-name').fill('Žák Ukázka');
+  await tp.getByRole('button', { name: 'Pokračovat' }).click();
+  await tp.getByTestId('test-start').click();
+  await tp.getByTestId('test-option-1').click();
+  await tp.getByTestId('test-save-state').filter({ hasText: /\S/ }).waitFor();
+  await shot(tp, 'zak-test');
+  await tc.close();
 }
 
 async function main() {

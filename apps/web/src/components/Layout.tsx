@@ -1,5 +1,5 @@
 import * as RDialog from '@radix-ui/react-dialog';
-import { BookOpen, ChevronsLeft, ChevronsRight, KeyRound, LogOut, Menu as MenuIcon, Trophy, Users, X } from 'lucide-react';
+import { BookOpen, ChevronsLeft, ChevronsRight, KeyRound, LogOut, Menu as MenuIcon, Palette, Trophy, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
@@ -49,6 +49,7 @@ export default function Layout() {
     { to: '/quizzes', label: t('nav.quizzes'), Icon: BookOpen },
     ...(classes ? [{ to: '/classes', label: t('nav.classes'), Icon: Users }] : []),
     { to: '/games', label: t('nav.games'), Icon: Trophy },
+    { to: '/settings/look', label: t('nav.look'), Icon: Palette },
     { to: '/settings/tokens', label: t('nav.tokens'), Icon: KeyRound },
   ];
 

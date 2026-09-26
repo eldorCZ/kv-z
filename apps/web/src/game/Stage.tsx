@@ -8,6 +8,47 @@ export interface StageTheme {
   accent?: string | null;
   /** custom teacher image (V8), already a same-origin URL */
   imageUrl?: string | null;
+  /** server hint: 'strong' for tests and custom photos */
+  scrimHint?: 'normal' | 'strong';
+}
+
+/** Motive id actually shown: unknown or missing ids fall back to the Jiskra default of the mood. */
+export function shownMotive(theme: StageTheme | null | undefined, mood: 'play' | 'focus'): string {
+  if (theme?.motive && getMotive(theme.motive)) return theme.motive;
+  return mood === 'focus' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE;
+}
+
+/**
+ * The two background layers (motive, scrim). `fixed` covers the viewport (game screens), `absolute` fills
+ * the nearest positioned box (previews in the theme picker and the editor).
+ */
+export function MotiveLayers({
+  theme,
+  seed,
+  scheme,
+  mood,
+  animate = false,
+  position = 'fixed',
+}: {
+  theme?: StageTheme | null;
+  seed: number;
+  scheme: 'light' | 'dark';
+  mood: 'play' | 'focus';
+  animate?: boolean;
+  position?: 'fixed' | 'absolute';
+}) {
+  const motive = shownMotive(theme, mood);
+  const moving = animate && mood === 'play';
+  const src = useMemo(() => theme?.imageUrl || motiveDataUrl(motive, { seed, scheme, animate: moving }), [theme?.imageUrl, motive, seed, scheme, moving]);
+  // tests and custom photos always get the stronger scrim
+  const strong = theme?.imageUrl || theme?.scrimHint === 'strong';
+  const scrim = strong ? Math.max(0.6, scrimAlpha(motive, scheme, 'focus')) : scrimAlpha(motive, scheme, mood);
+  return (
+    <>
+      <img src={src} alt="" aria-hidden="true" draggable={false} className={`pointer-events-none ${position} inset-0 -z-20 h-full w-full object-cover select-none`} />
+      <div aria-hidden="true" className={`pointer-events-none ${position} inset-0 -z-10 bg-scrim`} style={{ opacity: scrim }} />
+    </>
+  );
 }
 
 /**
@@ -34,12 +75,7 @@ export function Stage({
   testId?: string;
 }) {
   const { theme: scheme, motion } = usePrefs();
-  const fallback = mood === 'focus' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE;
-  const motive = theme?.motive && getMotive(theme.motive) ? theme.motive : fallback;
-  const animate = mood === 'play' && motion === 'full';
-  const src = useMemo(() => theme?.imageUrl || motiveDataUrl(motive, { seed, scheme, animate }), [theme?.imageUrl, motive, seed, scheme, animate]);
-  // custom photos are busier than our motives: always the stronger scrim
-  const scrim = theme?.imageUrl ? Math.max(0.6, scrimAlpha(motive, scheme, 'focus')) : scrimAlpha(motive, scheme, mood);
+  const motive = shownMotive(theme, mood);
   const idle = useIdle(idleCursor ? 3000 : 0);
   const style = accentVars(theme?.accent, scheme) as CSSProperties;
 
@@ -51,8 +87,7 @@ export function Stage({
       style={style}
       className={`relative isolate flex min-h-dvh flex-col bg-canvas text-fg ${idle ? 'stage-idle' : ''} ${className}`}
     >
-      <img src={src} alt="" aria-hidden="true" draggable={false} className="pointer-events-none fixed inset-0 -z-20 h-full w-full object-cover select-none" />
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-scrim" style={{ opacity: scrim }} />
+      <MotiveLayers theme={theme} seed={seed} scheme={scheme} mood={mood} animate={motion === 'full'} />
       {children}
     </div>
   );

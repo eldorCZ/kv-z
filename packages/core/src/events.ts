@@ -1,3 +1,4 @@
+import type { PlayerTheme } from './theme.js';
 import type { QuestionType } from './schema.js';
 
 /**
@@ -116,11 +117,13 @@ export interface JoinResult {
   playerId: string;
   nickname: string;
   score: number;
+  /** look of the game (Dodatek 4, V7.4) – game info only, never inside a question */
+  theme: PlayerTheme;
 }
 
 export interface ClientToServerEvents {
   // host (authorised by gameId + hostKey)
-  host_attach: (e: { gameId: string; hostKey: string }, ack: Ack<{ state: HostState; lobby: LobbyUpdate; joinUrl: string; title: string }>) => void;
+  host_attach: (e: { gameId: string; hostKey: string }, ack: Ack<{ state: HostState; lobby: LobbyUpdate; joinUrl: string; title: string; theme: PlayerTheme }>) => void;
   start: (ack?: Ack) => void;
   next: (ack?: Ack) => void;
   reveal: (ack?: Ack) => void;

@@ -5,6 +5,10 @@ import { api, ApiError } from '../api';
 import ExportModal from '../components/ExportModal';
 import QuestionEditor, { type EditableQuestion } from '../components/QuestionEditor';
 import StartGameModal from '../components/StartGameModal';
+import { lookName, motiveThumb, ThemePicker, type Look } from '../components/ThemePicker';
+import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core';
+import { usePrefs } from '../theme/prefs';
+import { useToast } from '../ui/Toast';
 import { Check, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { Badge, Button, ErrorBox, inputCls } from '../components/ui';
 
@@ -17,6 +21,7 @@ export interface QuizDto {
   sourceFiles: { name: string; sha256: string }[];
   stats: { total: number; ok: number; flagged: number };
   questions: EditableQuestion[];
+  theme?: Look;
 }
 
 export default function QuizReview() {
@@ -26,7 +31,9 @@ export default function QuizReview() {
   const [error, setError] = useState<ApiError | Error | null>(null);
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [modal, setModal] = useState<'game' | 'export' | null>(null);
+  const [modal, setModal] = useState<'game' | 'export' | 'look' | null>(null);
+  const { theme: scheme } = usePrefs();
+  const toast = useToast();
   const [dragId, setDragId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [titleState, setTitleState] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -130,6 +137,10 @@ export default function QuizReview() {
         </div>
         <Button variant="success" onClick={() => setModal('game')} data-testid="start-game">
           ▶ {t('review.startGame')}
+        </Button>
+        <Button onClick={() => setModal('look')} data-testid="quiz-look" title={t('theme.current', { name: lookName(quiz.theme ?? null, t) })}>
+          <img src={motiveThumb(getMotive(quiz.theme?.motive)?.id ?? DEFAULT_LIVE_MOTIVE, scheme)} alt="" className="h-6 w-10 rounded-sm object-cover" />
+          {t('theme.button')}
         </Button>
         <Button onClick={() => setModal('export')}>{t('review.export')}</Button>
       </div>
@@ -253,6 +264,7 @@ export default function QuizReview() {
                   question={q}
                   index={index}
                   total={quiz.questions.length}
+                  look={quiz.theme}
                   onSaved={(saved) => setQuiz((cur) => (cur ? { ...cur, questions: cur.questions.map((x) => (x.id === saved.id ? saved : x)) } : cur))}
                 />
               )}
@@ -262,7 +274,20 @@ export default function QuizReview() {
       </ol>
       {questions.length === 0 && <p className="text-muted">{t('review.noneFlagged')}</p>}
 
-      {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} />}
+      {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} onQuizTheme={(theme) => setQuiz({ ...quiz, theme })} />}
+      {modal === 'look' && (
+        <ThemePicker
+          value={quiz.theme ?? null}
+          onClose={() => setModal(null)}
+          actions={[{ id: 'save', label: t('theme.save'), primary: true, testId: 'theme-save-quiz' }]}
+          onAction={async (_a, theme) => {
+            await api('PATCH', `/api/v1/quizzes/${id}`, { theme });
+            setQuiz({ ...quiz, theme });
+            toast(t('theme.saved'));
+            setModal(null);
+          }}
+        />
+      )}
       {modal === 'export' && <ExportModal quiz={quiz} onClose={() => setModal(null)} />}
     </div>
   );

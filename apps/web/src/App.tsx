@@ -16,6 +16,7 @@ import CodePage from './pages/CodePage';
 import QuizReview from './pages/QuizReview';
 import Quizzes from './pages/Quizzes';
 import Tokens from './pages/Tokens';
+import LookSettings from './pages/LookSettings';
 
 const DesignPage = lazy(() => import('./pages/DesignPage'));
 
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/classes/:id" element={<ClassDetail />} />
         <Route path="/classes/:id/students/:sid" element={<StudentProfile />} />
         <Route path="/settings/tokens" element={<Tokens />} />
+        <Route path="/settings/look" element={<LookSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/quizzes" replace />} />
     </Routes>

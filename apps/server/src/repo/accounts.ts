@@ -1,5 +1,5 @@
 import { and, desc, eq, lt } from 'drizzle-orm';
-import { sanitizeUiPrefs, type UiPrefs } from '@kvizhub/core';
+import { normalizeTheme, sanitizeUiPrefs, type QuizTheme, type UiPrefs } from '@kvizhub/core';
 import type { Db } from '../db/index.js';
 import { apiTokens, auditLog, sessions, teachers } from '../db/schema.js';
 import { newId, sha256 } from '../util.js';
@@ -29,6 +29,16 @@ export class AccountRepo {
 
   setUiPrefs(teacherId: string, prefs: UiPrefs) {
     this.db.$client.prepare('UPDATE teachers SET ui_prefs_json = ? WHERE id = ?').run(JSON.stringify(prefs), teacherId);
+  }
+
+  /** Look of new quizzes (V7.3), null = Jiskra default. */
+  defaultTheme(teacherId: string): QuizTheme | null {
+    const r = this.db.$client.prepare('SELECT default_theme_json FROM teachers WHERE id = ?').get(teacherId) as { default_theme_json: string | null } | undefined;
+    return r?.default_theme_json ? normalizeTheme(JSON.parse(r.default_theme_json), ['theme'], true).theme : null;
+  }
+
+  setDefaultTheme(teacherId: string, theme: QuizTheme | null) {
+    this.db.$client.prepare('UPDATE teachers SET default_theme_json = ? WHERE id = ?').run(theme ? JSON.stringify(theme) : null, teacherId);
   }
 
   getTeacher(id: string) {

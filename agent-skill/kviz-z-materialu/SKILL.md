@@ -210,6 +210,12 @@ Hodnoty: `timeLimitSec` ∈ {5, 10, 20, 30, 60, 120}; `points` ∈ {standard, do
 `topic` (nepovinné) 1–60 znaků; `tags` (nepovinné) 0–5 řetězců po max 40 znacích.
 Úplná specifikace: `GET $KVIZHUB_URL/api/v1/openapi.json`. Vzor: `fixtures/quiz.json`.
 
+**Vzhled (motiv pozadí a barva).** Motiv NEVYBÍREJ z vlastní iniciativy – bez něj platí výchozí vzhled
+učitele. Jen když si učitel vzhled výslovně řekne („dej tomu vesmírné pozadí“), najdi id přes
+`post_quiz.py --themes` a pošli `--motive <id>` (a případně `--accent <id>`: fialova, modra, azurova,
+zelena, jantarova, koralova, ruzova, grafitova) s kvízem, nebo s `--game` jen pro jednu hru. Neznámé id
+server ignoruje a vrátí `warnings`; učiteli to krátce napiš. Vlastní obrázek pozadí jde nastavit jen v aplikaci.
+
 ## Komunikace v Telegramu
 
 Česky, stručně, jedna zpráva na začátku a jedna na konci. Žádný výpis otázek bez požádání.

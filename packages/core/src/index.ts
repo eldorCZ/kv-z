@@ -14,3 +14,4 @@ export * from './ui-prefs.js';
 export * from './color.js';
 export * from './motives.js';
 export * from './accents.js';
+export * from './theme.js';

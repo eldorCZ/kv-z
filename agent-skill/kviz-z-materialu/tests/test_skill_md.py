@@ -43,3 +43,9 @@ def test_classes_section():
         '"topic": "Lom světla"',
     ]:
         assert snippet in SKILL, snippet
+
+
+def test_look_rule():
+    # Dodatek 4, V7.4: the agent never picks a motive on its own
+    for snippet in ["Motiv NEVYBÍREJ z vlastní iniciativy", "--themes", "--motive <id>", "jen v aplikaci"]:
+        assert snippet in SKILL, snippet

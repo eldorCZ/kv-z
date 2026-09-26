@@ -358,3 +358,39 @@ def test_topics(mock, capsys):
     mock.queue.append((200, {"topics": ["Lom světla", "Zrcadla"]}, {}))
     code, out, _ = run(capsys, "--topics")
     assert code == 0 and json.loads(out)["topics"] == ["Lom světla", "Zrcadla"]
+
+
+# ---------- look (Dodatek 4, V7.4) ----------
+
+
+def test_quiz_without_look_sends_no_theme(mock, capsys):
+    mock.queue.append((201, {"quizId": "q1", "reviewUrl": "u", "stats": {}}, {}))
+    run(capsys, QUIZ)
+    assert "theme" not in mock.requests[0]["body"]  # the agent never picks a look on its own
+
+
+def test_quiz_with_motive_and_accent_and_warnings(mock, capsys):
+    warn = [{"path": "theme.motive", "code": "unknown_motive", "message": "Neznámý motiv \"x\" byl ignorován."}]
+    mock.queue.append((201, {"quizId": "q1", "reviewUrl": "u", "stats": {}, "warnings": warn}, {}))
+    code, out, _ = run(capsys, QUIZ, "--motive", "vesmir", "--accent", "modra")
+    assert code == 0
+    assert mock.requests[0]["body"]["theme"] == {"motive": "vesmir", "accent": "modra"}
+    assert json.loads(out)["warnings"] == warn
+
+
+def test_game_with_motive_only_for_this_game(mock, capsys):
+    mock.queue.append((201, {"gameId": "g1", "pin": "1", "joinUrl": "j", "hostUrl": "h", "questionCount": 3}, {}))
+    run(capsys, "--game", "q1", "--motive", "papir")
+    assert mock.requests[0]["body"] == {"mode": "live", "settings": {"showLeaderboard": True, "theme": {"motive": "papir"}}}
+
+
+def test_themes_list(mock, capsys):
+    mock.queue.append((200, [{"id": "papir", "name": "Papír", "category": "klidne", "calm": True}], {}))
+    code, out, _ = run(capsys, "--themes")
+    assert code == 0 and json.loads(out)["themes"][0]["id"] == "papir"
+    assert mock.requests[0]["path"] == "/api/v1/themes"
+
+
+def test_motive_needs_quiz_or_game(mock, capsys):
+    with pytest.raises(SystemExit):
+        post_quiz.main(["--results", "g1", "--motive", "les"])

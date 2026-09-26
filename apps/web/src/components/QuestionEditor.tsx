@@ -149,12 +149,15 @@ export default function QuestionEditor({
   onSaved,
   index = 0,
   total = 1,
+  look,
 }: {
   quizId: string;
   question: EditableQuestion;
   onSaved: (q: EditableQuestion) => void;
   index?: number;
   total?: number;
+  /** look of the quiz, shown in the student preview */
+  look?: { motive?: string; accent?: string } | null;
 }) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => {
@@ -586,7 +589,7 @@ export default function QuestionEditor({
           ))}
       </div>
       <aside className="lg:sticky lg:top-4 lg:self-start">
-        <StudentPreview q={draft} index={index} total={total} />
+        <StudentPreview q={draft} index={index} total={total} look={look} />
       </aside>
     </div>
   );

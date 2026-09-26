@@ -1,4 +1,4 @@
-import { gameSettingsSchema, permutation, type CreateGameInput } from '@kvizhub/core';
+import { gameSettingsSchema, permutation, type CreateGameInput, type QuizTheme } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Config } from '../config.js';
@@ -69,6 +69,8 @@ export class GameService {
       settings,
       questionIds: ordered.map((q) => q.id),
       endsAt: input.endsAt ? Date.parse(input.endsAt) : null,
+      // settings.theme was normalised by the route; otherwise the quiz's look (V7.2)
+      theme: (input.settings.theme as QuizTheme | undefined) ?? quiz.theme ?? null,
     });
     if (classInfo && this.classGames) {
       this.classGames.attach(row, classInfo, quiz, ordered, 'quiz', Date.now());

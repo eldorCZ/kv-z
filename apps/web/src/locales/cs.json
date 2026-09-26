@@ -20,7 +20,8 @@
     "home": "Úvod",
     "expand": "Rozbalit navigaci",
     "collapse": "Sbalit navigaci",
-    "menu": "Nabídka"
+    "menu": "Nabídka",
+    "look": "Vzhled"
   },
   "login": {
     "introLogin": "Přihlaste se ke svému účtu učitele.",
@@ -794,5 +795,47 @@
     "phone": "Telefon žáka",
     "projector": "Projektor",
     "send": "Odeslat"
+  },
+  "theme": {
+    "title": "Vzhled",
+    "button": "Vzhled",
+    "current": "Vzhled: {{name}}",
+    "default": "Výchozí vzhled",
+    "defaultHint": "Jemná mlha pro hru, papír pro test",
+    "all": "Vše",
+    "calm": "Vhodné pro test",
+    "calmHint": "Pro testy doporučujeme klidný motiv. V testu se motiv vždy zobrazí bez pohybu a pod silnějším závojem.",
+    "random": "Náhodný",
+    "motive": "Motiv pozadí",
+    "accent": "Barva",
+    "preview": "Náhled očima žáka",
+    "screens": {
+      "lobby": "Lobby",
+      "question": "Otázka",
+      "test": "Test"
+    },
+    "applyGame": "Použít jen pro tuto hru",
+    "saveQuiz": "Uložit jako výchozí pro kvíz",
+    "save": "Uložit",
+    "saved": "Vzhled uložen.",
+    "change": "Změnit vzhled",
+    "gameLook": "Vzhled této hry",
+    "fromQuiz": "podle kvízu",
+    "onlyThisGame": "jen pro tuto hru",
+    "settingsTitle": "Vzhled",
+    "defaultForNew": "Výchozí motiv nových kvízů",
+    "defaultForNewHint": "Použije se u kvízů, které vytvoříte vy nebo agent bez vlastní volby vzhledu. Stávající kvízy se nemění.",
+    "appearanceHint": "Světlý nebo tmavý režim, omezený pohyb a čitelné písmo nastavíte přepínačem vzhledu v horní liště; uloží se k vašemu účtu.",
+    "sample": {
+      "prompt": "Jak se nazývá změna směru světla na rozhraní?",
+      "options": [
+        "Lom",
+        "Odraz",
+        "Ohyb",
+        "Rozklad"
+      ],
+      "waiting": "Čekáme na hráče…",
+      "test": "Test: Optika"
+    }
   }
 }

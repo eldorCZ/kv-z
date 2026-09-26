@@ -13,8 +13,10 @@ import {
   toDisplayedPayload,
   toPublicQuestion,
   type CreateGameInput,
+  type QuizTheme,
   type TestSettings,
 } from '@kvizhub/core';
+import { gameTheme } from '../theme.js';
 import { randomBytes } from 'node:crypto';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Config } from '../config.js';
@@ -96,6 +98,7 @@ export class TestService {
       settings,
       questionIds: playable.map((q) => q.id),
       endsAt: Date.parse(test.closesAt),
+      theme: (input.settings.theme as QuizTheme | undefined) ?? quiz.theme ?? null,
     });
     this.games.setStatus(row.id, 'running');
     if (classInfo && this.classGames) {
@@ -488,6 +491,8 @@ export class TestService {
       guardExempt: a.guardExempt,
       leaveCount: a.leaveCount,
       locked: a.lockedAt !== null,
+      // tests are calm: static picture under a strong scrim (V7.3, V9.5); never inside questions
+      theme: gameTheme(g.theme, true),
     };
     if (a.status === 'not_started') return base;
     if (a.status === 'in_progress' && a.lockedAt !== null) this.lockedError();

@@ -1,4 +1,5 @@
-import type { PublicQuestion } from '@kvizhub/core';
+import { hashSeed, type PublicQuestion } from '@kvizhub/core';
+import { Clock, Lock } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
@@ -8,6 +9,7 @@ import { GuardController, type HeartbeatStatus } from '../leave-guard-client';
 import { useCountdown } from '../socket';
 import { appName } from '../app-config';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
+import { Stage, type StageTheme } from '../game/Stage';
 
 /** Student view of a test attempt (D5, D7). Only whitelisted fields come from the server (D11). */
 export interface AttemptView {
@@ -31,6 +33,8 @@ export interface AttemptView {
   locked?: boolean;
   guardExempt?: boolean;
   leaveCount?: number;
+  /** look of the test (V7.4): always shown static under a strong scrim */
+  theme?: StageTheme;
 }
 
 export class StudentApiError extends Error {
@@ -311,12 +315,19 @@ export default function TestPlay() {
     }
   };
 
+  // calm mood (V9.5): no motion, static motive under a strong scrim, opaque surfaces
   const shell = (children: React.ReactNode) => (
-    <div className="flex min-h-screen flex-col bg-surface-2 text-fg">
-      <header className="flex items-center gap-3 border-b border-line bg-surface px-4 py-2 text-fg">
+    <Stage theme={view?.theme ?? null} seed={hashSeed(pin)} mood="focus" testId="test-stage">
+      <header className="flex min-h-12 items-center gap-3 border-b border-line bg-panel px-4 py-2 text-fg">
         <span className="flex-1 truncate font-semibold">{view?.title ?? info?.title ?? appName}</span>
         {view?.status === 'in_progress' && deadline !== null && (
-          <span className={`rounded px-2 py-0.5 font-mono text-lg ${remaining <= 60 ? 'bg-accent text-on-accent' : 'bg-surface'}`} aria-label={t('test.remaining')} data-testid="test-timer">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-lg font-semibold tabular ${remaining <= 60 ? 'border-warning-line bg-warning-soft text-warning' : remaining <= 300 ? 'border-warning-line bg-surface text-fg' : 'border-line bg-surface text-fg'}`}
+            aria-label={t('test.remaining')}
+            data-testid="test-timer"
+            data-low={remaining <= 300 ? 'true' : undefined}
+          >
+            {remaining <= 300 && <Clock aria-hidden="true" className="h-4 w-4" />}
             {formatTime(remaining)}
           </span>
         )}
@@ -330,15 +341,13 @@ export default function TestPlay() {
         )}
         {children}
       </main>
-    </div>
+    </Stage>
   );
 
   if (token && locked)
     return shell(
       <div role="alert" className="m-auto w-full space-y-3 rounded-xl border-2 border-danger bg-surface p-6 text-center shadow" data-testid="test-locked">
-        <p className="text-4xl" aria-hidden="true">
-          🔒
-        </p>
+        <Lock aria-hidden="true" className="mx-auto h-10 w-10 text-danger" />
         <p className="text-xl font-semibold">{t('guard.lockedTitle')}</p>
         <p className="text-muted">{t('guard.lockedHint')}</p>
       </div>,
@@ -437,15 +446,16 @@ export default function TestPlay() {
 
   return shell(
     <div className="flex flex-1 flex-col gap-4">
-      <nav aria-label={t('test.overview')} className="flex flex-wrap gap-1">
+      <nav aria-label={t('test.overview')} className="flex flex-wrap gap-1 rounded-md bg-panel p-2">
         {qs.map((x, i) => (
           <button
             key={x.id}
             onClick={() => setIndex(i)}
             disabled={!view.allowBackNavigation && i < index}
             aria-current={i === index ? 'step' : undefined}
-            className={`h-9 w-9 rounded-md border text-sm font-semibold ${i === index ? 'border-primary bg-primary text-on-primary' : answers[x.id] !== undefined ? 'border-success bg-success-soft' : 'border-line-strong bg-surface'} disabled:opacity-40`}
+            className={`h-11 min-w-11 rounded-md border text-sm font-semibold tabular ${i === index ? 'border-primary bg-primary text-on-primary' : answers[x.id] !== undefined ? 'border-primary bg-primary-soft text-on-primary-soft' : 'border-line-strong bg-surface'} disabled:opacity-40`}
             aria-label={t('test.goTo', { n: i + 1 })}
+            data-answered={answers[x.id] !== undefined ? 'true' : undefined}
           >
             {i + 1}
           </button>

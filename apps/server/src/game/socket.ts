@@ -4,6 +4,7 @@ import { HttpError } from './service.js';
 import type { FastifyBaseLogger } from 'fastify';
 import type { Server, Socket } from 'socket.io';
 import type { AccountRepo } from '../repo/accounts.js';
+import { gameTheme as themeFor } from '../theme.js';
 import { RateLimiter, safeEqual, sha256 } from '../util.js';
 import { GameError, rooms, type GameManager, type LiveGame } from './engine.js';
 
@@ -44,6 +45,8 @@ function clientIp(socket: S, trustProxy: boolean): string {
   if (trustProxy && typeof xff === 'string' && xff) return xff.split(',')[0]!.trim();
   return socket.handshake.address;
 }
+
+const gameTheme = (g: LiveGame) => themeFor(g.row.theme, false);
 
 export function setupSockets(deps: SocketDeps) {
   const { io, games, accounts, log } = deps;
@@ -91,7 +94,7 @@ export function setupSockets(deps: SocketDeps) {
       socket.data = { role: 'host', gameId: g.id };
       void socket.join([rooms.all(g.id), rooms.hosts(g.id)]);
       g.hostAttached();
-      ok(ack, { state: g.hostState(), lobby: g.lobby(), joinUrl: `${deps.publicUrl}/play`, title: g.title });
+      ok(ack, { state: g.hostState(), lobby: g.lobby(), joinUrl: `${deps.publicUrl}/play`, title: g.title, theme: gameTheme(g) });
       g.syncHost(socket.id);
     });
 
@@ -132,7 +135,7 @@ export function setupSockets(deps: SocketDeps) {
         } else joined = g.join(e?.nickname);
         const { player, token } = joined;
         attachPlayer(g, player.id);
-        ok(ack, { token, playerId: player.id, nickname: player.nickname, score: 0 });
+        ok(ack, { token, playerId: player.id, nickname: player.nickname, score: 0, theme: gameTheme(g) });
         g.syncPlayer(player.id);
       } catch (err) {
         if (err instanceof GameError || err instanceof HttpError) return fail(ack, err.message);
@@ -148,7 +151,7 @@ export function setupSockets(deps: SocketDeps) {
       if (!found) return fail(ack, 'Hra už neexistuje nebo jste byli odebráni.');
       const p = found.game.players.get(found.playerId)!;
       attachPlayer(found.game, found.playerId);
-      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, score: p.score });
+      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, score: p.score, theme: gameTheme(found.game) });
       found.game.syncPlayer(p.id);
     });
 

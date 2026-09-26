@@ -45,6 +45,13 @@ for (const scheme of ['light', 'dark'] as const) {
     await expect(page.getByTestId('mode-live')).toBeVisible();
     await audit(page, 'start-game');
     await page.keyboard.press('Escape');
+    await page.getByTestId('quiz-look').click();
+    await expect(page.getByTestId('theme-picker')).toBeVisible();
+    await audit(page, 'theme-picker');
+    await page.keyboard.press('Escape');
+    await page.goto('/settings/look');
+    await expect(page.getByTestId('default-look')).toBeVisible();
+    await audit(page, 'look-settings');
     await page.goto('/games');
     await audit(page, 'games');
     await page.goto('/settings/tokens');

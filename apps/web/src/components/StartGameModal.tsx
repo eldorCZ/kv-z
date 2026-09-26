@@ -5,7 +5,11 @@ import { Link } from 'react-router';
 import { api, ApiError } from '../api';
 import type { QuizDto } from '../pages/QuizReview';
 import { Button, ErrorBox, Field, inputCls, Modal } from './ui';
-import { ClipboardList, Users } from 'lucide-react';
+import { ClipboardList, Palette, Users } from 'lucide-react';
+import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, getMotive } from '@kvizhub/core';
+import { lookName, motiveThumb, ThemePicker, type Look } from './ThemePicker';
+import { usePrefs } from '../theme/prefs';
+import { useToast } from '../ui/Toast';
 
 interface Created {
   gameId: string;
@@ -26,9 +30,19 @@ function localInput(ms: number) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClose: () => void }) {
+export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: QuizDto; onClose: () => void; onQuizTheme?: (theme: Look) => void }) {
   const { t } = useTranslation();
+  const { theme: scheme } = usePrefs();
+  const toast = useToast();
   const [mode, setMode] = useState<'live' | 'test'>('live');
+  // look of this game only (V7.2); undefined = the quiz's look
+  const [gameLook, setGameLook] = useState<Look | undefined>(undefined);
+  const [quizLook, setQuizLook] = useState<Look>(quiz.theme ?? null);
+  const [picking, setPicking] = useState(false);
+  const look = gameLook === undefined ? quizLook : gameLook;
+  const lookMotive = getMotive(look?.motive)?.id ?? (mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE);
+  // "Jiskra default for this game only" still has to override a quiz look: send the default motive explicitly
+  const themeSetting = gameLook === undefined ? {} : { theme: gameLook ?? { motive: mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE } };
   const [settings, setSettings] = useState({
     shuffleQuestions: quiz.settings.shuffleQuestions,
     shuffleOptions: quiz.settings.shuffleOptions,
@@ -76,11 +90,12 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     try {
       const body =
         mode === 'live'
-          ? { mode, settings: { ...settings, ...classSettings } }
+          ? { mode, settings: { ...settings, ...classSettings, ...themeSetting } }
           : {
               mode,
               settings: {
                 ...classSettings,
+                ...themeSetting,
                 shuffleQuestions: settings.shuffleQuestions,
                 shuffleOptions: settings.shuffleOptions,
                 partialMulti: settings.partialMulti,
@@ -139,6 +154,39 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
               );
             })}
           </div>
+          <div className="flex items-center gap-3 rounded-md border border-line p-2" data-testid="game-look-row">
+            <img src={motiveThumb(lookMotive, scheme)} alt="" className="h-12 w-20 shrink-0 rounded-sm object-cover" />
+            <span className="min-w-0 flex-1 text-sm">
+              <span className="block font-semibold">{t('theme.gameLook')}</span>
+              <span className="text-muted" data-testid="game-look-name">
+                {lookName(look, t)} · {gameLook === undefined ? t('theme.fromQuiz') : t('theme.onlyThisGame')}
+              </span>
+            </span>
+            <Button size="sm" icon={<Palette aria-hidden="true" className="h-4 w-4" />} onClick={() => setPicking(true)} data-testid="game-look">
+              {t('theme.change')}
+            </Button>
+          </div>
+          {picking && (
+            <ThemePicker
+              value={look}
+              testMode={mode === 'test'}
+              onClose={() => setPicking(false)}
+              actions={[
+                { id: 'quiz', label: t('theme.saveQuiz'), testId: 'theme-save-quiz' },
+                { id: 'game', label: t('theme.applyGame'), primary: true, testId: 'theme-apply-game' },
+              ]}
+              onAction={async (action, chosen) => {
+                if (action === 'quiz') {
+                  await api('PATCH', `/api/v1/quizzes/${quiz.id}`, { theme: chosen });
+                  setQuizLook(chosen);
+                  setGameLook(undefined);
+                  onQuizTheme?.(chosen);
+                  toast(t('theme.saved'));
+                } else setGameLook(chosen);
+                setPicking(false);
+              }}
+            />
+          )}
           {quiz.stats.flagged > 0 && <p className="rounded bg-warning-soft p-2 text-sm text-warning">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
           {classes.length > 0 && (
             <fieldset className="space-y-2 rounded-md border border-line p-3" data-testid="class-settings">
