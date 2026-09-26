@@ -447,3 +447,11 @@ Struktura: `apps/server` (Fastify + Socket.IO + Drizzle/SQLite), `apps/web` (Rea
   v kódu neexistuje, takže se po něm evidence nepřepočítává.
 - **Právní rámec tříd [OVĚŘ]:** kontrolní seznam v [Osobní údaje žáků](#osobní-údaje-žáků) není právní posudek;
   region serveru a smluvní podmínky poskytovatele VPS je potřeba ověřit u poskytovatele.
+
+## Licence
+
+MIT — použijte to zdarma, i ve škole i komerčně, upravujte a šiřte dál.
+Jediná podmínka je ponechat text licence. Software je poskytován „jak stojí a leží",
+bez záruky; za provoz ve vaší škole odpovídáte vy (viz kapitolu o osobních údajích).
+
+Přispění vítám: hlaste chyby v Issues, změny posílejte jako pull request.
