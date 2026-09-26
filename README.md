@@ -26,6 +26,18 @@ Učitel ──Telegram──> Agent (Claude Code, skill kviz-z-materialu)
                                   kontrola a úpravy · hra (Socket.IO) · exporty · výsledky
 ```
 
+## Jak to vypadá
+
+| Učitel | Projektor ve třídě | Mobil žáka |
+|---|---|---|
+| ![Seznam kvízů](docs/screens/ucitel-kvizy-svetly.png) | ![Otázka na projektoru](docs/screens/hra-otazka-svetly.png) | ![Odpověď na mobilu](docs/screens/zak-otazka-svetly.png) |
+| ![Kontrola otázek](docs/screens/ucitel-kontrola-kvizu-svetly.png) | ![Pořadí](docs/screens/hra-poradi-svetly.png) | ![Test](docs/screens/zak-test-svetly.png) |
+| ![Matice třídy](docs/screens/ucitel-trida-matice-svetly.png) | ![Stupně vítězů](docs/screens/hra-podium-svetly.png) | ![Výsledek](docs/screens/zak-vysledek-svetly.png) |
+
+Všech 21 obrazovek ve světlém i tmavém režimu je v [`docs/screens`](docs/screens).
+Snímky se dají kdykoli vyrobit znovu příkazem `pnpm docs:screens` — spustí dočasný server
+s ukázkovými daty, odehraje hru a nasnímá ji. Žádná skutečná data se u toho nepoužijí.
+
 ## Spuštění (3 příkazy)
 
 ```bash
