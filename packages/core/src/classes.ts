@@ -45,60 +45,60 @@ export function schoolYearEnd(schoolYear: string): string {
 
 export const SCHOOL_YEAR_RE = /^(\d{4})\/(\d{4})$/;
 
-// ---------------------------------------------------------------- names (C4.2)
-
-const NAME_RE = /^[\p{L}\p{N} .'’-]*$/u;
+// ---------------------------------------------------------------- account names (C4.2)
 
 // eslint-disable-next-line no-control-regex
-const INVISIBLE_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e]/g;
+const INVISIBLE_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\ufeff]/g;
 
+/** NFC, invisible characters removed, whitespace collapsed and trimmed (class names, labels). */
 export function cleanName(s: string): string {
-  return s
-    .normalize('NFC')
-    .replace(INVISIBLE_CHARS, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return s.normalize('NFC').replace(INVISIBLE_CHARS, '').replace(/\s+/g, ' ').trim();
 }
 
-export function isValidNamePart(s: string): boolean {
-  return NAME_RE.test(s);
-}
+const ACCOUNT_RE = /^[\p{L}\p{N}._-]{2,40}$/u;
+
+export type AccountNameResult = { ok: true; value: string } | { ok: false; value: string; error: string };
 
 /**
- * Default public name: given name + first letter of the family name + "." ("Jana N.").
- * A single word (pseudonym, number) is used as is. Collisions in the class get " 2", " 3".
+ * The only name of a student: the school login without the domain ("novak12").
+ * NFC, trimmed, lower case; "novak12@skola.cz" and "SKOLA\novak12" become "novak12" (the domain is dropped).
+ * Letters, digits, dot, dash and underscore, 2–40 characters.
  */
-export function derivePublicName(given: string, family: string, taken: Iterable<string> = []): string {
-  const g = cleanName(given);
-  const f = cleanName(family);
-  let base: string;
-  if (g && f) base = `${g} ${[...f][0]!.toLocaleUpperCase('cs')}.`;
-  else base = g || f;
-  base = [...base].slice(0, 26).join('');
-  const used = new Set([...taken].map((t) => t.toLocaleLowerCase('cs')));
-  if (!used.has(base.toLocaleLowerCase('cs'))) return base;
-  for (let i = 2; ; i++) {
-    const c = `${base} ${i}`;
-    if (!used.has(c.toLocaleLowerCase('cs'))) return c;
-  }
+export function normalizeAccountName(raw: unknown): AccountNameResult {
+  if (typeof raw !== 'string') return { ok: false, value: '', error: 'Chybí přihlašovací jméno.' };
+  let v = raw.normalize('NFC').replace(INVISIBLE_CHARS, '').trim();
+  if (v.includes('\\')) v = v.slice(v.lastIndexOf('\\') + 1);
+  if (v.includes('@')) v = v.slice(0, v.indexOf('@'));
+  v = v.trim().toLocaleLowerCase('cs');
+  if (!v) return { ok: false, value: v, error: 'Chybí přihlašovací jméno.' };
+  if (/\s/.test(v)) return { ok: false, value: v, error: 'Přihlašovací jméno nesmí obsahovat mezeru (vkládejte jen přihlašovací jména, ne jména a příjmení).' };
+  if ([...v].length < 2 || [...v].length > 40) return { ok: false, value: v, error: 'Přihlašovací jméno musí mít 2–40 znaků.' };
+  if (!ACCOUNT_RE.test(v)) return { ok: false, value: v, error: 'Přihlašovací jméno smí obsahovat jen písmena, číslice, tečku, pomlčku a podtržítko.' };
+  return { ok: true, value: v };
 }
 
-const namePart = (min: number, max: number) =>
-  z
-    .string()
-    .transform(cleanName)
-    .pipe(
-      z
-        .string()
-        .min(min)
-        .max(max)
-        .refine(isValidNamePart, { message: 'Jméno smí obsahovat jen písmena, číslice, mezeru, pomlčku, apostrof a tečku.', params: { code: 'invalid_chars' } }),
-    );
+/** Diacritics folded ("novák12" ~ "novak12"): such a match is only a warning. */
+export function foldAccountName(v: string): string {
+  return v.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('cs');
+}
 
+/** "Skrýt jména" and leaderboardNames = "number": "Žák <číslo>", or the position in the roster when the number is missing. */
+export function studentNumberLabel(rosterNo: number | null | undefined, index: number): string {
+  return `Žák ${rosterNo ?? index + 1}`;
+}
+
+export const accountNameSchema = z.string().transform((v, ctx) => {
+  const r = normalizeAccountName(v);
+  if (!r.ok) {
+    ctx.addIssue({ code: 'custom', message: r.error, params: { code: 'invalid_account_name' } });
+    return z.NEVER;
+  }
+  return r.value;
+});
+
+/** The server accepts only these fields about a student (C4.3); anything else is dropped. */
 export const studentInputSchema = z.object({
-  familyName: namePart(1, 40),
-  givenName: namePart(0, 40).default(''),
-  publicName: namePart(1, 30).optional(),
+  accountName: accountNameSchema,
   rosterNo: z.number().int().min(1).max(99).nullable().optional(),
   since: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
@@ -111,6 +111,8 @@ export const classSettingsSchema = z.object({
     .string()
     .regex(/^\d{2}-\d{2}$/)
     .default('02-01'),
+  /** what classmates and the projector see in a live class game (C5.6) */
+  leaderboardNames: z.enum(['account', 'number']).default('account'),
 });
 export type ClassSettings = z.output<typeof classSettingsSchema>;
 
@@ -121,12 +123,11 @@ export const classInputSchema = z.object({
   settings: classSettingsSchema.partial().optional(),
 });
 
-// ---------------------------------------------------------------- roster import (C4.3)
+// ---------------------------------------------------------------- roster import (C4.3), runs in the teacher's browser
 
 export interface RosterRow {
   line: number;
-  familyName: string;
-  givenName: string;
+  accountName: string;
   rosterNo: number | null;
   error?: string;
 }
@@ -166,56 +167,70 @@ function splitCsvLine(line: string, sep: string): string[] {
   return out.map((x) => x.trim());
 }
 
-const HEADER_KEYS: Record<string, 'family' | 'given' | 'no'> = {
-  prijmeni: 'family',
-  'příjmení': 'family',
-  jmeno: 'given',
-  'jméno': 'given',
-  cislo: 'no',
-  'číslo': 'no',
-};
+const ACCOUNT_KEYS = ['login', 'samaccountname', 'ucet', 'účet', 'upn', 'userprincipalname', 'prihlasovacijmeno', 'přihlašovacíjméno'];
+const NUMBER_KEYS = ['cislo', 'číslo', 'c', 'č', 'no', 'number'];
+/** header words of name columns: a header with these but without an account column is refused */
+const NAME_KEYS = ['jmeno', 'jméno', 'prijmeni', 'příjmení', 'name', 'givenname', 'surname', 'sn', 'displayname', 'celejmeno', 'celéjméno'];
 
-function rowFrom(line: number, family: string, given: string, no: string | undefined): RosterRow {
-  const n = no && no.trim() ? Number(no.trim()) : null;
-  const row: RosterRow = { line, familyName: cleanName(family), givenName: cleanName(given), rosterNo: n };
+const headerKey = (c: string) => c.toLowerCase().replace(/[\s_-]/g, '');
+
+function rowFrom(line: number, account: string, no: string | undefined): RosterRow {
+  const n = no && no.trim() ? Number(no.trim().replace(/\.$/, '')) : null;
+  const acc = normalizeAccountName(account);
+  const row: RosterRow = { line, accountName: acc.value, rosterNo: n };
   if (n !== null && (!Number.isInteger(n) || n < 1 || n > 99)) row.error = 'Číslo v třídním výkazu musí být 1–99.';
-  else if (!row.familyName) row.error = 'Chybí příjmení.';
-  else if ([...row.familyName].length > 40 || [...row.givenName].length > 40) row.error = 'Jméno je příliš dlouhé (max. 40 znaků).';
-  else if (!isValidNamePart(row.familyName) || !isValidNamePart(row.givenName)) row.error = 'Nepovolené znaky ve jméně.';
+  else if (!acc.ok) row.error = acc.error;
   return row;
 }
 
-/** CSV with ; or , as separator, optional header (prijmeni, jmeno, cislo). */
+/**
+ * CSV with ; , or tab as separator and an optional header. The account column is recognised by its name
+ * (login, SamAccountName, ucet, UPN), otherwise it is the first column; optional column "cislo".
+ * All other columns (names from an AD export…) are dropped here and never leave the browser.
+ */
 export function parseRosterCsv(text: string): RosterRow[] {
   const lines = text.replace(/\r\n?/g, '\n').split('\n');
   const first = lines.find((l) => l.trim()) ?? '';
-  const sep = (first.match(/;/g)?.length ?? 0) >= (first.match(/,/g)?.length ?? 0) ? ';' : ',';
-  let map: ('family' | 'given' | 'no' | null)[] | null = null;
+  const count = (ch: string) => first.split(ch).length - 1;
+  const sep = count('\t') > Math.max(count(';'), count(',')) ? '\t' : count(';') >= count(',') ? ';' : ',';
+  let accIdx = 0;
+  let noIdx = -1;
+  let headerSeen = false;
+  let missingAccount = false;
   const rows: RosterRow[] = [];
   lines.forEach((raw, i) => {
     if (!raw.trim()) return;
     const cells = splitCsvLine(raw, sep);
-    if (!map && rows.length === 0) {
-      const keys = cells.map((c) => HEADER_KEYS[c.toLowerCase().trim()] ?? null);
-      if (keys.some((k) => k)) {
-        map = keys;
+    if (!headerSeen && rows.length === 0) {
+      const keys = cells.map(headerKey);
+      const a = keys.findIndex((k) => ACCOUNT_KEYS.includes(k));
+      const n = keys.findIndex((k) => NUMBER_KEYS.includes(k));
+      if (a >= 0 || n >= 0 || keys.some((k) => NAME_KEYS.includes(k))) {
+        headerSeen = true;
+        accIdx = a;
+        noIdx = n;
+        if (a < 0) {
+          // e.g. "jmeno;prijmeni": never take a name column as the account
+          const firstOther = keys.findIndex((k, j) => j !== n && !NAME_KEYS.includes(k));
+          if (firstOther >= 0) accIdx = firstOther;
+          else missingAccount = true;
+        }
         return;
       }
+      // no header: first column = account, a second numeric column = number
+      noIdx = cells.length > 1 && /^\d{1,2}\.?$/.test(cells[1] ?? '') ? 1 : -1;
     }
-    const get = (k: 'family' | 'given' | 'no') => {
-      if (map) {
-        const idx = map.indexOf(k);
-        return idx >= 0 ? (cells[idx] ?? '') : '';
-      }
-      return { family: cells[0] ?? '', given: cells[1] ?? '', no: cells[2] ?? '' }[k];
-    };
-    rows.push(rowFrom(i + 1, get('family'), get('given'), get('no')));
+    if (missingAccount) {
+      rows.push({ line: i + 1, accountName: '', rosterNo: null, error: 'Soubor nemá sloupec s přihlašovacím jménem (login, SamAccountName, ucet nebo UPN).' });
+      return;
+    }
+    rows.push(rowFrom(i + 1, cells[accIdx] ?? '', noIdx >= 0 ? cells[noIdx] : undefined));
   });
   return rows;
 }
 
-/** One student per line, "Příjmení Jméno" (default) or "Jméno Příjmení", optional number at the start. */
-export function parseRosterLines(text: string, order: 'family-given' | 'given-family' = 'family-given'): RosterRow[] {
+/** One student per line: login or the account address, optional number at the start ("12 novak12", "12. novak12@skola.cz"). */
+export function parseRosterLines(text: string): RosterRow[] {
   const rows: RosterRow[] = [];
   text
     .replace(/\r\n?/g, '\n')
@@ -229,37 +244,30 @@ export function parseRosterLines(text: string, order: 'family-given' | 'given-fa
         no = m[1];
         line = m[2]!;
       }
-      const parts = line.split(' ');
-      let family: string;
-      let given: string;
-      if (parts.length === 1) {
-        family = parts[0]!;
-        given = '';
-      } else if (order === 'family-given') {
-        family = parts[0]!;
-        given = parts.slice(1).join(' ');
-      } else {
-        family = parts[parts.length - 1]!;
-        given = parts.slice(0, -1).join(' ');
-      }
-      rows.push(rowFrom(i + 1, family, given, no));
+      rows.push(rowFrom(i + 1, line, no));
     });
   return rows;
 }
 
-/** Preview warnings (duplicate names, class size). Duplicates are allowed (homonyms). */
-export function rosterWarnings(rows: RosterRow[], existing: { familyName: string; givenName: string }[], maxStudents: number): string[] {
-  const w: string[] = [];
-  const key = (f: string, g: string) => `${f} ${g}`.toLocaleLowerCase('cs');
-  const seen = new Map<string, number>();
-  for (const e of existing) seen.set(key(e.familyName, e.givenName), 0);
-  for (const r of rows) {
-    if (r.error) continue;
-    const k = key(r.familyName, r.givenName);
-    if (seen.has(k)) w.push(`Řádek ${r.line}: jméno ${r.familyName} ${r.givenName} už v seznamu je (duplicitní jména jsou povolená).`);
-    seen.set(k, r.line);
-  }
-  const total = existing.length + rows.filter((r) => !r.error).length;
-  if (total > maxStudents) w.push(`Třída by měla ${total} žáků, limit je ${maxStudents}.`);
-  return w;
+/**
+ * Duplicates (case-insensitive, within the list and against the class) become errors; a match after removing
+ * diacritics is only a warning; class size over the limit is a warning.
+ */
+export function checkRoster(rows: RosterRow[], existing: { accountName: string }[], maxStudents: number): { rows: RosterRow[]; warnings: string[] } {
+  const warnings: string[] = [];
+  const exact = new Set(existing.map((e) => e.accountName));
+  const folded = new Map(existing.map((e) => [foldAccountName(e.accountName), e.accountName]));
+  const out = rows.map((r) => {
+    if (r.error) return r;
+    if (exact.has(r.accountName)) return { ...r, error: `Přihlašovací jméno ${r.accountName} už ve třídě nebo v seznamu je.` };
+    const f = foldAccountName(r.accountName);
+    const similar = folded.get(f);
+    if (similar) warnings.push(`Řádek ${r.line}: ${r.accountName} se liší od ${similar} jen diakritikou.`);
+    exact.add(r.accountName);
+    folded.set(f, r.accountName);
+    return r;
+  });
+  const total = existing.length + out.filter((r) => !r.error).length;
+  if (total > maxStudents) warnings.push(`Třída by měla ${total} žáků, limit je ${maxStudents}.`);
+  return { rows: out, warnings };
 }

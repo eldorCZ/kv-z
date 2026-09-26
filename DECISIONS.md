@@ -118,7 +118,7 @@ Rozdíly mezi popisem v dodatku a skutečným kódem (platí kód):
 - **`identityMode` z D2 v kódu neexistuje;** test má pole `requireName`. U třídní hry se identita určuje přítomností `classId` (identita „roster“) a `requireName` se ignoruje.
 - **`games.snapshot_json` z D4 v kódu nebyl,** test četl otázky z aktuálního kvízu. Migrace 4 sloupec přidává a plní se jen u třídních her (živých i testů), takže chování testu bez třídy se nemění. Náhradní termín kopíruje snapshot původní hry.
 - **Vyřazení otázky z hodnocení (D6.4) v kódu neexistuje,** proto se po něm nic nepřepočítává. `buildResultItems` ale množinu vyřazených otázek přijímá, takže ho jde později doplnit.
-- **`players.display_name` je v kódu `players.nickname`.** U třídních her obsahuje `public_name`.
+- **`players.display_name` je v kódu `players.nickname`.** U třídního testu obsahuje `account_name`, u živé třídní hry `account_name`, nebo „Žák <číslo>“ při `leaderboardNames: "number"`.
 - **Počítání pořadí: `D5.5`/`D5.6` odpovídá v kódu `TestService.finalize`** (odevzdání `submitted` → výsledek `submitted`, vypršení `expired` → `auto_submitted`).
 - **Test `ops.test.ts`, který kontroloval přesný seznam sloupců tabulky `players`, je upravený:** přibyly `student_id` a `is_guest` (C3), IP adresy dál nejsou.
 - **`scoreQuestion` je vydělená z `scoreTest`.** Stejnou funkci používají testy, živé hry (pro evidenci) i `buildResultItems`.
@@ -131,9 +131,23 @@ Rozdíly mezi popisem v dodatku a skutečným kódem (platí kód):
 - **Aktivita s `countInStats: false`** je v matici vidět (šedá hlavička), ale nepočítá se do průměrů, účasti, trendu, témat ani souhrnů.
 - **Profil žáka**: grafy ukazují jen započítané aktivity; bod bez výsledku žáka (chybí nebo nezapočteno) přeruší čáru, medián třídy zůstane.
 - **Opakované chyby** se seskupují podle `question_id`, u odpovědí bez id podle znění (`prompt_snapshot`).
-- **Log bez osobních údajů:** serializer požadavku loguje jen metodu a cestu bez parametrů (`?names=full` se tak neobjeví), těla se nelogují. Test `privacy.test.ts` zachytí celý log toku (import, přihlášení kódem, chybný kód, rotace, přehledy, export) a hledá v něm jména a kódy.
+- **Log bez osobních údajů:** serializer požadavku loguje jen metodu a cestu bez parametrů (parametry se tak neobjeví), těla se nelogují. Test `privacy.test.ts` zachytí celý log toku (import, přihlášení kódem, chybný kód, rotace, přehledy, export) a hledá v něm jména a kódy.
 - **Ukázková data** (`pnpm seed:demo-class`) zapisují aktivity přímo do evidence (`classes/seed.ts`) bez odehrání her, `game_id` je proto `null`. Odmítne běžet s `NODE_ENV=production`.
 - **Zálohy:** `scripts/backup.sh` šifruje, je-li nastaveno `BACKUP_AGE_RECIPIENT` (age) nebo `BACKUP_GPG_RECIPIENT` (gpg); jinak vypíše varování. Nešifrovaný soubor po zašifrování smaže.
-- **`students[].displayName` z C10.3 je v kódu stávající pole:** u testu `students[].student`, u živé hry `ranking[].nickname` (a CSV). U třídní hry obsahuje bez `results:pii` „Žák N“ (pořadí připojení), s ním příjmení a jméno (hosté si nechají přezdívku s „(host)“). Hry bez třídy se nemění. Relace učitele má všechna oprávnění, takže v aplikaci vidí jména.
+- **`students[].displayName` z C10.3 je v kódu stávající pole:** u testu `students[].student`, u živé hry `ranking[].nickname` (a CSV). U třídní hry obsahuje bez `results:pii` „Žák N“ (pořadí připojení), s ním `account_name` (hosté si nechají přezdívku s „(host)“). Hry bez třídy se nemění. Relace učitele má všechna oprávnění, takže v aplikaci vidí přihlašovací jména.
 - **Souhrn třídy (`/classes/{id}/summary`)**: průměry třídy jsou průměry průměrů žáků (stejně jako řádek „Třída“ v matici) a počítají se jen z aspoň `MIN_AGGREGATE_STUDENTS` hodnot; slabá témata navíc potřebují aspoň tolik žáků a slabé otázky aspoň `max(MIN_TOPIC_ITEMS, MIN_AGGREGATE_STUDENTS)` odpovědí. `from`/`to` přijímají datum i ISO čas (bere se den).
 - **Skill: výstup tříd a souhrnů je whitelist** (`post_quiz.py` z odpovědi kopíruje jen známá pole), takže ani chyba serveru nepošle agentovi jména. Přibyl i přepínač `--topics`.
+
+### Druhá verze Dodatku 3 (2026-09-26): jen přihlašovací jméno
+
+- **Žák má jediné jméno `account_name`** (školní účet bez domény). Migrace 5 přidá sloupec, smaže `family_name`, `given_name` a `public_name` a přidá jedinečný index `(class_id, account_name)`. Řádky z první verze (jen vývoj, větev nebyla nasazená) dostanou zástupné jméno `zak<rowid>` a hráči třídních her se přejmenují stejně, aby v databázi nezůstala žádná jména. Učitel je může přepsat.
+- **`normalizeAccountName`** (packages/core): NFC, ořez, malá písmena, odstranění domény za `@` a také předpony `DOMÉNA\` (formát `SKOLA\novak12` z Windows), povolená písmena, číslice, `.`, `-`, `_`, 2–40 znaků. Mezera je chyba s vysvětlením („vkládejte jen přihlašovací jména“), aby se omylem nevložila celá jména. Diakritika zůstává; shoda po jejím odstranění je jen varování.
+- **Soupiska se zpracovává jen v prohlížeči.** Serverový endpoint pro náhled (`/students/preview`) z první verze je odstraněný. Server přijímá jen `accountName`, `rosterNo` a `since`; ostatní pole zod zahodí (test ukládá `familyName`, `email` a doménu a hledá je v databázovém souboru). Duplicita je 409.
+- **CSV:** sloupec účtu podle hlavičky (`login`, `SamAccountName`, `ucet`, `UPN`, `userPrincipalName`), jinak první sloupec. Když má soubor hlavičku se sloupci jmen, ale bez sloupce účtu, všechny řádky se odmítnou, aby se jméno nikdy neuložilo jako účet. Oddělovač i tabulátor (vložení z Excelu).
+- **Limit třídy v náhledu v prohlížeči je pevně 60** (výchozí `MAX_STUDENTS_PER_CLASS`); skutečný limit kontroluje server podle konfigurace.
+- **`leaderboardNames: "number"` platí pro celou stránku hostitele živé hry** (čekárna, „Ještě se nepřipojili“, žebříček), protože stránka hostitele je zároveň projektor. Číslo je číslo v třídním výkazu, jinak pořadí v soupisce. Žák na potvrzovací obrazovce vidí vždy své přihlašovací jméno. Test (dashboard) ukazuje vždy přihlašovací jména.
+- **Přepínač „Zobrazit celá jména“ v panelu testu a log `names_view` jsou odstraněné:** panel i hostitel přes `hostUrl` vidí stejně jen přihlašovací jména (C6.2).
+- **„Skrýt jména (promítání)“** nahradí v přehledech jméno za „Žák <číslo>“ (bez čísla pořadí v soupisce). V profilu žáka bez čísla zůstane jen „Žák“.
+- **Ukázková data** používají `zak01`–`zak24` s čísly 1–24: „Žák 01“ z C11 obsahuje mezeru, kterou pravidla přihlašovacího jména nedovolují.
+- **Opravená chyba:** částečná úprava nastavení třídy (např. jen `leaderboardNames`) dřív kvůli výchozím hodnotám zod vracela ostatní nastavení na výchozí; teď se slučují jen poslaná pole.
+

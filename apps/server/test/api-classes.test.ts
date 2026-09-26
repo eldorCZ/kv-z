@@ -25,7 +25,7 @@ beforeAll(async () => {
 });
 afterAll(async () => t.close());
 
-const NAMES = ['Adámek Aleš', 'Bílá Běla', 'Cibulka Cyril', 'Dušková Dana', 'Egerová Eva', 'Fousek František'];
+const NAMES = ['adamek1', 'bila2', 'cibulka3', 'duskova4', 'egerova5', 'fousek6'];
 
 /** Recursively collects every key and string value. */
 function strings(v: unknown, out: string[] = []): string[] {
@@ -61,7 +61,7 @@ describe('agent API for classes (C10.3)', () => {
     expect(res.body.weakTopics.map((x: { topic: string }) => x.topic)).toEqual(['Lom světla']);
     expect(res.body.weakQuestions[0]).toMatchObject({ questionId: 'x4', successRate: 0, answers: 6 });
     // nothing personal
-    expect(leaks(res.body, [...NAMES.flatMap((n) => n.split(' ')), ...ids, ...cls.created.map((c) => c.code)])).toEqual([]);
+    expect(leaks(res.body, [...NAMES, ...ids, ...cls.created.map((c) => c.code)])).toEqual([]);
 
     // a period without activities
     const empty = await t.http.get(`/api/v1/classes/${cls.classId}/summary?from=2099-01-01`).set(agent);
@@ -90,7 +90,7 @@ describe('agent API for classes (C10.3)', () => {
       expect((await t.http.get(`/api/v1/classes/${cls.classId}${path}`).set(agent)).status, path).toBe(403);
     }
     const list = await t.http.get('/api/v1/classes').set(agent);
-    expect(leaks(list.body, NAMES.flatMap((n) => n.split(' ')))).toEqual([]);
+    expect(leaks(list.body, NAMES)).toEqual([]);
   });
 
   it('GET /topics lists the teacher topics', async () => {
@@ -99,8 +99,8 @@ describe('agent API for classes (C10.3)', () => {
     expect(r.body.topics).toEqual(['Lom světla', 'Zrcadla']);
   });
 
-  it('class game results: "Žák N" without results:pii, full names with it, CSV too', async () => {
-    const cls = await classWithStudents(t, sess, ['Horák Hugo', 'Ivanová Iva'], 'Výsledky');
+  it('class game results: "Žák N" without results:pii, account names with it, CSV too', async () => {
+    const cls = await classWithStudents(t, sess, ['horak1', 'ivanova2'], 'Výsledky');
     const quizId = (await t.http.post('/api/v1/quizzes').set(agent).send(quiz)).body.quizId;
     const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(agent).send({ mode: 'test', settings: { classId: cls.classId } })).body;
     expect(g.gameId).toBeTruthy();
@@ -112,21 +112,21 @@ describe('agent API for classes (C10.3)', () => {
     }
     const anon = await t.http.get(`/api/v1/games/${g.gameId}/results`).set(agent);
     expect(anon.body.students.map((s: { student: string }) => s.student)).toEqual(['Žák 1', 'Žák 2']);
-    expect(leaks(anon.body, ['Horák', 'Hugo', 'Iva', 'Ivanová'])).toEqual([]);
+    expect(leaks(anon.body, ['horak1', 'ivanova2'])).toEqual([]);
     const csv = await t.http.get(`/api/v1/games/${g.gameId}/results.csv`).set(agent);
-    expect(csv.text).not.toContain('Hugo');
+    expect(csv.text).not.toContain('horak1');
     expect(csv.text).toContain('Žák 1');
     const named = await t.http.get(`/api/v1/games/${g.gameId}/results`).set(pii);
-    expect(named.body.students.map((s: { student: string }) => s.student).sort()).toEqual(['Horák Hugo', 'Ivanová Iva']);
+    expect(named.body.students.map((s: { student: string }) => s.student).sort()).toEqual(['horak1', 'ivanova2']);
 
     // live class game: ranking without names for the agent
     const live = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(agent).send({ mode: 'live', settings: { classId: cls.classId } })).body;
     t.services.db.$client
-      .prepare("INSERT INTO players (id, game_id, nickname, token_hash, joined_at, student_id, is_guest) VALUES ('pl1', ?, 'Hugo H.', 'x', ?, ?, 0)")
+      .prepare("INSERT INTO players (id, game_id, nickname, token_hash, joined_at, student_id, is_guest) VALUES ('pl1', ?, 'horak1', 'x', ?, ?, 0)")
       .run(live.gameId, Date.now(), cls.created[0]!.student.id);
     const lr = await t.http.get(`/api/v1/games/${live.gameId}/results`).set(agent);
     expect(lr.body.ranking.map((r: { nickname: string }) => r.nickname)).toEqual(['Žák 1']);
     const ui1 = await t.http.get(`/api/v1/games/${live.gameId}/results`).set('cookie', sess.cookie);
-    expect(ui1.body.ranking[0].nickname).toBe('Horák Hugo');
+    expect(ui1.body.ranking[0].nickname).toBe('horak1');
   });
 });

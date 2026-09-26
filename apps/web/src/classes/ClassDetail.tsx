@@ -114,6 +114,22 @@ function Settings({ cls, onChanged }: { cls: ClassDto; onChanged: () => Promise<
         <p>{t('classes.settings.rulesText', { threshold: cls.settings.supportThresholdPercent, drop: cls.settings.trendDropPp, split: cls.settings.halfYearSplit })}</p>
         {cls.anonymizeAt && <p className="mt-2">{t('classes.anonymizeAt', { date: formatDate(cls.anonymizeAt) })}</p>}
       </section>
+      <section className="rounded-lg border border-slate-200 bg-white p-4 text-sm">
+        <label className="flex flex-wrap items-center gap-2">
+          <span className="font-semibold">{t('classes.settings.leaderboardNames')}</span>
+          <select
+            className="rounded-md border border-slate-300 bg-white px-2 py-1.5"
+            value={cls.settings.leaderboardNames}
+            disabled={cls.role === 'viewer' || cls.status !== 'active'}
+            onChange={(e) => run(() => api('PATCH', `/api/v1/classes/${cls.id}`, { settings: { leaderboardNames: e.target.value } }))}
+            data-testid="leaderboard-names"
+          >
+            <option value="account">{t('classes.settings.lbAccount')}</option>
+            <option value="number">{t('classes.settings.lbNumber')}</option>
+          </select>
+        </label>
+        <p className="mt-1 text-xs text-slate-500">{t('classes.settings.lbHint')}</p>
+      </section>
       {owner && (
         <section className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-white p-4">
           {cls.status === 'active' && (

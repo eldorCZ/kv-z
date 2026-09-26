@@ -106,7 +106,7 @@ export default function Topics({ cls }: { cls: ClassDto }) {
       </section>
 
       {rename && (
-        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-hra-200 bg-indigo-50 p-3">
+        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-hra-200 bg-hra-50 p-3">
           <p className="w-full text-sm">{t('overview.renameHint', { from: rename.from })}</p>
           <Field label={t('overview.newTopic')}>
             <input className={inputCls} list="topic-names" value={rename.to} maxLength={60} onChange={(e) => setRename({ ...rename, to: e.target.value })} />

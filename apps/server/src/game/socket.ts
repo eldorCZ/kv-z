@@ -122,7 +122,7 @@ export function setupSockets(deps: SocketDeps) {
         if (g.row.classId && deps.classGames) {
           if (e?.ticket) {
             const { student } = deps.classGames.consumeTicket(e.ticket, g.id);
-            joined = g.joinStudent(student);
+            joined = g.joinStudent({ id: student.id, displayName: deps.classGames.displayName(g.row, student) });
           } else {
             const nick = checkNickname(e?.nickname);
             if (!nick.ok) return fail(ack, nick.error);

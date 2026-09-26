@@ -544,7 +544,7 @@ function TestAnswer({ q, value, onChange, disabled }: { q: PublicQuestion; value
               aria-checked={on}
               disabled={disabled}
               onClick={() => onChange({ indices: multi ? (on ? selected.filter((x) => x !== i) : [...selected, i].sort()) : [i] })}
-              className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left text-lg ${on ? 'border-hra-700 bg-indigo-50 font-semibold' : 'border-slate-200 bg-white'}`}
+              className={`flex items-center gap-3 rounded-lg border-2 p-3 text-left text-lg ${on ? 'border-hra-700 bg-hra-50 font-semibold' : 'border-slate-200 bg-white'}`}
               data-testid={`test-option-${i}`}
             >
               <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${st.bg}`}>

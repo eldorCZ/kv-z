@@ -6,7 +6,10 @@ import {
   classTopics,
   currentSchoolYear,
   decodeCsv,
-  derivePublicName,
+  checkRoster,
+  normalizeAccountName,
+  studentInputSchema,
+  studentNumberLabel,
   formatCode,
   generateCode,
   mean,
@@ -14,7 +17,6 @@ import {
   parseRosterCsv,
   parseRosterLines,
   r,
-  rosterWarnings,
   schoolYearEnd,
   studentSummary,
   topicMastery,
@@ -56,43 +58,76 @@ describe('school year (C4.1)', () => {
   });
 });
 
-describe('public names (C4.2)', () => {
-  it('given name + initial, single words, collisions', () => {
-    expect(derivePublicName('Jana', 'Nováková')).toBe('Jana N.');
-    expect(derivePublicName('', 'Žák 07')).toBe('Žák 07');
-    expect(derivePublicName('Jana', 'Nová', ['Jana N.'])).toBe('Jana N. 2');
-    expect(derivePublicName('Jana', 'Nosková', ['jana n.', 'Jana N. 2'])).toBe('Jana N. 3');
-    expect(derivePublicName('Šárka', 'Čermáková')).toBe('Šárka Č.');
+describe('account names (C4.2)', () => {
+  it('normalizeAccountName: lower case, domain removed, NFC, invalid characters, empty input', () => {
+    expect(normalizeAccountName(' Novak12 ')).toEqual({ ok: true, value: 'novak12' });
+    expect(normalizeAccountName('NOVAK12@skola.cz')).toEqual({ ok: true, value: 'novak12' });
+    expect(normalizeAccountName('SKOLA\\novak12')).toEqual({ ok: true, value: 'novak12' });
+    expect(normalizeAccountName('j.novak_2-b')).toEqual({ ok: true, value: 'j.novak_2-b' });
+    // diacritics are kept (NFC), decomposed input is composed
+    expect(normalizeAccountName('Novák12')).toEqual({ ok: true, value: 'novák12' });
+    expect(normalizeAccountName('')).toMatchObject({ ok: false });
+    expect(normalizeAccountName('   ')).toMatchObject({ ok: false });
+    expect(normalizeAccountName(null)).toMatchObject({ ok: false });
+    expect(normalizeAccountName('a')).toMatchObject({ ok: false, error: expect.stringMatching(/2–40/) });
+    expect(normalizeAccountName('x'.repeat(41))).toMatchObject({ ok: false });
+    expect(normalizeAccountName('Jana Nováková')).toMatchObject({ ok: false, error: expect.stringMatching(/mezeru/) });
+    expect(normalizeAccountName('novak<script>')).toMatchObject({ ok: false, error: expect.stringMatching(/jen písmena/) });
+  });
+  it('server schema keeps only account name and number', () => {
+    const r = studentInputSchema.safeParse({ accountName: 'Novak12@skola.cz', rosterNo: 3, familyName: 'Novák', givenName: 'Jan' });
+    expect(r.success && r.data).toEqual({ accountName: 'novak12', rosterNo: 3 });
+    expect(studentInputSchema.safeParse({ accountName: 'Jan Novák' }).success).toBe(false);
+  });
+  it('number label', () => {
+    expect(studentNumberLabel(7, 0)).toBe('Žák 7');
+    expect(studentNumberLabel(null, 4)).toBe('Žák 5');
   });
 });
 
 describe('roster import (C4.3)', () => {
-  it('parses pasted lines in both orders with optional numbers', () => {
-    expect(parseRosterLines('1. Nováková Jana\n2 Svoboda Petr Jan\n\nDvořák')).toEqual([
-      { line: 1, familyName: 'Nováková', givenName: 'Jana', rosterNo: 1 },
-      { line: 2, familyName: 'Svoboda', givenName: 'Petr Jan', rosterNo: 2 },
-      { line: 4, familyName: 'Dvořák', givenName: '', rosterNo: null },
+  it('parses pasted lines: login or address, optional number', () => {
+    expect(parseRosterLines('1. novak12\n2 Svobodova3@skola.cz\n\ndvorak')).toEqual([
+      { line: 1, accountName: 'novak12', rosterNo: 1 },
+      { line: 2, accountName: 'svobodova3', rosterNo: 2 },
+      { line: 4, accountName: 'dvorak', rosterNo: null },
     ]);
-    expect(parseRosterLines('Jana Nováková', 'given-family')[0]).toMatchObject({ familyName: 'Nováková', givenName: 'Jana' });
-    expect(parseRosterLines('Novák <script>')[0]!.error).toMatch(/Nepovolené/);
+    expect(parseRosterLines('Nováková Jana')[0]!.error).toMatch(/mezeru/);
   });
   it('decodes UTF-8, UTF-8 with BOM and windows-1250', () => {
-    const utf = new TextEncoder().encode('prijmeni;jmeno\nČermák;Šimon');
-    expect(decodeCsv(utf)).toBe('prijmeni;jmeno\nČermák;Šimon');
-    expect(decodeCsv(new Uint8Array([0xef, 0xbb, 0xbf, ...utf]))).toBe('prijmeni;jmeno\nČermák;Šimon');
+    const utf = new TextEncoder().encode('login;cislo\nčermák2;1');
+    expect(decodeCsv(utf)).toBe('login;cislo\nčermák2;1');
+    expect(decodeCsv(new Uint8Array([0xef, 0xbb, 0xbf, ...utf]))).toBe('login;cislo\nčermák2;1');
     // "Čermák" in windows-1250: C8 65 72 6D E1 6B
     expect(decodeCsv(new Uint8Array([0xc8, 0x65, 0x72, 0x6d, 0xe1, 0x6b]))).toBe('Čermák');
   });
-  it('parses CSV with ; or , with and without a header', () => {
-    expect(parseRosterCsv('prijmeni;jmeno;cislo\nNovák;Petr;3')).toEqual([{ line: 2, familyName: 'Novák', givenName: 'Petr', rosterNo: 3 }]);
-    expect(parseRosterCsv('jmeno,prijmeni\nPetr,Novák')[0]).toMatchObject({ familyName: 'Novák', givenName: 'Petr' });
-    expect(parseRosterCsv('Novák,Petr,4\n"Dvořák, ml.",Jan,')[1]).toMatchObject({ familyName: 'Dvořák, ml.', error: expect.any(String) });
-    expect(parseRosterCsv('Novák;Petr;120')[0]!.error).toMatch(/1–99/);
+  it('CSV: account column by header name, other columns dropped, ; , and tab', () => {
+    // AD export with names: only the login column is used
+    expect(parseRosterCsv('"jmeno";"prijmeni";"SamAccountName";"cislo"\nPetr;Novák;novak12;3\nJana;Malá;mala4;')).toEqual([
+      { line: 2, accountName: 'novak12', rosterNo: 3 },
+      { line: 3, accountName: 'mala4', rosterNo: null },
+    ]);
+    expect(parseRosterCsv('UPN,Name\nnovak12@skola.cz,Petr Novák')).toEqual([{ line: 2, accountName: 'novak12', rosterNo: null }]);
+    expect(parseRosterCsv('login\tdisplayName\nnovak12\tPetr Novák')[0]).toEqual({ line: 2, accountName: 'novak12', rosterNo: null });
+    expect(parseRosterCsv('ucet;cislo\nnovak12;120')[0]!.error).toMatch(/1–99/);
   });
-  it('warns about duplicates and class size', () => {
-    const rows = parseRosterLines('Novák Petr\nNovák Petr');
-    expect(rosterWarnings(rows, [], 60)).toHaveLength(1);
-    expect(rosterWarnings(rows, [{ familyName: 'X', givenName: 'Y' }], 2).some((w) => w.includes('limit'))).toBe(true);
+  it('CSV without a header: first column is the account, a second numeric column the number', () => {
+    expect(parseRosterCsv('novak12;4\nmala4;5')).toEqual([
+      { line: 1, accountName: 'novak12', rosterNo: 4 },
+      { line: 2, accountName: 'mala4', rosterNo: 5 },
+    ]);
+    expect(parseRosterCsv('novak12,Petr Novák')).toEqual([{ line: 1, accountName: 'novak12', rosterNo: null }]);
+  });
+  it('a header with names but no account column is refused (names never become accounts)', () => {
+    const rows = parseRosterCsv('jmeno;prijmeni\nPetr;Novák');
+    expect(rows[0]).toMatchObject({ accountName: '', error: expect.stringMatching(/přihlašovacím jménem/) });
+  });
+  it('duplicates are errors, diacritics-only matches and class size are warnings', () => {
+    const { rows, warnings } = checkRoster(parseRosterLines('novak12\nNOVAK12\nnovák12'), [{ accountName: 'mala4' }], 60);
+    expect(rows.map((r) => !!r.error)).toEqual([false, true, false]);
+    expect(warnings).toEqual([expect.stringMatching(/diakritikou/)]);
+    expect(checkRoster(parseRosterLines('mala4'), [{ accountName: 'mala4' }], 60).rows[0]!.error).toMatch(/už ve třídě/);
+    expect(checkRoster(parseRosterLines('a1\nb2'), [{ accountName: 'c3' }], 2).warnings.some((w) => w.includes('limit'))).toBe(true);
   });
 });
 

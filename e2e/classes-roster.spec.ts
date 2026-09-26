@@ -1,17 +1,18 @@
 import { expect, test } from '@playwright/test';
 import { registerAndToken } from './helpers';
 
-test('roster: 25 students pasted, cards printed, codes are gone after reload', async ({ page }) => {
+test('roster: 25 account names pasted, cards printed, codes are gone after reload', async ({ page }) => {
   await registerAndToken(page);
   await page.getByRole('link', { name: 'Třídy' }).click();
   await page.getByTestId('new-class').click();
   await page.getByTestId('class-name').fill('8.A Fyzika');
   await page.getByTestId('create-class').click();
   await expect(page.getByTestId('class-title')).toHaveText('8.A Fyzika');
-  const list = Array.from({ length: 25 }, (_, i) => `${i + 1}. Příjmení${i} Jméno${i}`).join('\n');
+  const list = Array.from({ length: 25 }, (_, i) => `${i + 1}. zak${String(i + 1).padStart(2, '0')}@skola.cz`).join('\n');
   await page.getByTestId('roster-text').fill(list);
   await page.getByTestId('roster-preview').click();
-  await expect(page.getByTestId('roster-preview-table')).toContainText('Jméno0 P.');
+  await expect(page.getByTestId('roster-preview-table')).toContainText('zak01');
+  await expect(page.getByTestId('roster-preview-table')).not.toContainText('skola.cz');
   await page.getByTestId('roster-commit').click();
   await expect(page.getByTestId('plain-code')).toHaveCount(25);
   const first = await page.getByTestId('plain-code').first().textContent();
@@ -25,4 +26,30 @@ test('roster: 25 students pasted, cards printed, codes are gone after reload', a
   await expect(page.getByTestId('roster-table').locator('tbody tr')).toHaveCount(25);
   await expect(page.getByTestId('plain-code')).toHaveCount(0);
   expect(await page.content()).not.toContain(first!);
+});
+
+test('CSV import from AD: only the login and the number are sent to the server (C4.3)', async ({ page }) => {
+  await registerAndToken(page);
+  await page.getByRole('link', { name: 'Třídy' }).click();
+  await page.getByTestId('new-class').click();
+  await page.getByTestId('class-name').fill('8.C Import');
+  await page.getByTestId('create-class').click();
+  await expect(page.getByTestId('class-title')).toHaveText('8.C Import');
+  const bodies: string[] = [];
+  page.on('request', (r) => {
+    if (r.url().includes('/api/v1/classes/') && r.method() === 'POST') bodies.push(r.postData() ?? '');
+  });
+  await page.getByRole('tab', { name: 'Import CSV' }).click();
+  const csv = 'GivenName;Surname;SamAccountName;cislo;mail\nJarmila;Kvasničková;kvasnickova1;1;kvasnickova1@zs-hornidolni.cz\nBohuslav;Šťovíček;STOVICEK2;2;stovicek2@zs-hornidolni.cz\n';
+  await page.getByTestId('roster-file').setInputFiles({ name: '8C.csv', mimeType: 'text/csv', buffer: Buffer.from(csv, 'utf8') });
+  await page.getByTestId('roster-preview').click();
+  const table = page.getByTestId('roster-preview-table');
+  await expect(table).toContainText('kvasnickova1');
+  await expect(table).toContainText('stovicek2');
+  await expect(table).not.toContainText('Jarmila');
+  await page.getByTestId('roster-commit').click();
+  await expect(page.getByTestId('plain-code')).toHaveCount(2);
+  const sent = bodies.find((b) => b.includes('students'))!;
+  expect(JSON.parse(sent)).toEqual({ students: [{ accountName: 'kvasnickova1', rosterNo: 1 }, { accountName: 'stovicek2', rosterNo: 2 }] });
+  for (const w of ['Jarmila', 'Kvasničková', 'Bohuslav', 'zs-hornidolni']) expect(bodies.join('')).not.toContain(w);
 });

@@ -1,3 +1,4 @@
+import { studentNumberLabel } from '@kvizhub/core';
 export interface ClassDto {
   id: string;
   name: string;
@@ -5,7 +6,7 @@ export interface ClassDto {
   subject: string | null;
   status: 'active' | 'archived';
   role: 'owner' | 'editor' | 'viewer';
-  settings: { supportThresholdPercent: number; trendDropPp: number; halfYearSplit: string };
+  settings: { supportThresholdPercent: number; trendDropPp: number; halfYearSplit: string; leaderboardNames: 'account' | 'number' };
   schoolYearEnd: string;
   archivedAt: number | null;
   anonymizeAt?: number;
@@ -14,9 +15,8 @@ export interface ClassDto {
 
 export interface StudentDto {
   id: string;
-  familyName: string;
-  givenName: string;
-  publicName: string;
+  /** school login without the domain, the only name of a student (C4.2) */
+  accountName: string;
   rosterNo: number | null;
   active: boolean;
   since: string;
@@ -28,12 +28,12 @@ export interface CreatedCode {
   code: string;
 }
 
-export const fullName = (s: { familyName: string; givenName: string }) => `${s.familyName} ${s.givenName}`.trim();
-
-/** Per-browser preference "Zobrazit celá jména" (C6.2, C8). */
-export function useShowNamesKey() {
-  return 'kvizhub-show-names';
+/** Name shown in overviews: the account name, or "Žák <číslo>" when names are hidden (C8). */
+export function studentName(s: { accountName: string; rosterNo: number | null }, hideNames: boolean, index: number): string {
+  return hideNames ? studentNumberLabel(s.rosterNo, index) : s.accountName;
 }
+
+/** Per-browser preference "Skrýt jména (promítání)" (C8). */
 export function readShowNames(defaultValue: boolean): boolean {
   try {
     const v = localStorage.getItem('kvizhub-show-names');

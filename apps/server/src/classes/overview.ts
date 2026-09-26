@@ -133,9 +133,7 @@ export class ClassOverview {
       }
       return {
         id: s.id,
-        familyName: s.familyName,
-        givenName: s.givenName,
-        publicName: s.publicName,
+        accountName: s.accountName,
         rosterNo: s.rosterNo,
         active: s.active,
         cells,
@@ -275,7 +273,7 @@ export class ClassOverview {
   /** C8.5: class CSV (UTF-8 with BOM, ; or , separator, CSV injection guard). */
   classCsv(c: ClassRow, sep: ';' | ',') {
     const m = this.matrix(c, {});
-    const header = ['Příjmení', 'Jméno', 'Číslo', ...m.activities.map((a) => `${a.label} (${new Date(a.playedAt).toLocaleDateString('cs-CZ')})`), 'Průměr testů', 'Průměr kvízů', 'Účast', 'Trend testů'];
+    const header = ['Přihlašovací jméno', 'Číslo', ...m.activities.map((a) => `${a.label} (${new Date(a.playedAt).toLocaleDateString('cs-CZ')})`), 'Průměr testů', 'Průměr kvízů', 'Účast', 'Trend testů'];
     const lines = [header.map((h) => csvCell(h, sep)).join(sep)];
     for (const s of m.students) {
       const cells = m.activities.map((a) => {
@@ -283,7 +281,7 @@ export class ClassOverview {
         return x.state === 'result' ? x.percent : x.state === 'excluded' ? `nezapočteno (${x.percent})` : x.state === 'missing' ? 'chybí' : '';
       });
       lines.push(
-        [s.familyName, s.givenName, s.rosterNo ?? '', ...cells, s.summary.testAvg ?? '', s.summary.quizAvg ?? '', s.summary.participation ?? '', TREND_CS[s.summary.testTrend.label]]
+        [s.accountName, s.rosterNo ?? '', ...cells, s.summary.testAvg ?? '', s.summary.quizAvg ?? '', s.summary.participation ?? '', TREND_CS[s.summary.testTrend.label]]
           .map((v) => csvCell(v, sep))
           .join(sep),
       );

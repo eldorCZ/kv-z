@@ -1,4 +1,4 @@
-import { createGameSchema, type CreateGameInput } from '@kvizhub/core';
+import { createGameSchema, studentNumberLabel, type CreateGameInput } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
 import type { GameManager } from '../game/engine.js';
 import { HttpError } from '../game/service.js';
@@ -35,7 +35,7 @@ export interface ClassGameInfo {
 export type PlayerNaming = (p: { studentId: string | null; nickname: string }, index: number) => string;
 
 export class ClassGames {
-  private tickets = new Map<string, { gameId: string; studentId: string; publicName: string; exp: number }>();
+  private tickets = new Map<string, { gameId: string; studentId: string; exp: number }>();
   private failures = new Map<string, { at: number[]; blockedUntil: number; alert: boolean }>();
 
   constructor(
@@ -116,7 +116,7 @@ export class ClassGames {
   }
 
   /** POST /play/roster/identify (C5.1 step 3). */
-  identify(pin: string, rawCode: unknown): { publicName: string; ticket: string } {
+  identify(pin: string, rawCode: unknown): { accountName: string; ticket: string } {
     const g = this.gameByPin(pin);
     if (!g) throw new HttpError(404, 'Hra s tímto PINem neexistuje. Zkontrolujte PIN.', 'not_found');
     if (!g.classId) throw new HttpError(409, 'Do této hry se připojuje přezdívkou, ne kódem.', 'not_roster');
@@ -139,8 +139,9 @@ export class ClassGames {
     if (g.audience && !g.audience.includes(student.id)) throw new HttpError(403, NOT_IN_AUDIENCE_MSG, 'not_in_audience');
     const ticket = randomBytes(24).toString('base64url');
     this.sweep(now);
-    this.tickets.set(ticket, { gameId: g.id, studentId: student.id, publicName: student.publicName, exp: now + TICKET_TTL_MS });
-    return { publicName: student.publicName, ticket };
+    this.tickets.set(ticket, { gameId: g.id, studentId: student.id, exp: now + TICKET_TTL_MS });
+    // whitelist (C11): the student's own account name for "Jsi to ty, novak12?" and the ticket, nothing else
+    return { accountName: student.accountName, ticket };
   }
 
   /** One-time ticket bound to game and student (C5.1 step 4). */
@@ -158,35 +159,45 @@ export class ClassGames {
     for (const [k, v] of this.tickets) if (v.exp < now) this.tickets.delete(k);
   }
 
-  /** Nickname guests are allowed only with allowGuests and may not use a student's public name. */
+  /**
+   * Name of a student in a class game (C5.6, C6.2): the account name; in a live game with
+   * leaderboardNames = "number" "Žák <číslo>" (classmates and the projector see it).
+   */
+  displayName(g: GameRow, student: StudentRow): string {
+    if (g.mode === 'test' || this.classes.settingsOf(g.classId!).leaderboardNames !== 'number') return student.accountName;
+    const list = this.classes.students(g.classId!);
+    return studentNumberLabel(student.rosterNo, list.findIndex((s) => s.id === student.id));
+  }
+
+  /** Nickname guests are allowed only with allowGuests and may not use a student's name. */
   assertGuestAllowed(g: GameRow, nickname: string) {
     if (!g.classId) return;
     if (!g.allowGuests) throw new HttpError(403, 'Do této hry se připojuje osobním kódem. Požádej učitele o nový kód.', 'guests_disabled');
-    const taken = this.classes.students(g.classId).some((s) => s.publicName.toLocaleLowerCase('cs') === nickname.toLocaleLowerCase('cs'));
+    const n = nickname.toLocaleLowerCase('cs');
+    const taken = this.classes.students(g.classId).some((s) => s.accountName === n || this.displayName(g, s).toLocaleLowerCase('cs') === n);
     if (taken) throw new HttpError(409, 'Tuto přezdívku nelze použít. Zvolte jinou.', 'nickname_taken');
   }
 
-  /** studentId -> "Příjmení Jméno" (only for a logged-in teacher with owner/editor role, C6.2). */
   /**
    * Names in game results of a class game (C10.3): "Žák N" for API tokens without results:pii,
-   * otherwise family and given name (guests keep their nickname).
+   * otherwise the account name (guests keep their nickname).
    */
   naming(g: GameRow, pii: boolean): PlayerNaming | undefined {
     if (!g.classId) return undefined;
     if (!pii) return (_p, i) => `Žák ${i + 1}`;
-    const names = this.fullNames(g.classId);
+    const names = this.accountNames(g.classId);
     return (p) => (p.studentId && names.get(p.studentId)) || (p.studentId ? p.nickname : `${p.nickname} (host)`);
   }
 
-  fullNames(classId: string): Map<string, string> {
-    return new Map(this.classes.students(classId).map((s) => [s.id, `${s.familyName} ${s.givenName}`.trim()]));
+  accountNames(classId: string): Map<string, string> {
+    return new Map(this.classes.students(classId).map((s) => [s.id, s.accountName]));
   }
 
-  /** Audience students who have not joined yet (C6.2) – public names only. */
+  /** Audience students who have not joined yet (C6.2), named as in the game. */
   notJoined(g: GameRow, joinedStudentIds: Set<string>) {
     if (!g.classId) return [];
     const eligible = this.classes.students(g.classId).filter((s) => s.active && (!g.audience || g.audience.includes(s.id)));
-    return eligible.filter((s) => !joinedStudentIds.has(s.id)).map((s) => ({ studentId: s.id, publicName: s.publicName }));
+    return eligible.filter((s) => !joinedStudentIds.has(s.id)).map((s) => ({ studentId: s.id, name: this.displayName(g, s) }));
   }
 }
 
@@ -221,7 +232,7 @@ export class ClassGameAdmin {
     const candidates = this.classes
       .students(g.classId)
       .filter((s) => s.active && !withResult.has(s.id) && !this.games.players(g.id).some((p) => p.studentId === s.id))
-      .map((s) => ({ studentId: s.id, publicName: s.publicName, name: `${s.familyName} ${s.givenName}`.trim() }));
+      .map((s) => ({ studentId: s.id, accountName: s.accountName, rosterNo: s.rosterNo }));
     return { guests: players.map((p) => ({ playerId: p.id, nickname: p.nickname })), candidates };
   }
 

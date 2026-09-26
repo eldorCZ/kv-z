@@ -24,3 +24,30 @@ describe('migration 4 on a copy of existing data', () => {
     expect(db.prepare('SELECT count(*) n FROM classes').get()).toEqual({ n: 0 });
   });
 });
+
+describe('migration 5: names -> account_name', () => {
+  it('drops the name columns, keeps results and renames class players', () => {
+    const db = new Database(':memory:');
+    db.pragma('foreign_keys = ON');
+    for (let v = 0; v < 4; v++) db.exec(MIGRATIONS[v]!);
+    db.pragma('user_version = 4');
+    db.exec(`
+      INSERT INTO teachers VALUES ('t1', 'a@b.cz', 'x', 'local', 1);
+      INSERT INTO quizzes (id, teacher_id, title, language, settings_json, created_at, updated_at) VALUES ('q1', 't1', 'Kvíz', 'cs', '{}', 1, 1);
+      INSERT INTO games (id, quiz_id, teacher_id, mode, pin, host_key_hash, status, settings_json, question_ids_json, created_at) VALUES ('g1', 'q1', 't1', 'live', '123456', 'h', 'finished', '{}', '[]', 1);
+      INSERT INTO classes (id, name, school_year, status, settings_json, school_year_end, created_at) VALUES ('c1', '8.A', '2026/2027', 'active', '{}', '2027-08-31', 1);
+      INSERT INTO students (id, class_id, family_name, given_name, public_name, active, since, created_at) VALUES ('s1', 'c1', 'Nováková', 'Jana', 'Jana N.', 1, '2026-09-01', 1);
+      INSERT INTO players (id, game_id, nickname, token_hash, joined_at, student_id) VALUES ('p1', 'g1', 'Jana N.', 'th', 1, 's1');
+      INSERT INTO players (id, game_id, nickname, token_hash, joined_at) VALUES ('p2', 'g1', 'Host', 'th', 2);
+    `);
+    migrate(db);
+    const cols = (db.prepare('PRAGMA table_info(students)').all() as { name: string }[]).map((c) => c.name);
+    expect(cols).toContain('account_name');
+    for (const c of ['family_name', 'given_name', 'public_name']) expect(cols).not.toContain(c);
+    const acc = (db.prepare('SELECT account_name FROM students').get() as { account_name: string }).account_name;
+    expect(acc).toMatch(/^zak\d+$/);
+    expect(db.prepare('SELECT nickname FROM players ORDER BY id').all()).toEqual([{ nickname: acc }, { nickname: 'Host' }]);
+    expect(JSON.stringify(db.prepare('SELECT * FROM students').all())).not.toContain('Nov');
+  });
+});
+

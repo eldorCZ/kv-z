@@ -42,15 +42,11 @@ export async function teacherId(t: TestApp, sess: { cookie: string }) {
   return (await t.http.get('/api/auth/me').set('cookie', sess.cookie)).body.teacher.id as string;
 }
 
-/** Creates a class with students; returns ids and the one-time plain codes. */
-export async function classWithStudents(t: TestApp, sess: { cookie: string; csrf: string }, names: string[], name = '8.A') {
+/** Creates a class with students (account names); returns ids and the one-time plain codes. */
+export async function classWithStudents(t: TestApp, sess: { cookie: string; csrf: string }, accounts: string[], name = '8.A') {
   const c = await t.http.post('/api/v1/classes').set(ui(sess)).send({ name, subject: 'Fyzika' });
   if (c.status !== 201) throw new Error(`class ${c.status} ${JSON.stringify(c.body)}`);
-  const students = names.map((n) => {
-    const [familyName, ...given] = n.split(' ');
-    return { familyName, givenName: given.join(' ') };
-  });
-  const r = await t.http.post(`/api/v1/classes/${c.body.id}/students`).set(ui(sess)).send({ students });
+  const r = await t.http.post(`/api/v1/classes/${c.body.id}/students`).set(ui(sess)).send({ students: accounts.map((accountName) => ({ accountName })) });
   if (r.status !== 201) throw new Error(`students ${r.status} ${JSON.stringify(r.body)}`);
-  return { classId: c.body.id as string, created: r.body.created as { student: { id: string; publicName: string; familyName: string; givenName: string }; code: string }[] };
+  return { classId: c.body.id as string, created: r.body.created as { student: { id: string; accountName: string; rosterNo: number | null }; code: string }[] };
 }

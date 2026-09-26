@@ -24,7 +24,7 @@ beforeAll(async () => {
   cls = await classWithStudents(
     t,
     sess,
-    Array.from({ length: N }, (_, i) => `Žák${String(i + 1).padStart(2, '0')} Test`),
+    Array.from({ length: N }, (_, i) => `zak${String(i + 1).padStart(2, '0')}`),
     'Zátěž 35',
   );
 });

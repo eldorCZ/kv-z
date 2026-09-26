@@ -40,7 +40,7 @@ export interface Dashboard {
   counts: { joined: number; notStarted: number; inProgress: number; submitted: number; locked?: number };
   classGame?: boolean;
   codeAlert?: boolean;
-  notJoined?: { studentId: string; publicName: string }[];
+  notJoined?: { studentId: string; name: string }[];
   settings: { timeLimitMin: number | null; leaveGuard?: { mode: string; maxLeaves: number; onExceed: string; requireFullscreen: boolean } };
   students: DashboardStudent[];
 }
@@ -67,22 +67,13 @@ export default function TestDashboard() {
   const [qr, setQr] = useState('');
   const [error, setError] = useState<ApiError | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
-  // C6.2: public names by default, full names only on request (this browser only)
-  const [fullNames, setFullNames] = useState(() => {
-    try {
-      return localStorage.getItem('kvizhub-panel-names') === '1';
-    } catch {
-      return false;
-    }
-  });
-
   const load = useCallback(async () => {
     try {
-      setD(await api<Dashboard>('GET', `/api/v1/games/${id}/dashboard${fullNames ? '?names=full' : ''}`));
+      setD(await api<Dashboard>('GET', `/api/v1/games/${id}/dashboard`));
     } catch (e) {
       setError(e as ApiError);
     }
-  }, [id, fullNames]);
+  }, [id]);
 
   useEffect(() => {
     void load();
@@ -146,22 +137,6 @@ export default function TestDashboard() {
       </div>
       {d.classGame && (
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={fullNames}
-              onChange={(e) => {
-                setFullNames(e.target.checked);
-                try {
-                  localStorage.setItem('kvizhub-panel-names', e.target.checked ? '1' : '0');
-                } catch {
-                  /* ignore */
-                }
-              }}
-              data-testid="full-names"
-            />
-            {t('dash.fullNames')}
-          </label>
           {d.codeAlert && (
             <p role="alert" className="rounded bg-amber-100 p-2 text-sm text-amber-900">
               ⚠ {t('host.codeAlert')}
@@ -169,14 +144,14 @@ export default function TestDashboard() {
           )}
           {d.notJoined && d.notJoined.length > 0 && (
             <p className="text-sm text-slate-600" data-testid="dash-not-joined">
-              <strong>{t('host.notJoined', { count: d.notJoined.length })}:</strong> {d.notJoined.map((x) => x.publicName).join(', ')}
+              <strong>{t('host.notJoined', { count: d.notJoined.length })}:</strong> {d.notJoined.map((x) => x.name).join(', ')}
             </p>
           )}
         </div>
       )}
       {guard && guard.mode !== 'off' && <p className="text-xs text-slate-500">{t('dash.guardInfo', { mode: t(`guard.mode.${guard.mode}`), max: guard.maxLeaves })}</p>}
       <ErrorBox error={error} onClose={() => setError(null)} />
-      {d.classGame && <GuestsPanel gameId={id!} showNames={fullNames} />}
+      {d.classGame && <GuestsPanel gameId={id!} />}
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-left text-sm" data-testid="dash-table">

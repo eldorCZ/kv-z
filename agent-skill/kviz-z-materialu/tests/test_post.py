@@ -232,15 +232,15 @@ def test_create_test_with_leave_guard(mock, capsys):
 
 # ---------------------------------------------------------------- classes (Dodatek 3)
 
-NAMES = ["Nováková", "Jana", "K7MQ-2XRT"]
+NAMES = ["novak12", "K7MQ-2XRT"]
 
 
 def test_classes_whitelist(mock, capsys):
-    mock.queue.append((200, {"classes": [{"id": "c1", "name": "8.A Fyzika", "schoolYear": "2026/2027", "subject": "Fyzika", "status": "active", "activeStudents": 24, "students": [{"familyName": "Nováková"}]}]}, {}))
+    mock.queue.append((200, {"classes": [{"id": "c1", "name": "8.A Fyzika", "schoolYear": "2026/2027", "subject": "Fyzika", "status": "active", "activeStudents": 24, "students": [{"accountName": "novak12"}]}]}, {}))
     code, out, _ = run(capsys, "--classes")
     assert code == 0
     assert json.loads(out) == {"classes": [{"id": "c1", "name": "8.A Fyzika", "schoolYear": "2026/2027", "subject": "Fyzika", "status": "active", "activeStudents": 24}]}
-    assert "Nováková" not in out
+    assert "novak12" not in out
     assert mock.requests[0]["path"] == "/api/v1/classes"
 
 
@@ -305,11 +305,11 @@ def test_class_summary_whitelist(mock, capsys):
                 "testAvg": 68,
                 "quizAvg": 72,
                 "participationRate": 92,
-                "activities": [{"activityId": "a1", "label": "Test 1", "kind": "test", "playedAt": "2026-09-10", "n": 23, "participationRate": 96, "avgPercent": 68, "medianPercent": 70, "students": ["Nováková Jana"]}],
+                "activities": [{"activityId": "a1", "label": "Test 1", "kind": "test", "playedAt": "2026-09-10", "n": 23, "participationRate": 96, "avgPercent": 68, "medianPercent": 70, "students": ["novak12"]}],
                 "weakTopics": [{"topic": "Lom světla", "successRate": 54, "items": 120}],
                 "weakQuestions": [{"quizId": "q1", "questionId": "x", "prompt": "Co je lom?", "successRate": 30, "answers": 23}],
                 "notes": [],
-                "students": [{"name": "Nováková Jana", "code": "K7MQ-2XRT"}],
+                "students": [{"accountName": "novak12", "code": "K7MQ-2XRT"}],
             },
             {},
         )

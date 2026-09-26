@@ -61,7 +61,7 @@ export default function Activities({ cls }: { cls: ClassDto }) {
     <div className="space-y-3">
       <ErrorBox error={error} onClose={() => setError(null)} />
       {makeup && (
-        <div className="rounded-lg border border-hra-500 bg-indigo-50 p-4 text-sm" data-testid="makeup-info">
+        <div className="rounded-lg border border-hra-500 bg-hra-50 p-4 text-sm" data-testid="makeup-info">
           <p className="font-semibold">{makeup.reused ? t('overview.makeupReused') : t('overview.makeupCreated', { count: makeup.audienceSize })}</p>
           <p className="mt-1">
             PIN <strong className="font-mono text-lg">{makeup.pin}</strong> · {makeup.joinUrl}

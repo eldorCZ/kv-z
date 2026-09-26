@@ -10,10 +10,9 @@ const quiz = {
     { type: 'single', prompt: 'Zrcadlo světlo…', options: ['odráží', 'láme', 'pohlcuje'], correctIndices: [0], topic: 'Zrcadla' },
   ],
 };
-const STUDENTS = ['Adámek Adam', 'Bílá Běla', 'Cibulka Cyril', 'Dvořák Dan', 'Erbenová Ema'];
-const FAMILY = STUDENTS.map((s) => s.split(' ')[0]!);
+const STUDENTS = ['adamek1', 'bila2', 'cibulka3', 'dvorak4', 'erbenova5'];
 
-async function student(browser: Browser, pin: string, code: string, answers: number[], opts: { wrongFirst?: boolean } = {}) {
+async function student(browser: Browser, pin: string, code: string, answers: number[], opts: { wrongFirst?: boolean; self?: string } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } }); // phone
   const p = await ctx.newPage();
   await p.goto(`/play?pin=${pin}`);
@@ -38,9 +37,9 @@ async function student(browser: Browser, pin: string, code: string, answers: num
   await p.getByTestId('test-submit').click();
   await p.getByTestId('test-confirm-submit').click();
   const percent = await p.getByTestId('test-percent').textContent();
-  // the student never sees a family name or another code
+  // in a test the student sees nobody else
   const html = await p.content();
-  for (const f of FAMILY) expect(html).not.toContain(f);
+  for (const other of STUDENTS.filter((x) => x !== opts.self)) expect(html).not.toContain(other);
   await ctx.close();
   return percent;
 }
@@ -66,7 +65,7 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   await page.getByTestId('new-class').click();
   await page.getByTestId('class-name').fill('8.B Fyzika');
   await page.getByTestId('create-class').click();
-  await page.getByTestId('roster-text').fill(STUDENTS.join('\n'));
+  await page.getByTestId('roster-text').fill(STUDENTS.map((a, i) => `${i + 1} ${a}`).join('\n'));
   await page.getByTestId('roster-preview').click();
   await page.getByTestId('roster-commit').click();
   await expect(page.getByTestId('plain-code')).toHaveCount(5);
@@ -75,7 +74,7 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
     const code = (await li.getByTestId('plain-code').textContent())!.trim();
     codes[(await li.locator('span').first().textContent())!.trim()] = code;
   }
-  expect(Object.keys(codes).sort()).toEqual(['Adam A.', 'Běla B.', 'Cyril C.', 'Dan D.', 'Ema E.']);
+  expect(Object.keys(codes).sort()).toEqual(STUDENTS);
   page.once('dialog', (d) => d.accept());
   await page.getByTestId('print-cards').click();
   page.once('dialog', (d) => d.accept()); // beforeunload
@@ -83,26 +82,23 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   await page.getByTestId('tab-roster').click();
   await expect(page.getByTestId('roster-table').locator('tbody tr')).toHaveCount(5);
   await expect(page.getByTestId('plain-code')).toHaveCount(0);
-  expect(await page.content()).not.toContain(codes['Adam A.']!);
+  expect(await page.content()).not.toContain(codes.adamek1!);
 
   // ---------- class test: 3 students log in by code (one wrong first), 2 are missing ----------
   const created = await (await request.post('/api/v1/quizzes', { headers: { authorization: `Bearer ${token}` }, data: quiz })).json();
   const reviewPath = new URL(created.reviewUrl).pathname;
   const pin = await startFromReview(page, reviewPath, '8.B Fyzika', 'test');
   await page.getByTestId('open-dashboard').click();
-  await expect(page.getByTestId('dash-not-joined')).toContainText('Adam A.');
+  await expect(page.getByTestId('dash-not-joined')).toContainText('adamek1');
 
-  expect(await student(browser, pin, codes['Adam A.']!, [0, 0], { wrongFirst: true })).toBe('100 %');
-  expect(await student(browser, pin, codes['Běla B.']!, [0, 1])).toBe('50 %');
-  expect(await student(browser, pin, codes['Cyril C.']!, [1, 1])).toBe('0 %');
+  expect(await student(browser, pin, codes.adamek1!, [0, 0], { wrongFirst: true, self: 'adamek1' })).toBe('100 %');
+  expect(await student(browser, pin, codes.bila2!, [0, 1], { self: 'bila2' })).toBe('50 %');
+  expect(await student(browser, pin, codes.cibulka3!, [1, 1], { self: 'cibulka3' })).toBe('0 %');
 
-  // dashboard: public names by default, full names after the toggle
+  // dashboard: account names
   await expect(page.getByTestId('dash-row')).toHaveCount(3);
-  await expect(page.getByTestId('dash-table')).toContainText('Adam A.');
-  await expect(page.getByTestId('dash-table')).not.toContainText('Adámek');
-  await page.getByTestId('full-names').check();
-  await expect(page.getByTestId('dash-table')).toContainText('Adámek Adam');
-  await expect(page.getByTestId('dash-not-joined')).toContainText('Dan D.');
+  await expect(page.getByTestId('dash-table')).toContainText('adamek1');
+  await expect(page.getByTestId('dash-not-joined')).toContainText('dvorak4');
   page.once('dialog', (d) => d.accept());
   await page.getByTestId('dash-end').click();
   await expect(page.getByText('Ukončeno')).toBeVisible();
@@ -115,7 +111,7 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   await page.getByTestId('makeup').click();
   await expect(page.getByTestId('makeup-info')).toContainText('2 žáků');
   const makeupPin = (await page.getByTestId('makeup-info').locator('strong').textContent())!.replace(/\s/g, '');
-  expect(await student(browser, makeupPin, codes['Dan D.']!, [0, 0])).toBe('100 %');
+  expect(await student(browser, makeupPin, codes.dvorak4!, [0, 0], { self: 'dvorak4' })).toBe('100 %');
 
   // ---------- matrix ----------
   await page.getByTestId('tab-students').click();
@@ -126,31 +122,31 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   await expect(rows.nth(2).locator('[data-cell="result"]')).toHaveText('0');
   await expect(rows.nth(3).locator('[data-cell="result"]')).toContainText('100d');
   await expect(rows.nth(4).locator('[data-cell="missing"]')).toHaveText('chybí');
-  await expect(rows.nth(0)).toContainText('Adámek Adam');
-  // one click hides the names (projector)
+  await expect(rows.nth(0)).toContainText('adamek1');
+  // one click hides the names (projector): "Žák <číslo>"
   await page.getByTestId('hide-names').check();
-  await expect(rows.nth(0)).toContainText('Adam A.');
-  await expect(page.getByTestId('matrix')).not.toContainText('Adámek');
+  await expect(rows.nth(0)).toContainText('Žák 1');
+  await expect(page.getByTestId('matrix')).not.toContainText('adamek1');
   await page.getByTestId('hide-names').uncheck();
 
-  // ---------- live class game: the projector shows public names only ----------
+  // ---------- live class game: the projector shows account names only, never codes ----------
   const livePin = await startFromReview(page, reviewPath, '8.B Fyzika', 'live');
   const hostUrl = await page.getByTestId('open-host').getAttribute('href');
   const projector = await browser.newPage();
   await projector.goto(hostUrl!);
   await expect(projector.getByTestId('host-pin')).toHaveText(new RegExp(livePin.slice(0, 3)));
-  await expect(projector.getByTestId('host-not-joined')).toContainText('Ema E.');
+  await expect(projector.getByTestId('host-not-joined')).toContainText('erbenova5');
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const sp = await phone.newPage();
   await sp.goto(`/play?pin=${livePin}`);
-  await sp.getByTestId('roster-code').fill(codes['Ema E.']!);
+  await sp.getByTestId('roster-code').fill(codes.erbenova5!);
   await sp.getByTestId('roster-continue').click();
-  await expect(sp.getByTestId('roster-confirm')).toContainText('Ema E.');
+  await expect(sp.getByTestId('roster-confirm')).toContainText('erbenova5');
   await sp.getByTestId('roster-yes').click();
   await expect(sp.getByTestId('player-lobby')).toBeVisible();
-  await expect(projector.locator('body')).toContainText('Ema E.');
+  await expect(projector.locator('body')).toContainText('erbenova5');
   const projHtml = await projector.content();
-  for (const f of FAMILY) expect(projHtml).not.toContain(f);
+  for (const c of Object.values(codes)) expect(projHtml).not.toContain(c);
   await phone.close();
   await projector.close();
 });

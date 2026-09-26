@@ -13,7 +13,7 @@ const lom = (scores: number[], offset = 0): SeedItem[] => scores.map((s, i) => (
 beforeAll(async () => {
   t = await startApp({ apiRateLimit: 10_000, minTopicItems: 3 });
   sess = await teacher(t);
-  const cls = await classWithStudents(t, sess, ['Adámek Aleš', 'Bílá Běla', 'Cibulka Cyril', 'Dlouhý David'], 'Přehledy');
+  const cls = await classWithStudents(t, sess, ['adamek1', 'bila2', 'cibulka3', 'dlouhy4'], 'Přehledy');
   classId = cls.classId;
   [A, B, C, D] = cls.created.map((x) => x.student.id) as [string, string, string, string];
   // D joined the class later than every activity -> "–" everywhere
@@ -170,10 +170,10 @@ describe('class overviews (C8)', () => {
     const text = res.body as string;
     expect(text.charCodeAt(0)).toBe(0xfeff);
     const lines = text.slice(1).trim().split('\r\n');
-    expect(lines[0]).toMatch(/^Příjmení;Jméno;Číslo;Test 1 /);
+    expect(lines[0]).toMatch(/^Přihlašovací jméno;Číslo;Test 1 /);
     expect(lines[0]).toContain(";'=Kvíz 2");
-    const cyril = lines.find((l) => l.startsWith('Cibulka'))!;
-    expect(cyril.split(';')[4]).toBe('chybí');
+    const cyril = lines.find((l) => l.startsWith('cibulka3'))!;
+    expect(cyril.split(';')[3]).toBe('chybí');
     const student = await get(`/students/${B}/export.csv?sep=,`);
     expect(student.status).toBe(200);
   });

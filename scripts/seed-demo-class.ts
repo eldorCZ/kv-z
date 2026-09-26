@@ -1,6 +1,6 @@
 /**
  * pnpm seed:demo-class – creates a demo class with 24 students and 10 activities (tests and quizzes)
- * (pseudonyms "Žák 01" to "Žák 24") so the class overviews can be tried without real pupils. Deterministic: the same results on every run.
+ * (pseudonyms zak01 to zak24 with numbers 1–24, shown as "Žák 01" … when names are hidden) so the class overviews can be tried without real pupils. Deterministic: the same results on every run.
  * Not for production: refuses to run with NODE_ENV=production.
  *
  * Uses the database from DB_PATH (like the server) and the teacher DEMO_EMAIL (created when missing,
@@ -16,8 +16,8 @@ if (process.env.NODE_ENV === 'production') {
   process.exit(1);
 }
 
-// pseudonyms only ("Žák 01" to "Žák 24"), never real pupils
-const NAMES = Array.from({ length: 24 }, (_, i) => `Žák ${String(i + 1).padStart(2, '0')}`);
+// pseudonyms only (an account name may not contain a space, so "Žák 01" becomes zak01), never real pupils
+const NAMES = Array.from({ length: 24 }, (_, i) => `zak${String(i + 1).padStart(2, '0')}`);
 const TOPICS = ['Lom světla', 'Odraz světla', 'Čočky', 'Barvy a spektrum'];
 const ACTIVITIES: { kind: 'test' | 'quiz'; label: string; topics: number[]; count?: boolean }[] = [
   { kind: 'quiz', label: 'Rozcvička: světlo', topics: [0, 1] },
@@ -61,7 +61,7 @@ if (!teacher) {
 const cls = s.classes.create(teacher.id, { name: 'Demo 8.A (smyšlená data)', subject: 'Fyzika' });
 const created = s.classes.addStudents(
   cls,
-  NAMES.map((familyName, i) => ({ familyName, givenName: '', rosterNo: i + 1 })),
+  NAMES.map((accountName, i) => ({ accountName, rosterNo: i + 1 })),
 );
 const ids = created.map((c) => c.student.id);
 const db = s.db.$client;
@@ -130,5 +130,5 @@ ACTIVITIES.forEach((a, ai) => {
 console.log(`Třída „${cls.name}“ vytvořena: ${ids.length} žáků, ${ACTIVITIES.length} aktivit.`);
 console.log(`Přihlaste se jako ${email} a otevřete ${cfg.publicUrl}/classes/${cls.id}`);
 console.log('Ukázkové osobní kódy (zobrazí se jen teď):');
-for (const c of created.slice(0, 3)) console.log(`  ${c.student.publicName}: ${c.code}`);
+for (const c of created.slice(0, 3)) console.log(`  ${c.student.accountName}: ${c.code}`);
 await app.close();
