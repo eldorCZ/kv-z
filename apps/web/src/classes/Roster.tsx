@@ -75,11 +75,11 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
       {codes && <CodesPanel classId={cls.id} className={cls.name} codes={codes} onClose={() => setCodes(null)} />}
 
       {canEdit && !codes && (
-        <section className="no-print space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+        <section className="no-print space-y-3 rounded-lg border border-line bg-surface p-4">
           <h2 className="font-semibold">{t('roster.add')}</h2>
           <div className="flex flex-wrap gap-2" role="tablist">
             {(['lines', 'csv', 'manual'] as const).map((m) => (
-              <button key={m} role="tab" aria-selected={mode === m} className={`rounded-md border px-3 py-1.5 text-sm ${mode === m ? 'border-hra-600 bg-hra-50' : 'border-slate-300'}`} onClick={() => setMode(m)}>
+              <button key={m} role="tab" aria-selected={mode === m} className={`rounded-md border px-3 py-1.5 text-sm ${mode === m ? 'border-primary bg-primary-soft' : 'border-line-strong'}`} onClick={() => setMode(m)}>
                 {t(`roster.modes.${m}`)}
               </button>
             ))}
@@ -110,12 +110,12 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
                 <label className="block text-sm">
                   {t('roster.csvFile')}{' '}
                   <input type="file" accept=".csv,text/csv,text/plain" onChange={(e) => e.target.files?.[0] && void onFile(e.target.files[0])} data-testid="roster-file" />
-                  <span className="block text-xs text-slate-500">{t('roster.csvHint')}</span>
+                  <span className="block text-xs text-muted">{t('roster.csvHint')}</span>
                 </label>
               )}
               <textarea className={`${inputCls} font-mono`} rows={6} value={text} placeholder={t('roster.linesPlaceholder')} onChange={(e) => setText(e.target.value)} data-testid="roster-text" />
-              <p className="text-xs text-slate-500">{t('roster.localHint')}</p>
-              <p className="text-xs text-slate-500">{t('roster.pseudonymHint')}</p>
+              <p className="text-xs text-muted">{t('roster.localHint')}</p>
+              <p className="text-xs text-muted">{t('roster.pseudonymHint')}</p>
               <Button onClick={doPreview} disabled={!text.trim()} data-testid="roster-preview">
                 {t('roster.preview')}
               </Button>
@@ -124,12 +124,12 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
           {preview && (
             <div className="space-y-2" data-testid="roster-preview-table">
               {preview.warnings.map((w, i) => (
-                <p key={i} className="rounded bg-amber-50 p-2 text-sm text-amber-900">
+                <p key={i} className="rounded bg-warning-soft p-2 text-sm text-warning">
                   ⚠ {w}
                 </p>
               ))}
               <table className="w-full text-left text-sm">
-                <thead className="text-xs text-slate-500">
+                <thead className="text-xs text-muted">
                   <tr>
                     <th className="p-1">{t('roster.line')}</th>
                     <th className="p-1">#</th>
@@ -139,11 +139,11 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
                 </thead>
                 <tbody>
                   {preview.rows.map((r) => (
-                    <tr key={r.line} className={r.error ? 'bg-red-50' : ''}>
-                      <td className="p-1 text-slate-500">{r.line}</td>
+                    <tr key={r.line} className={r.error ? 'bg-danger-soft' : ''}>
+                      <td className="p-1 text-muted">{r.line}</td>
                       <td className="p-1">{r.rosterNo ?? ''}</td>
                       <td className="p-1 font-mono">{r.accountName}</td>
-                      <td className="p-1 text-red-700">{r.error}</td>
+                      <td className="p-1 text-danger">{r.error}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -156,14 +156,14 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 bg-white">
-        <div className="no-print flex flex-wrap items-center gap-2 border-b border-slate-100 p-3">
+      <section className="rounded-lg border border-line bg-surface">
+        <div className="no-print flex flex-wrap items-center gap-2 border-b border-line p-3">
           <h2 className="mr-auto font-semibold">{t('roster.title', { count: students.length })}</h2>
           {canEdit && students.length > 0 && <Button onClick={rotateAll}>{t('roster.rotateAll')}</Button>}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm" data-testid="roster-table">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="bg-surface-2 text-xs uppercase text-muted">
               <tr>
                 <th className="p-2">#</th>
                 <th className="p-2">{t('roster.accountName')}</th>
@@ -173,10 +173,10 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
             </thead>
             <tbody>
               {students.map((s) => (
-                <tr key={s.id} className="border-t border-slate-100">
+                <tr key={s.id} className="border-t border-line">
                   <td className="p-2">{s.rosterNo ?? ''}</td>
                   <td className="p-2">
-                    <Link to={`/classes/${cls.id}/students/${s.id}`} className="font-mono text-hra-700 hover:underline">
+                    <Link to={`/classes/${cls.id}/students/${s.id}`} className="font-mono text-primary hover:underline">
                       {s.accountName}
                     </Link>
                   </td>
@@ -202,7 +202,7 @@ export default function Roster({ cls, onChanged }: { cls: ClassDto; onChanged: (
               ))}
               {students.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="p-3 text-slate-500">
+                  <td colSpan={4} className="p-3 text-muted">
                     {t('roster.empty')}
                   </td>
                 </tr>

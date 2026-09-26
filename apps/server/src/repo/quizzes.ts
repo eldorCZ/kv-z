@@ -1,11 +1,12 @@
 import { and, asc, desc, eq, inArray, like, sql } from 'drizzle-orm';
-import type { Question, Quiz, QuizSettings } from '@kvizhub/core';
+import type { Question, Quiz, QuizSettings, QuizTheme } from '@kvizhub/core';
 import type { Db } from '../db/index.js';
 import { questions, quizzes } from '../db/schema.js';
 import { newId } from '../util.js';
 
 export type StoredQuestion = Question & { id: string; position: number; approvedAt: number | null };
-export type StoredQuiz = Omit<Quiz, 'questions'> & {
+export type StoredQuiz = Omit<Quiz, 'questions' | 'theme'> & {
+  theme?: QuizTheme;
   id: string;
   teacherId: string;
   createdAt: number;
@@ -74,6 +75,7 @@ function rowToQuiz(r: QuizRow, qs: StoredQuestion[]): StoredQuiz {
     gradeLevel: r.gradeLevel,
     sourceFiles: JSON.parse(r.sourceFilesJson),
     ...(r.tagsJson ? { tags: JSON.parse(r.tagsJson) as string[] } : {}),
+    ...(r.themeJson ? { theme: JSON.parse(r.themeJson) as QuizTheme } : {}),
     settings: JSON.parse(r.settingsJson),
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
@@ -84,6 +86,7 @@ function rowToQuiz(r: QuizRow, qs: StoredQuestion[]): StoredQuiz {
 export interface QuizListItem {
   id: string;
   title: string;
+  theme: QuizTheme | null;
   questionCount: number;
   flaggedCount: number;
   createdAt: number;
@@ -93,7 +96,8 @@ export interface QuizListItem {
 export class QuizRepo {
   constructor(private readonly db: Db) {}
 
-  create(teacherId: string, quiz: Quiz, idem?: { key: string; hash: string }): StoredQuiz {
+  /** `quiz.theme` must already be normalised (normalizeTheme). */
+  create(teacherId: string, quiz: Omit<Quiz, 'theme'> & { theme?: QuizTheme | null }, idem?: { key: string; hash: string }): StoredQuiz {
     const now = Date.now();
     const id = newId();
     this.db.transaction((tx) => {
@@ -107,6 +111,7 @@ export class QuizRepo {
           sourceFilesJson: JSON.stringify(quiz.sourceFiles),
           tagsJson: quiz.tags?.length ? JSON.stringify(quiz.tags) : null,
           settingsJson: JSON.stringify(quiz.settings),
+          themeJson: quiz.theme ? JSON.stringify(quiz.theme) : null,
           idempotencyKey: idem?.key ?? null,
           requestHash: idem?.hash ?? null,
           createdAt: now,
@@ -147,27 +152,31 @@ export class QuizRepo {
     const where = search
       ? and(eq(quizzes.teacherId, teacherId), like(quizzes.title, `%${search.replace(/[%_\\]/g, (c) => `\\${c}`)}%`))
       : eq(quizzes.teacherId, teacherId);
-    return this.db
+    const rows = this.db
       .select({
         id: quizzes.id,
         title: quizzes.title,
+        themeJson: quizzes.themeJson,
         createdAt: quizzes.createdAt,
         updatedAt: quizzes.updatedAt,
-        questionCount: sql<number>`(select count(*) from questions q where q.quiz_id = ${quizzes.id})`,
-        flaggedCount: sql<number>`(select count(*) from questions q where q.quiz_id = ${quizzes.id} and q.qa_status = 'flagged')`,
+        // the outer column must be qualified: an unqualified "id" would resolve to q.id inside the subquery
+        questionCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id")`,
+        flaggedCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id" and q.qa_status = 'flagged')`,
       })
       .from(quizzes)
       .where(where)
       .orderBy(desc(quizzes.updatedAt))
       .all();
+    return rows.map(({ themeJson, ...r }) => ({ ...r, theme: themeJson ? (JSON.parse(themeJson) as QuizTheme) : null }));
   }
 
-  updateMeta(id: string, patch: { title?: string; language?: string; gradeLevel?: string; settings?: QuizSettings }) {
+  updateMeta(id: string, patch: { title?: string; language?: string; gradeLevel?: string; settings?: QuizSettings; theme?: QuizTheme | null }) {
     const set: Partial<QuizRow> = { updatedAt: Date.now() };
     if (patch.title !== undefined) set.title = patch.title;
     if (patch.language !== undefined) set.language = patch.language;
     if (patch.gradeLevel !== undefined) set.gradeLevel = patch.gradeLevel;
     if (patch.settings !== undefined) set.settingsJson = JSON.stringify(patch.settings);
+    if (patch.theme !== undefined) set.themeJson = patch.theme ? JSON.stringify(patch.theme) : null;
     this.db.update(quizzes).set(set).where(eq(quizzes.id, id)).run();
   }
 

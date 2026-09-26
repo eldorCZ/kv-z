@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { EmptyState } from '../ui/Feedback';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { api, ApiError } from '../api';
@@ -18,6 +20,7 @@ interface Card {
 /** C8.1 */
 export default function ClassesPage() {
   const { t } = useTranslation();
+  useTitle(t('nav.classes'));
   const nav = useNavigate();
   const [list, setList] = useState<Card[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -45,11 +48,11 @@ export default function ClassesPage() {
   };
 
   const card = (c: Card) => (
-    <li key={c.id} className="rounded-lg border border-slate-200 bg-white p-4" data-testid="class-card">
-      <Link to={`/classes/${c.id}`} className="text-lg font-semibold text-hra-700 hover:underline">
+    <li key={c.id} className="rounded-lg border border-line bg-surface p-4" data-testid="class-card">
+      <Link to={`/classes/${c.id}`} className="text-lg font-semibold text-primary hover:underline">
         {c.name}
       </Link>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         {c.schoolYear}
         {c.subject ? ` · ${c.subject}` : ''} · {t('classes.students', { count: c.activeStudents })}
       </p>
@@ -71,10 +74,10 @@ export default function ClassesPage() {
           + {t('classes.new')}
         </Button>
       </div>
-      <p className="max-w-3xl text-sm text-slate-600">{t('classes.intro')}</p>
+      <p className="max-w-3xl text-sm text-muted">{t('classes.intro')}</p>
       <ErrorBox error={error} onClose={() => setError(null)} />
       {form && (
-        <form onSubmit={create} className="flex flex-wrap items-end gap-2 rounded-lg border border-slate-200 bg-white p-4">
+        <form onSubmit={create} className="flex flex-wrap items-end gap-2 rounded-lg border border-line bg-surface p-4">
           <Field label={t('classes.name')} hint={t('classes.nameHint')}>
             <input className={inputCls} required maxLength={40} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} data-testid="class-name" />
           </Field>
@@ -87,7 +90,7 @@ export default function ClassesPage() {
         </form>
       )}
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{active.map(card)}</ul>
-      {list?.length === 0 && <p className="text-slate-500">{t('classes.none')}</p>}
+      {list?.length === 0 && <EmptyState title={t('classes.none')} />}
       {archived.length > 0 && (
         <>
           <h2 className="pt-4 text-lg font-semibold">

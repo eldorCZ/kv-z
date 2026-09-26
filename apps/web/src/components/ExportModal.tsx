@@ -42,7 +42,7 @@ export default function ExportModal({ quiz, onClose }: { quiz: QuizDto; onClose:
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('export.format')}>
           {(['kahoot', 'gift', 'json'] as const).map((f) => (
-            <label key={f} className={`cursor-pointer rounded-md border px-3 py-2 text-sm ${format === f ? 'border-hra-600 bg-hra-50' : 'border-slate-300'}`}>
+            <label key={f} className={`cursor-pointer rounded-md border px-3 py-2 text-sm ${format === f ? 'border-primary bg-primary-soft' : 'border-line-strong'}`}>
               <input type="radio" className="sr-only" name="format" checked={format === f} onChange={() => setFormat(f)} />
               {t(`export.formats.${f}`)}
             </label>
@@ -54,26 +54,26 @@ export default function ExportModal({ quiz, onClose }: { quiz: QuizDto; onClose:
             {t('export.includeFlagged')}
           </label>
         ) : (
-          <p className="text-sm text-slate-600">{t('export.jsonInfo')}</p>
+          <p className="text-sm text-muted">{t('export.jsonInfo')}</p>
         )}
         {summary && (
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm" data-testid="export-summary">
+          <div className="rounded-md border border-line bg-surface-2 p-3 text-sm" data-testid="export-summary">
             <p className="font-medium">{summary.message}</p>
             {Object.entries(summary.skippedNumbers)
               .filter(([, v]) => v.length)
               .map(([k, v]) => (
-                <p key={k} className="text-slate-600">
+                <p key={k} className="text-muted">
                   {t(`export.reasons.${k}`)}: {v.map((n) => `#${n}`).join(', ')}
                 </p>
               ))}
             {summary.tooLong.length > 0 && (
-              <ul className="mt-2 list-disc pl-5 text-amber-900">
+              <ul className="mt-2 list-disc pl-5 text-warning">
                 {summary.tooLong.map((x, i) => (
                   <li key={i}>{t('export.tooLongItem', { number: x.number, field: t(`export.fields.${x.field}`), length: x.length, limit: x.limit })}</li>
                 ))}
               </ul>
             )}
-            {format === 'kahoot' && <p className="mt-2 text-xs text-slate-500">{t('export.kahootNote')}</p>}
+            {format === 'kahoot' && <p className="mt-2 text-xs text-muted">{t('export.kahootNote')}</p>}
           </div>
         )}
         <ErrorBox error={error} />

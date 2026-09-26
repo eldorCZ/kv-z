@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Send a checked quiz to KvizHub, create games and read results.
+"""Send a checked quiz to Lore, create games and read results.
 
 Usage:
   python post_quiz.py quiz.checked.json [--dry-run] [--params "15 otázek, 8. ročník"] [--new-key]
@@ -12,6 +12,9 @@ Usage:
   python post_quiz.py --makeup <classId> <activityId>             (makeup test for absent students)
   python post_quiz.py --class-summary <classId> [--from 2026-09-01] [--to 2027-01-31]   (aggregates only)
   python post_quiz.py --topics                                    (topics used so far)
+  python post_quiz.py --themes                                    (built-in background motives)
+  --motive <id> / --accent <id> with a quiz file or --game: look of the quiz or of one game.
+      ONLY when the teacher asked for a look; otherwise the teacher's default applies.
 
 Address and token come ONLY from the environment: KVIZHUB_URL, KVIZHUB_TOKEN. The token is never printed.
 Exit codes: 0 success (JSON on stdout), 2 validation errors (422 list on stdout) or refused input, 1 other error (Czech message on stderr).
@@ -45,9 +48,9 @@ def env_config() -> tuple[str, str]:
     url = os.environ.get("KVIZHUB_URL", "").strip().rstrip("/")
     token = os.environ.get("KVIZHUB_TOKEN", "").strip()
     if not url:
-        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_URL (adresa KvizHubu, např. http://127.0.0.1:3000).")
+        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_URL (adresa aplikace Lore, např. http://127.0.0.1:3000).")
     if not token:
-        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_TOKEN (API token vytvořený v KvizHubu v Nastavení → API tokeny).")
+        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_TOKEN (API token vytvořený v aplikaci Lore v Nastavení → API tokeny).")
     return url, token
 
 
@@ -87,14 +90,14 @@ def request(method: str, path: str, body: object | None = None, headers: dict | 
             return e.code, dict(e.headers), payload
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
             reason = getattr(e, "reason", e)
-            last = ApiFailure(redact(f"Aplikace KvizHub neodpovídá ({reason}).", token))
+            last = ApiFailure(redact(f"Aplikace Lore neodpovídá ({reason}).", token))
             continue
     assert last is not None
     if last.status == 429:
-        raise ApiFailure("Příliš mnoho požadavků na KvizHub (429). Zkuste to znovu za minutu.", 429, last.body)
+        raise ApiFailure("Příliš mnoho požadavků na aplikaci Lore (429). Zkuste to znovu za minutu.", 429, last.body)
     if last.status >= 500:
         msg = (last.body or {}).get("error") if isinstance(last.body, dict) else None
-        raise ApiFailure(f"KvizHub vrátil chybu serveru {last.status}{f': {msg}' if msg else ''}. Zkuste to znovu za chvíli.", last.status, last.body)
+        raise ApiFailure(f"Aplikace Lore vrátila chybu serveru {last.status}{f': {msg}' if msg else ''}. Zkuste to znovu za chvíli.", last.status, last.body)
     raise ApiFailure(f"{last} Zkontrolujte, že aplikace běží a KVIZHUB_URL je správně. Zkusím to znovu za minutu.")
 
 
@@ -112,14 +115,22 @@ def idempotency_key(quiz: dict, params: str) -> str:
 
 def error_message(status: int, body: object) -> str:
     msg = body.get("error") if isinstance(body, dict) else None
-    return f"KvizHub vrátil {status}: {msg or 'neznámá chyba'}"
+    return f"Aplikace Lore vrátila {status}: {msg or 'neznámá chyba'}"
 
 
-def post_quiz(path: Path, dry_run: bool, params: str, new_key: bool) -> tuple[int, object]:
+def theme_of(motive: str | None, accent: str | None) -> dict | None:
+    theme = {k: v for k, v in (("motive", motive), ("accent", accent)) if v}
+    return theme or None
+
+
+def post_quiz(path: Path, dry_run: bool, params: str, new_key: bool, theme: dict | None = None) -> tuple[int, object]:
     try:
         quiz = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as e:
         raise ApiFailure(f"Soubor {path} nelze načíst jako JSON ({e}).") from e
+    if theme:
+        # the look only on the teacher's explicit wish (Dodatek 4, V7.4); unknown ids come back as warnings
+        quiz["theme"] = theme
     blocked = [
         i + 1
         for i, q in enumerate(quiz.get("questions", []))
@@ -144,10 +155,12 @@ def post_quiz(path: Path, dry_run: bool, params: str, new_key: bool) -> tuple[in
     return 0, body
 
 
-def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = None, klass: dict | None = None) -> tuple[int, object]:
+def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = None, klass: dict | None = None, theme: dict | None = None) -> tuple[int, object]:
     settings: dict = {"showLeaderboard": leaderboard}
     if mode == "test":
         settings = {"test": {k: v for k, v in (test or {}).items() if v is not None}}
+    if theme:
+        settings["theme"] = theme
     if klass:
         # class game (Dodatek 3): students log in with their personal code; audience is always the whole class
         settings |= {k: v for k, v in klass.items() if v is not None}
@@ -158,6 +171,8 @@ def create_game(quiz_id: str, mode: str, leaderboard: bool, test: dict | None = 
         raise ApiFailure(error_message(status, body), status, body)
     keys = ("gameId", "mode", "pin", "joinUrl", "qrUrl", "dashboardUrl", "hostUrl", "closesAt") if mode == "test" else ("gameId", "pin", "joinUrl", "hostUrl")
     out = {k: body[k] for k in keys if k in body} | {"questionCount": body.get("questionCount")}
+    if body.get("warnings"):
+        out["warnings"] = body["warnings"]
     if klass:
         out["classId"] = klass.get("classId")
     return 0, out
@@ -205,6 +220,13 @@ def class_summary(class_id: str, date_from: str | None, date_to: str | None) -> 
     }
 
 
+def themes() -> tuple[int, object]:
+    status, _h, body = request("GET", "/themes")
+    if status != 200:
+        raise ApiFailure(error_message(status, body), status, body)
+    return 0, {"themes": body or []}
+
+
 def topics() -> tuple[int, object]:
     status, _h, body = request("GET", "/topics")
     if status != 200:
@@ -244,7 +266,7 @@ def results(game_id: str) -> tuple[int, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Odeslání kvízu do KvizHubu, spuštění hry a výsledky.")
+    ap = argparse.ArgumentParser(description="Odeslání kvízu do aplikace Lore, spuštění hry a výsledky.")
     ap.add_argument("quiz", nargs="?", type=Path)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--params", default="", help="parametry zakázky (počet otázek, ročník…) do Idempotency-Key")
@@ -270,7 +292,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--from", dest="date_from", help="s --class-summary: od data (ISO)")
     ap.add_argument("--to", dest="date_to", help="s --class-summary: do data (ISO)")
     ap.add_argument("--topics", action="store_true", help="dosud použitá témata otázek")
+    ap.add_argument("--themes", action="store_true", help="vestavěné motivy pozadí")
+    ap.add_argument("--motive", help="s kvízem nebo --game: motiv pozadí (jen na přání učitele)")
+    ap.add_argument("--accent", help="s kvízem nebo --game: barva akcentu (jen na přání učitele)")
     args = ap.parse_args(argv)
+    if (args.motive or args.accent) and not (args.game or args.quiz):
+        ap.error("--motive a --accent patří ke kvízu nebo k --game")
     if (args.label or args.allow_guests or args.no_stats) and not args.class_id:
         ap.error("--label, --allow-guests a --no-stats patří k --class")
     if args.class_id and not args.game:
@@ -288,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
             klass = None
             if args.class_id:
                 klass = {"classId": args.class_id, "label": args.label, "allowGuests": True if args.allow_guests else None, "countInStats": False if args.no_stats else None}
-            code, out = create_game(args.game, mode, not args.no_leaderboard, test, klass)
+            code, out = create_game(args.game, mode, not args.no_leaderboard, test, klass, theme_of(args.motive, args.accent))
         elif args.classes:
             code, out = list_classes()
         elif args.makeup:
@@ -297,13 +324,15 @@ def main(argv: list[str] | None = None) -> int:
             code, out = class_summary(args.class_summary, args.date_from, args.date_to)
         elif args.topics:
             code, out = topics()
+        elif args.themes:
+            code, out = themes()
         elif args.results:
             code, out = results(args.results)
         elif args.quiz:
-            code, out = post_quiz(args.quiz, args.dry_run, args.params, args.new_key)
+            code, out = post_quiz(args.quiz, args.dry_run, args.params, args.new_key, theme_of(args.motive, args.accent))
         else:
             ap.print_usage(sys.stderr)
-            print("Zadejte soubor s kvízem, --game <quizId>, --results <gameId>, --classes, --class-summary <classId>, --makeup <classId> <activityId> nebo --topics.", file=sys.stderr)
+            print("Zadejte soubor s kvízem, --game <quizId>, --results <gameId>, --classes, --class-summary <classId>, --makeup <classId> <activityId> --topics nebo --themes.", file=sys.stderr)
             return 1
     except ApiFailure as e:
         print(redact(str(e), token), file=sys.stderr)

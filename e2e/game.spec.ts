@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { submitAuth } from './helpers';
 
 const quiz = {
   schemaVersion: 1,
@@ -55,8 +56,7 @@ test('teacher flow + live game with 3 players', async ({ page, browser, request 
   await page.getByRole('button', { name: /Zaregistrujte se/ }).click();
   await page.getByLabel('E-mail').fill(`ucitel${Date.now()}@skola.cz`);
   await page.getByLabel('Heslo').fill('bezpecne-heslo-123');
-  await page.getByRole('button', { name: 'Vytvořit účet' }).click();
-  await expect(page.getByRole('heading', { name: 'Moje kvízy' })).toBeVisible();
+  await submitAuth(page, 'Vytvořit účet');
 
   // ---------- creates an API token ----------
   await page.getByRole('link', { name: 'API tokeny' }).click();

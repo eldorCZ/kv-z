@@ -31,7 +31,7 @@ export function buildOpenApi(publicUrl: string) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'KvizHub API',
+      title: 'Lore API',
       version: '1.0.0',
       description: 'API pro vkládání kvízů agentem a spouštění her. Autentizace: Authorization: Bearer <token>. Chyby validace vrací 422 {errors:[{path,code,message}]} s českými zprávami.',
     },
@@ -52,7 +52,8 @@ export function buildOpenApi(publicUrl: string) {
       '/quizzes': {
         get: { summary: 'Seznam kvízů (quizzes:read)', responses: { 200: { description: 'OK' }, ...std } },
         post: {
-          summary: 'Vložit kvíz (quizzes:write)',
+          summary:
+            'Vložit kvíz (quizzes:write). Volitelný vzhled "theme": {"motive", "accent"} (id z GET /themes a akcenty fialova, modra, azurova, zelena, jantarova, koralova, ruzova, grafitova). Neznámé id se ignoruje a odpověď obsahuje "warnings" (nikdy 422); vlastní obrázek (imageId) přes API nastavit nelze. Bez "theme" dostane kvíz výchozí vzhled učitele.',
           parameters: [
             { name: 'dry_run', in: 'query', schema: { type: 'string', enum: ['1'] }, description: 'Jen validace, nic se neuloží (200 {valid, stats}).' },
             { name: 'Idempotency-Key', in: 'header', schema: { type: 'string' }, description: 'Doporučeno. Stejný klíč + obsah vrátí původní odpověď, jiný obsah 409.' },
@@ -99,7 +100,7 @@ export function buildOpenApi(publicUrl: string) {
       },
       '/quizzes/{id}/games': {
         post: {
-          summary: 'Vytvořit živou hru (mode "live") nebo test (mode "test", nastavení v settings.test) (games:write). Třídní hra: settings.classId (+ classes:read), label, allowGuests, countInStats; audience je vždy celá třída.',
+          summary: 'Vytvořit živou hru (mode "live") nebo test (mode "test", nastavení v settings.test) (games:write). Třídní hra: settings.classId (+ classes:read), label, allowGuests, countInStats; audience je vždy celá třída. settings.theme {motive, accent} změní vzhled jen této hry; vzhled se při vytvoření hry zmrazí.',
           parameters: [idParam('id')],
           requestBody: { ...json({ $ref: '#/components/schemas/CreateGame' }) },
           responses: {
@@ -117,6 +118,18 @@ export function buildOpenApi(publicUrl: string) {
       '/games/{id}': { get: { summary: 'Stav hry (games:read). Test: {mode:"test", status, counts:{joined, notStarted, inProgress, submitted}, closesAt}', parameters: [idParam('id')], responses: { 200: { description: '{status, playerCount, currentQuestion}' }, ...std } } },
       '/games/{id}/results': {
         get: { summary: 'Výsledky hry (games:read)', parameters: [idParam('id')], responses: { 200: { description: 'Živá hra: {ranking:[{nickname, score}], perQuestion:[{questionId, successRate, avgTimeMs}]}. Test: {mode:"test", summary:{students, submitted, avgPercent, medianPercent}, students:[{student, percent, status}], perQuestion}. Jména žáků jen s oprávněním results:pii, jinak „Žák N“. U třídní hry (živé i testu) platí totéž: bez results:pii „Žák N“, s ním příjmení a jméno.' }, ...std } },
+      },
+      '/themes': {
+        get: {
+          summary: 'Vestavěné motivy pozadí (quizzes:read). Agent motiv volí jen na výslovné přání učitele.',
+          responses: {
+            200: {
+              description: 'Pole motivů',
+              ...json({ type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' }, category: { type: 'string' }, calm: { type: 'boolean', description: 'vhodný pro testy' } } } }),
+            },
+            ...std,
+          },
+        },
       },
       '/topics': { get: { summary: 'Dosud použitá témata otázek učitele, pro jednotné pojmenování (quizzes:read). {topics: string[]}', responses: { 200: { description: 'OK' }, ...std } } },
       '/classes': {

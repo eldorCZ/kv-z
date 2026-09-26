@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export interface Config {
   publicUrl: string;
@@ -13,6 +13,10 @@ export interface Config {
   /** leave guard: missing heartbeats longer than this are stored as unconfirmed gaps (G4.4) */
   heartbeatGapSec: number;
   // Dodatek 3 (C9.4): classes are enabled only with a CODE_PEPPER of >= 32 characters
+  /** product name shown in the UI (Dodatek 4, V2.1) */
+  appName: string;
+  /** development page /_design with tokens, components and motives (off in production) */
+  designPage: boolean;
   codePepper: string;
   classRetentionMonths: number;
   accessLogRetentionMonths: number;
@@ -36,6 +40,9 @@ export interface Config {
   authProvider: 'local' | 'oidc';
   allowRegistration: boolean;
   seedSampleQuiz: boolean;
+  /** custom background images (Dodatek 4, V8); default next to the database */
+  mediaDir: string;
+  themeUploads: boolean;
 }
 
 const repoRoot = join(import.meta.dirname, '../../..');
@@ -60,6 +67,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     retentionDays: int(env.RETENTION_DAYS, 365),
     testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
     heartbeatGapSec: int(env.HEARTBEAT_GAP_SEC, 25),
+    appName: (env.APP_NAME ?? 'Lore').trim().slice(0, 40) || 'Lore',
+    designPage: env.DESIGN_PAGE === '1' || env.NODE_ENV === 'development',
     codePepper: env.CODE_PEPPER ?? '',
     classRetentionMonths: int(env.CLASS_RETENTION_MONTHS, 12),
     accessLogRetentionMonths: int(env.ACCESS_LOG_RETENTION_MONTHS, 24),
@@ -81,8 +90,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     authProvider: env.AUTH_PROVIDER === 'oidc' ? 'oidc' : 'local',
     allowRegistration: (env.ALLOW_REGISTRATION ?? '1') !== '0',
     seedSampleQuiz: (env.SEED_SAMPLE_QUIZ ?? '1') !== '0',
+    mediaDir: env.MEDIA_DIR ?? '',
+    themeUploads: (env.THEME_UPLOADS ?? '1') !== '0',
     ...overrides,
   };
+  cfg.mediaDir ||= join(dirname(cfg.dbPath), 'media');
   return cfg;
 }
 

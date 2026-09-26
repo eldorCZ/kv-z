@@ -4,10 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f5ff" />
+    <script src="/theme-init.js"></script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>KvizHub</title>
+    <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="application-name" content="Lore" />
+    <meta name="description" content="Kvízy a testy pro třídu." />
+    <!-- link previews (Teams, chats): always generic, never a PIN, quiz or class; the server fills in PUBLIC_URL -->
+    <meta property="og:title" content="Lore" />
+    <meta property="og:description" content="Kvízy a testy pro třídu." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="%PUBLIC_URL%/icons/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preload" href="/fonts/nunito-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/nunito-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
+    <title>Lore</title>
   </head>
-  <body class="bg-slate-50 text-slate-900">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

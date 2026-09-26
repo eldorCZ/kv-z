@@ -15,8 +15,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
       - run: pnpm build
+      - name: Performance budgets (Dodatek 4, V11.2)
+        run: pnpm check:budgets
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - name: Lighthouse on student screens (Dodatek 4, V11.2)
+        run: pnpm check:lighthouse
   skill:
     runs-on: ubuntu-latest
     steps:
@@ -32,3 +36,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pip install -r agent-skill/kviz-z-materialu/requirements-dev.txt
       - run: cd agent-skill/kviz-z-materialu && python -m pytest -q
+      - name: Czech glyphs in self-hosted fonts (Dodatek 4, V4.1)
+        run: pip install fonttools brotli && pnpm check:fonts

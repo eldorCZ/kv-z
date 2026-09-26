@@ -36,16 +36,16 @@ export default function GuestsPanel({ gameId }: { gameId: string }) {
     }
   };
   return (
-    <section className="no-print rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm" data-testid="guests-panel">
+    <section className="no-print rounded-lg border border-warning-line bg-warning-soft p-3 text-sm" data-testid="guests-panel">
       <h2 className="font-semibold">{t('guests.title', { count: data.guests.length })}</h2>
-      <p className="text-xs text-amber-900">{t('guests.hint')}</p>
+      <p className="text-xs text-warning">{t('guests.hint')}</p>
       <ErrorBox error={error} onClose={() => setError(null)} />
       <ul className="mt-2 space-y-2">
         {data.guests.map((g) => (
           <li key={g.playerId} className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{g.nickname}</span>
             <span>→</span>
-            <select className="rounded-md border border-slate-300 bg-white px-2 py-1" value={pick[g.playerId] ?? ''} onChange={(e) => setPick({ ...pick, [g.playerId]: e.target.value })}>
+            <select className="rounded-md border border-line-strong bg-surface px-2 py-1" value={pick[g.playerId] ?? ''} onChange={(e) => setPick({ ...pick, [g.playerId]: e.target.value })}>
               <option value="">{t('guests.choose')}</option>
               {data.candidates.map((c) => (
                 <option key={c.studentId} value={c.studentId}>

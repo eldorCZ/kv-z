@@ -1,0 +1,164 @@
+/*
+ * Design tokens of Lore (Dodatek 4, V3). Single source of truth: components use only these
+ * variables (through the Tailwind names in index.css), never hard-coded colours.
+ * `pnpm check:contrast` parses this file – keep one declaration per line.
+ *
+ * data-theme="light|dark" and data-motion="full|reduced" are set on <html> by /theme-init.js before
+ * the first paint; data-mood="play|focus" is set on the root of a screen.
+ */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  /* surfaces */
+  --canvas: #f7f5ff;
+  --surface: #ffffff;
+  --surface-2: #efebff;
+  --surface-alpha: 0.94;
+  --fg: #1b1640;
+  --muted: #56517c;
+  --line: #ddd8f3;
+  --line-strong: #77719f;
+  /* brand */
+  --primary: #5b3df5;
+  --primary-hover: #4a2ee0;
+  --on-primary: #ffffff;
+  --primary-soft: #ece7ff;
+  --on-primary-soft: #3f23c9;
+  --primary-shadow: #3a22b8;
+  --accent: #ffb020;
+  --on-accent: #1b1640;
+  --accent-shadow: #c77c00;
+  /* states: *-soft is a background, the plain name is text/icon on surface and on its soft */
+  --success: #0b6b44;
+  --success-soft: #e1f6ec;
+  --on-success: #ffffff;
+  --success-strong: #11875a;
+  --warning: #8a4600;
+  --warning-soft: #fff3d6;
+  --warning-line: #c77c00;
+  --danger: #b4233a;
+  --danger-soft: #fde7ea;
+  --on-danger: #ffffff;
+  --info: #1d59b0;
+  --info-soft: #e5efff;
+  --focus: #c25e00;
+  --scrim: #ffffff;
+  /* answers: shape + letter + colour (V3.4) */
+  --answer-1: #d42a42;
+  --answer-2: #1f63d8;
+  --answer-3: #ffb020;
+  --answer-4: #0f7d51;
+  --answer-5: #b79cff;
+  --on-answer-1: #ffffff;
+  --on-answer-2: #ffffff;
+  --on-answer-3: #1b1640;
+  --on-answer-4: #ffffff;
+  --on-answer-5: #1b1640;
+  /* shape, space, motion */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 1px 2px rgb(27 22 64 / 0.06), 0 4px 16px rgb(27 22 64 / 0.06);
+  --shadow-pop: none;
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-slow: 360ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --z-header: 20;
+  --z-overlay: 40;
+  --z-dialog: 50;
+  --z-toast: 60;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #0f0b2a;
+  --surface: #1a1445;
+  --surface-2: #241c5c;
+  --surface-alpha: 0.94;
+  --fg: #f4f1ff;
+  --muted: #bab4e2;
+  --line: #342a78;
+  --line-strong: #8a81c8;
+  --primary: #8b7bff;
+  --primary-hover: #a193ff;
+  --on-primary: #0f0b2a;
+  --primary-soft: #2c2270;
+  --on-primary-soft: #d6cfff;
+  --primary-shadow: #5a48d6;
+  --accent: #ffc247;
+  --on-accent: #0f0b2a;
+  --accent-shadow: #c98a10;
+  --success: #5fe3a6;
+  --success-soft: #0e3a2b;
+  --on-success: #0f0b2a;
+  --success-strong: #2fbf7f;
+  --warning: #ffcb66;
+  --warning-soft: #3a2a08;
+  --warning-line: #d99a1c;
+  --danger: #ff8f9c;
+  --danger-soft: #401427;
+  --on-danger: #0f0b2a;
+  --info: #8fbcff;
+  --info-soft: #15284d;
+  --focus: #ffc247;
+  --scrim: #0f0b2a;
+  --answer-1: #d42a42;
+  --answer-2: #1f63d8;
+  --answer-3: #ffb020;
+  --answer-4: #0f7d51;
+  --answer-5: #b79cff;
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25);
+}
+
+/* playful mood (lobby, live game, podium): richer colours, rounder shapes, solid "button" shadow */
+[data-mood='play'] {
+  --canvas: #ece5ff;
+  --surface-2: #e7e0ff;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --shadow-pop: 0 5px 0 var(--primary-shadow);
+}
+[data-theme='dark'] [data-mood='play'],
+[data-theme='dark'][data-mood='play'] {
+  --canvas: #150e3d;
+  --surface-2: #1f1752;
+}
+
+/* a light preview inside a dark page (theme picker, "Očima žáka") keeps the light playful surfaces */
+[data-theme='dark'] [data-theme='light'][data-mood='play'],
+[data-theme='dark'] [data-theme='light'] [data-mood='play'] {
+  --canvas: #ece5ff;
+  --surface-2: #e7e0ff;
+}
+
+/* calm mood (test, results, classes, editor): flat cards, no decorative motion */
+[data-mood='focus'] {
+  --shadow-pop: none;
+  --surface-alpha: 1;
+}
+
+/* more contrast requested by the OS: stronger borders and opaque surfaces (V3.5) */
+@media (prefers-contrast: more) {
+  :root {
+    --line: #827cad;
+    --line-strong: #1b1640;
+    --muted: #2f2a58;
+    --surface-alpha: 1;
+  }
+  [data-theme='dark'] {
+    --line: #8a81c8;
+    --line-strong: #f4f1ff;
+    --muted: #e2ddff;
+    --surface-alpha: 1;
+  }
+}
+
+/* reduced motion (system or the "Omezit animace" preference) */
+[data-motion='reduced'] {
+  --motion-fast: 0ms;
+  --motion-base: 0ms;
+  --motion-slow: 0ms;
+}

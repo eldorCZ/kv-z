@@ -48,7 +48,7 @@ export function giftExport(quiz: ExportQuiz, opts: { includeFlagged?: boolean } 
   const skipped: Record<string, number[]> = { flagged: [], order: [] };
   const blocks: string[] = [
     `// ${comment(quiz.title)}`,
-    `// Exportováno z KvizHub, formát Moodle GIFT (UTF-8).`,
+    `// Exportováno z Lore, formát Moodle GIFT (UTF-8).`,
     '',
   ];
   quiz.questions.forEach((q, i) => {

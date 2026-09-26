@@ -103,9 +103,9 @@ export default function TestDashboard() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex-1">
-          <p className="text-sm text-slate-500">{t('dash.test')}</p>
+          <p className="text-sm text-muted">{t('dash.test')}</p>
           <h1 className="text-2xl font-bold">{d.title}</h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-muted">
             {running ? t('dash.running') : t('dash.finished')} · {d.closesAt && t('dash.closesAt', { date: formatDate(Date.parse(d.closesAt)) })}
             {d.settings.timeLimitMin ? ` · ${t('dash.limit', { min: d.settings.timeLimitMin })}` : ''}
           </p>
@@ -122,7 +122,7 @@ export default function TestDashboard() {
             {!!d.counts.locked && <Badge tone="flagged">🔒 {t('dash.countLocked', { count: d.counts.locked })}</Badge>}
           </div>
         </div>
-        {qr && running && <img src={qr} alt={t('game.qrAlt')} className="h-36 w-36 rounded border bg-white p-1" />}
+        {qr && running && <img src={qr} alt={t('game.qrAlt')} className="h-36 w-36 rounded border bg-surface p-1" />}
       </div>
       <div className="flex flex-wrap gap-2">
         {running && (
@@ -130,7 +130,7 @@ export default function TestDashboard() {
             {t('dash.end')}
           </Button>
         )}
-        <Link to={`/games/${id}`} className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm hover:bg-slate-100">
+        <Link to={`/games/${id}`} className="rounded-md border border-line-strong bg-surface px-3 py-2 text-sm hover:bg-surface-2">
           {t('dash.results')}
         </Link>
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => setError(e as ApiError))}>{t('results.csv')}</Button>
@@ -138,24 +138,24 @@ export default function TestDashboard() {
       {d.classGame && (
         <div className="space-y-2">
           {d.codeAlert && (
-            <p role="alert" className="rounded bg-amber-100 p-2 text-sm text-amber-900">
+            <p role="alert" className="rounded bg-warning-soft p-2 text-sm text-warning">
               ⚠ {t('host.codeAlert')}
             </p>
           )}
           {d.notJoined && d.notJoined.length > 0 && (
-            <p className="text-sm text-slate-600" data-testid="dash-not-joined">
+            <p className="text-sm text-muted" data-testid="dash-not-joined">
               <strong>{t('host.notJoined', { count: d.notJoined.length })}:</strong> {d.notJoined.map((x) => x.name).join(', ')}
             </p>
           )}
         </div>
       )}
-      {guard && guard.mode !== 'off' && <p className="text-xs text-slate-500">{t('dash.guardInfo', { mode: t(`guard.mode.${guard.mode}`), max: guard.maxLeaves })}</p>}
+      {guard && guard.mode !== 'off' && <p className="text-xs text-muted">{t('dash.guardInfo', { mode: t(`guard.mode.${guard.mode}`), max: guard.maxLeaves })}</p>}
       <ErrorBox error={error} onClose={() => setError(null)} />
       {d.classGame && <GuestsPanel gameId={id!} />}
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full text-left text-sm" data-testid="dash-table">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-surface-2 text-xs uppercase text-muted">
             <tr>
               <th className="p-2">{t('dash.student')}</th>
               <th className="p-2">{t('dash.status')}</th>
@@ -170,7 +170,7 @@ export default function TestDashboard() {
             {d.students.map((s) => {
               const warn = s.locked || s.overLimit;
               return (
-                <tr key={s.attemptId} className={`border-t border-slate-100 ${s.locked ? 'bg-red-50' : warn ? 'bg-amber-50' : ''}`} data-testid="dash-row" data-flagged={warn ? 'true' : 'false'}>
+                <tr key={s.attemptId} className={`border-t border-line ${s.locked ? 'bg-danger-soft' : warn ? 'bg-warning-soft' : ''}`} data-testid="dash-row" data-flagged={warn ? 'true' : 'false'}>
                   <td className="p-2 font-medium">
                     {s.locked && <span aria-label={t('dash.locked')}>🔒 </span>}
                     {!s.locked && s.overLimit && <span aria-label={t('dash.overLimit')}>⚠ </span>}
@@ -185,12 +185,12 @@ export default function TestDashboard() {
                   {guard && guard.mode !== 'off' && (
                     <td className="p-2 text-xs" data-testid="dash-left">
                       {s.guardExempt ? (
-                        <span className="text-slate-500">{t('dash.exempt')}</span>
+                        <span className="text-muted">{t('dash.exempt')}</span>
                       ) : (
                         <>
                           {t('dash.leftValue', { count: s.leaveTotal ?? 0, sec: s.awaySec ?? 0 })}
-                          {s.unconfirmedGap && <span className="ml-1 text-slate-500" title={t('dash.gapHint')}>· ⏸ {t('dash.gap')}</span>}
-                          {guard.requireFullscreen && s.fullscreenSupported === false && <span className="ml-1 text-slate-500">· {t('dash.noFullscreen')}</span>}
+                          {s.unconfirmedGap && <span className="ml-1 text-muted" title={t('dash.gapHint')}>· ⏸ {t('dash.gap')}</span>}
+                          {guard.requireFullscreen && s.fullscreenSupported === false && <span className="ml-1 text-muted">· {t('dash.noFullscreen')}</span>}
                         </>
                       )}
                     </td>
@@ -241,7 +241,7 @@ export default function TestDashboard() {
             })}
             {d.students.length === 0 && (
               <tr>
-                <td className="p-3 text-slate-500" colSpan={7}>
+                <td className="p-3 text-muted" colSpan={7}>
                   {t('dash.none')}
                 </td>
               </tr>
@@ -252,21 +252,21 @@ export default function TestDashboard() {
 
       {detail && (
         <Modal title={detail.student} onClose={() => setDetail(null)}>
-          <p className="mb-3 text-sm text-slate-600">
+          <p className="mb-3 text-sm text-muted">
             {t(`dash.st.${detail.status}`)}
             {detail.percent !== null && ` · ${detail.percent} %`}
             {detail.submittedAt && ` · ${formatDate(detail.submittedAt)}`}
           </p>
           <ol className="space-y-2 text-sm">
             {detail.questions.map((q) => (
-              <li key={q.number} className={`rounded border p-2 ${q.answer === null ? 'border-slate-200' : q.correct ? 'border-emerald-300 bg-emerald-50' : 'border-rose-300 bg-rose-50'}`}>
+              <li key={q.number} className={`rounded border p-2 ${q.answer === null ? 'border-line' : q.correct ? 'border-success bg-success-soft' : 'border-danger bg-danger-soft'}`}>
                 <p className="font-medium">
                   {q.number}. {q.prompt}
                 </p>
                 <p>
                   {q.answer === null ? t('test.noAnswer') : `${q.correct ? '✓' : q.fraction > 0 ? '½' : '✗'} ${q.answer}`}
                 </p>
-                {!q.correct && <p className="text-slate-600">{t('play.correctWas')}: {q.correctText.join(' / ')}</p>}
+                {!q.correct && <p className="text-muted">{t('play.correctWas')}: {q.correctText.join(' / ')}</p>}
               </li>
             ))}
           </ol>
@@ -274,11 +274,11 @@ export default function TestDashboard() {
             <section className="mt-4" data-testid="dash-timeline">
               <h3 className="mb-2 font-semibold">{t('dash.timeline')}</h3>
               {detail.events.length === 0 ? (
-                <p className="text-sm text-slate-500">{t('dash.noEvents')}</p>
+                <p className="text-sm text-muted">{t('dash.noEvents')}</p>
               ) : (
                 <ol className="space-y-1 text-sm">
                   {detail.events.map((e, i) => (
-                    <li key={i} className={e.type === 'gap' ? 'text-slate-500' : ''}>
+                    <li key={i} className={e.type === 'gap' ? 'text-muted' : ''}>
                       {mmss(Math.max(0, Math.round(e.offsetSec)))} –{' '}
                       {e.type === 'gap' ? t('dash.eventGap') : t(`guard.reason.${e.reason ?? 'hidden'}`)}
                       {e.durationSec !== null ? `, ${t('dash.duration', { sec: e.durationSec })}` : `, ${t('dash.stillAway')}`}

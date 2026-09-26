@@ -1,4 +1,4 @@
-"""End-to-end: extract -> validate -> post against the real KvizHub application (part A).
+"""End-to-end: extract -> validate -> post against the real Lore application (part A).
 
 The language model steps (writing questions, blind solving) are replaced by fixtures/quiz.json.
 Skipped when Node.js / the monorepo dependencies are not available.
@@ -59,7 +59,7 @@ def app(tmp_path_factory):
             time.sleep(0.2)
     else:
         proc.kill()
-        pytest.fail("KvizHub se nespustil: " + proc.stderr.read().decode()[-2000:])
+        pytest.fail("Lore se nespustil: " + proc.stderr.read().decode()[-2000:])
     # teacher + API token through the UI endpoints
     req = urllib.request.Request(f"{url}/api/auth/register", data=json.dumps({"email": "agent-test@skola.cz", "password": "heslo-pro-test-123"}).encode(), headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req) as r:

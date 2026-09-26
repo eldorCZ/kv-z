@@ -21,6 +21,8 @@ import { EvidenceService } from './classes/evidence.js';
 import { ClassOverview } from './classes/overview.js';
 import { ClassGameAdmin, ClassGames } from './classes/class-games.js';
 import { rosterRoutes } from './routes/roster.js';
+import { mediaRoutes, themeImageRoutes } from './routes/media.js';
+import { ThemeImages } from './media.js';
 import { classRoutes } from './routes/classes.js';
 import { TestService } from './test-mode/service.js';
 import { LeaveGuardService } from './test-mode/leave-guard.js';
@@ -72,6 +74,7 @@ export interface Services {
   classGames: ClassGames;
   classAdmin: ClassGameAdmin;
   testService: TestService;
+  themeImages: ThemeImages;
   now: () => number;
 }
 
@@ -180,6 +183,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
     classGames,
     classAdmin: new ClassGameAdmin(classGames, classes, evidence, gameRepo, quizzes, () => testService, cfg, now),
     testService,
+    themeImages: new ThemeImages(db, cfg.mediaDir),
     now,
     kahootTemplate: () => {
       if (!templateCache) {
@@ -280,7 +284,8 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
       if (err.status === 422 && errors) return reply.code(422).send({ errors });
       return sendError(reply, err.status, err.message, err.code);
     }
-    if (err.code === 'FST_ERR_CTP_BODY_TOO_LARGE') return sendError(reply, 413, 'Tělo požadavku je příliš velké (max. 2 MB).', 'too_large');
+    if (err.code === 'FST_ERR_CTP_BODY_TOO_LARGE')
+      return sendError(reply, 413, req.url.startsWith('/api/theme-images') ? 'Obrázek je příliš velký (max. 15 MB).' : 'Tělo požadavku je příliš velké (max. 2 MB).', 'too_large');
     if (err.code === 'FST_ERR_CTP_INVALID_MEDIA_TYPE') return sendError(reply, 415, 'Pošlete data jako JSON (Content-Type: application/json).', 'unsupported_media_type');
     if (err.statusCode === 400 || err.code === 'FST_ERR_CTP_EMPTY_JSON_BODY') {
       return sendError(reply, 400, 'Tělo požadavku není platný JSON.', 'invalid_json');
@@ -299,6 +304,8 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   await app.register(classRoutes(services), { prefix: '/api/v1' });
   await app.register(playTestRoutes(services), { prefix: '/play/test' });
   await app.register(rosterRoutes(services), { prefix: '/play/roster' });
+  if (cfg.themeUploads) await app.register(themeImageRoutes(services), { prefix: '/api/theme-images' });
+  await app.register(mediaRoutes(services), { prefix: '/media' });
 
   // D5.6: expire attempts after their deadline and close tests (every 5 s)
   const testTimer = setInterval(() => {
@@ -313,11 +320,42 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   // ---------- static web app (SPA) ----------
   const indexHtml = join(cfg.webDist, 'index.html');
   if (existsSync(indexHtml)) {
-    await app.register(fastifyStatic, { root: cfg.webDist, wildcard: false, index: false, maxAge: '1h' });
+    await app.register(fastifyStatic, {
+      root: cfg.webDist,
+      wildcard: false,
+      index: false,
+      maxAge: '1h',
+      // .br/.gz written by apps/web/precompress.mjs (V11.2)
+      preCompressed: true,
+      // index.html is a template (PUBLIC_URL, product name): only through the SPA handler below
+      allowedPath: (path) => !/^\/index\.html/.test(path),
+      // hashed build files never change: cache them for a year
+      setHeaders: (res, path) => {
+        if (/[\\/]assets[\\/]/.test(path)) res.header('cache-control', 'public, max-age=31536000, immutable');
+      },
+    });
   }
+  // browsers ask for /favicon.ico regardless of <link rel=icon>: answer with the 32 px PNG (Dodatek 4B, L3.2)
+  const faviconPng = join(cfg.webDist, 'icons/favicon-32.png');
+  app.get('/favicon.ico', { config: { public: true }, logLevel: 'warn' }, async (_req, reply) => {
+    if (!existsSync(faviconPng)) return sendError(reply, 404, 'Nenalezeno.', 'not_found');
+    return reply.type('image/png').header('cache-control', 'public, max-age=86400').send(readFileSync(faviconPng));
+  });
+
+  let indexTemplate: string | null = null;
+  const escapeAttr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  /** index.html with the absolute link-preview image and the configured product name (generic, no game data). */
+  const renderIndex = () => {
+    indexTemplate ??= readFileSync(indexHtml, 'utf8');
+    const name = escapeAttr(services.cfg.appName);
+    return indexTemplate
+      .replaceAll('%PUBLIC_URL%', escapeAttr(services.cfg.publicUrl))
+      .replace('<title>Lore</title>', `<title>${name}</title>`)
+      .replaceAll('content="Lore"', `content="${name}"`);
+  };
   app.setNotFoundHandler((req, reply) => {
-    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/play/roster/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
-      return reply.type('text/html').header('cache-control', 'no-cache').send(readFileSync(indexHtml));
+    if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/media/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/play/roster/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
+      return reply.type('text/html').header('cache-control', 'no-cache').send(renderIndex());
     }
     return sendError(reply, 404, 'Nenalezeno.', 'not_found');
   });

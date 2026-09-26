@@ -5,6 +5,11 @@ import { Link } from 'react-router';
 import { api, ApiError } from '../api';
 import type { QuizDto } from '../pages/QuizReview';
 import { Button, ErrorBox, Field, inputCls, Modal } from './ui';
+import { ClipboardList, Palette, Users } from 'lucide-react';
+import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, getMotive } from '@kvizhub/core/client';
+import { lookName, motiveThumb, ThemePicker, type Look } from './ThemePicker';
+import { usePrefs } from '../theme/prefs';
+import { useToast } from '../ui/Toast';
 
 interface Created {
   gameId: string;
@@ -25,9 +30,19 @@ function localInput(ms: number) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClose: () => void }) {
+export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: QuizDto; onClose: () => void; onQuizTheme?: (theme: Look) => void }) {
   const { t } = useTranslation();
+  const { theme: scheme } = usePrefs();
+  const toast = useToast();
   const [mode, setMode] = useState<'live' | 'test'>('live');
+  // look of this game only (V7.2); undefined = the quiz's look
+  const [gameLook, setGameLook] = useState<Look | undefined>(undefined);
+  const [quizLook, setQuizLook] = useState<Look>(quiz.theme ?? null);
+  const [picking, setPicking] = useState(false);
+  const look = gameLook === undefined ? quizLook : gameLook;
+  const lookMotive = getMotive(look?.motive)?.id ?? (mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE);
+  // "Lore default for this game only" still has to override a quiz look: send the default motive explicitly
+  const themeSetting = gameLook === undefined ? {} : { theme: gameLook ?? { motive: mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE } };
   const [settings, setSettings] = useState({
     shuffleQuestions: quiz.settings.shuffleQuestions,
     shuffleOptions: quiz.settings.shuffleOptions,
@@ -75,11 +90,12 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     try {
       const body =
         mode === 'live'
-          ? { mode, settings: { ...settings, ...classSettings } }
+          ? { mode, settings: { ...settings, ...classSettings, ...themeSetting } }
           : {
               mode,
               settings: {
                 ...classSettings,
+                ...themeSetting,
                 shuffleQuestions: settings.shuffleQuestions,
                 shuffleOptions: settings.shuffleOptions,
                 partialMulti: settings.partialMulti,
@@ -116,18 +132,64 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
     <Modal title={t('game.startTitle')} onClose={onClose}>
       {!created ? (
         <div className="space-y-3">
-          <div className="flex gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
-            {(['live', 'test'] as const).map((m) => (
-              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-hra-600 bg-hra-50' : 'border-slate-300'}`}>
-                <input type="radio" className="sr-only" name="mode" checked={mode === m} onChange={() => setMode(m)} data-testid={`mode-${m}`} />
-                <span className="block font-semibold">{t(`game.modes.${m}`)}</span>
-                <span className="text-slate-600">{t(`game.modesHint.${m}`)}</span>
-              </label>
-            ))}
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
+            {(['live', 'test'] as const).map((m) => {
+              const Icon = m === 'live' ? Users : ClipboardList;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m}
+                  onClick={() => setMode(m)}
+                  data-testid={`mode-${m}`}
+                  className={`flex min-h-20 items-start gap-3 rounded-lg border-2 p-3 text-left text-sm transition-colors ${mode === m ? 'border-primary bg-primary-soft text-on-primary-soft' : 'border-line bg-surface text-fg hover:bg-surface-2'}`}
+                >
+                  <Icon className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+                  <span>
+                    <span className="block text-base font-bold">{t(`game.modes.${m}`)}</span>
+                    <span className={mode === m ? '' : 'text-muted'}>{t(`game.modesHint.${m}`)}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          {quiz.stats.flagged > 0 && <p className="rounded bg-amber-50 p-2 text-sm text-amber-900">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
+          <div className="flex items-center gap-3 rounded-md border border-line p-2" data-testid="game-look-row">
+            <img src={motiveThumb(lookMotive, scheme)} alt="" className="h-12 w-20 shrink-0 rounded-sm object-cover" />
+            <span className="min-w-0 flex-1 text-sm">
+              <span className="block font-semibold">{t('theme.gameLook')}</span>
+              <span className="text-muted" data-testid="game-look-name">
+                {lookName(look, t)} · {gameLook === undefined ? t('theme.fromQuiz') : t('theme.onlyThisGame')}
+              </span>
+            </span>
+            <Button size="sm" icon={<Palette aria-hidden="true" className="h-4 w-4" />} onClick={() => setPicking(true)} data-testid="game-look">
+              {t('theme.change')}
+            </Button>
+          </div>
+          {picking && (
+            <ThemePicker
+              value={look}
+              testMode={mode === 'test'}
+              onClose={() => setPicking(false)}
+              actions={[
+                { id: 'quiz', label: t('theme.saveQuiz'), testId: 'theme-save-quiz' },
+                { id: 'game', label: t('theme.applyGame'), primary: true, testId: 'theme-apply-game' },
+              ]}
+              onAction={async (action, chosen) => {
+                if (action === 'quiz') {
+                  await api('PATCH', `/api/v1/quizzes/${quiz.id}`, { theme: chosen });
+                  setQuizLook(chosen);
+                  setGameLook(undefined);
+                  onQuizTheme?.(chosen);
+                  toast(t('theme.saved'));
+                } else setGameLook(chosen);
+                setPicking(false);
+              }}
+            />
+          )}
+          {quiz.stats.flagged > 0 && <p className="rounded bg-warning-soft p-2 text-sm text-warning">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
           {classes.length > 0 && (
-            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="class-settings">
+            <fieldset className="space-y-2 rounded-md border border-line p-3" data-testid="class-settings">
               <Field label={t('game.class.label')}>
                 <select className={inputCls} value={cls.classId} onChange={(e) => setCls({ ...cls, classId: e.target.value })} data-testid="game-class">
                   <option value="">{t('game.class.none')}</option>
@@ -140,7 +202,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
               </Field>
               {cls.classId && (
                 <>
-                  <p className="rounded bg-sky-50 p-2 text-sm text-sky-900">{t('game.class.notice', { name: className })}</p>
+                  <p className="rounded bg-info-soft p-2 text-sm text-info">{t('game.class.notice', { name: className })}</p>
                   <Field label={t('game.class.recordLabel')}>
                     <input className={inputCls} maxLength={60} value={cls.label} onChange={(e) => setCls({ ...cls, label: e.target.value })} data-testid="game-label" />
                   </Field>
@@ -211,9 +273,9 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             </div>
           )}
           {mode === 'test' && (
-            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="guard-settings">
+            <fieldset className="space-y-2 rounded-md border border-line p-3" data-testid="guard-settings">
               <legend className="px-1 text-sm font-semibold">{t('guard.settings.title')}</legend>
-              <p className="text-xs text-slate-600">{t('guard.settings.limits')}</p>
+              <p className="text-xs text-muted">{t('guard.settings.limits')}</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t('guard.settings.mode')}>
                   <select className={inputCls} value={guard.mode} onChange={(e) => setGuard({ ...guard, mode: e.target.value as typeof guard.mode })} data-testid="guard-mode">
@@ -259,7 +321,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
         </div>
       ) : (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-slate-600">{t(created.mode === 'test' ? 'game.testReady' : 'game.ready', { count: created.questionCount })}</p>
+          <p className="text-sm text-muted">{t(created.mode === 'test' ? 'game.testReady' : 'game.ready', { count: created.questionCount })}</p>
           <p className="text-5xl font-extrabold tracking-widest" data-testid="pin">
             {created.pin.replace(/(\d{3})(\d+)/, '$1 $2')}
           </p>
@@ -268,18 +330,18 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             {t('game.joinAt')} <strong>{created.joinUrl}</strong>
           </p>
           {created.mode === 'test' ? (
-            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-dashboard">
+            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-dashboard">
               {t('game.openDashboard')}
             </Link>
           ) : (
             <>
               <div className="flex flex-wrap justify-center gap-2">
-                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-host">
+                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-host">
                   {t('game.openHost')}
                 </a>
                 <Button onClick={() => navigator.clipboard?.writeText(created.hostUrl ?? '')}>{t('game.copyHost')}</Button>
               </div>
-              <p className="text-xs text-slate-500">{t('game.hostHint')}</p>
+              <p className="text-xs text-muted">{t('game.hostHint')}</p>
             </>
           )}
         </div>

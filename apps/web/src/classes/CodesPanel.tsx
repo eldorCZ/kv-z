@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import { Button } from '../components/ui';
 import type { CreatedCode } from './types';
+import { appName } from '../app-config';
 
 /**
  * One-time display of plain codes (C4.4). They live only in the memory of this page:
@@ -49,9 +50,9 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
   };
 
   return (
-    <div className="rounded-lg border-2 border-amber-500 bg-amber-50 p-4" data-testid="codes-panel">
+    <div className="rounded-lg border-2 border-warning-line bg-warning-soft p-4" data-testid="codes-panel">
       <div className="no-print">
-        <p className="font-semibold text-amber-950">{t('roster.codesOnce', { count: codes.length })}</p>
+        <p className="font-semibold text-warning">{t('roster.codesOnce', { count: codes.length })}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button variant="primary" onClick={print} data-testid="print-cards">
             {t('roster.printCards')}
@@ -63,7 +64,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
         </div>
         <ul className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
           {codes.map((c) => (
-            <li key={c.student.id} className="flex justify-between gap-2 rounded bg-white px-2 py-1">
+            <li key={c.student.id} className="flex justify-between gap-2 rounded bg-surface px-2 py-1">
               <span className="font-mono">{c.student.accountName}</span>
               <code className="font-mono font-bold" data-testid="plain-code">
                 {c.code}
@@ -79,7 +80,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
             <div key={c.student.id} className="code-card">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-xs font-semibold text-hra-700">KvizHub · {className}</p>
+                  <p className="text-xs font-semibold text-primary">{appName} · {className}</p>
                   <p className="mt-1 text-lg font-bold">
                     {c.student.accountName}
                     {c.student.rosterNo ? ` (${c.student.rosterNo})` : ''}

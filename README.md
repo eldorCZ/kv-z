@@ -1,10 +1,10 @@
-# KvizHub
+# Lore
 
 Aplikace pro kvízy ve třídě, která běží na vašem vlastním serveru, a k ní skill pro agenta na Telegramu.
 
 Učitel pošle soubor (DOCX, PDF, PPTX) svému agentovi. Agent z něj vyrobí kvíz, u každé otázky uvede zdroj
-(soubor, stranu nebo slide a doslovnou citaci), otázky strojově zkontroluje a vloží je přes API do KvizHubu.
-Učitel kvíz v KvizHubu zkontroluje a upraví a spustí hru: žáci se připojí PINem nebo QR kódem na telefonu,
+(soubor, stranu nebo slide a doslovnou citaci), otázky strojově zkontroluje a vloží je přes API do aplikace Lore.
+Učitel kvíz v aplikaci Lore zkontroluje a upraví a spustí hru: žáci se připojí PINem nebo QR kódem na telefonu,
 žebříček běží na projektoru. Kvíz jde exportovat do Kahootu, Moodlu (GIFT) nebo do JSON.
 
 - **Zdroj u každé otázky.** Agent citaci strojově ověří a učitel ji vidí u otázky.
@@ -14,6 +14,8 @@ Učitel kvíz v KvizHubu zkontroluje a upraví a spustí hru: žáci se připoj�
   u volitelných **tříd** (průběžná evidence za školní rok) jen školní přihlašovací jméno žáka (např. `novak12`, nebo
   pseudonym či číslo), číslo v třídním výkazu, hash osobního kódu a výsledky. Žádná křestní ani celá jména. Pokrok vidí jen učitelé třídy, nikdy agent ani Telegram (viz [Třídy](#třídy-a-průběžná-evidence)).
 - **6 typů otázek:** jedna správná, více správných, pravda/nepravda, krátká odpověď, číselná odpověď a seřazení.
+- **Vlastní vzhled Lore:** světlý i tmavý režim, klidná nálada pro testy a hravá pro živé hry, 24 motivů pozadí
+  a 12 barevných přechodů, 8 barev akcentu, volitelně vlastní fotka učitele (viz [Vzhled a motivy](#vzhled-a-motivy)).
 - **Aplikace nevolá žádný jazykový model.** Otázky vyrábí agent (skill `kviz-z-materialu`). Kvíz jde vytvořit
   i bez agenta, ručně v editoru nebo nahráním JSON.
 
@@ -22,7 +24,7 @@ Učitel ──Telegram──> Agent (Claude Code, skill kviz-z-materialu)
                        extract.py → tvorba otázek → validate_quiz.py + slepé řešení → post_quiz.py
                                                                      │ POST /api/v1/quizzes (Bearer token)
                                                                      ▼
-                                                 KvizHub (Docker, jeden kontejner)
+                                                 Lore (Docker, jeden kontejner)
                                   kontrola a úpravy · hra (Socket.IO) · exporty · výsledky
 ```
 
@@ -56,7 +58,7 @@ vzorový kvíz, odehraje hru s pěti simulovanými hráči a vypíše výsledky.
 
 | Proměnná | Výchozí | Význam |
 |---|---|---|
-| `PUBLIC_URL` | `http://localhost:3000` | Veřejná adresa (z ní se skládají odkazy `reviewUrl`, `joinUrl`, `hostUrl` a QR kód). Za proxy např. `https://kviz.skola.cz`. |
+| `PUBLIC_URL` | `http://localhost:3000` | Veřejná adresa (z ní se skládají odkazy `reviewUrl`, `joinUrl`, `hostUrl` a QR kód). Za proxy doporučeně `https://lore.zdenekstasta.cz` (doménu volí provozovatel; v kódu není nikde natvrdo). Z této adresy vzniká i absolutní `og:image` pro náhledy odkazů. |
 | `SESSION_SECRET` | – | Min. 32 znaků, povinné v produkci. `openssl rand -hex 32`. |
 | `BIND_ADDR` / `APP_PORT` | `127.0.0.1` / `3000` | Adresa a port na hostiteli, kde kontejner naslouchá. |
 | `GAME_PIN_LENGTH` | `6` | Délka PINu hry. |
@@ -81,7 +83,7 @@ narazí žáci na limit 10 připojení za minutu. Caddy tuto hlavičku předáv�
 
 ## API token pro agenta
 
-1. Přihlaste se do KvizHubu → **API tokeny** → **Vytvořit token** (výchozí oprávnění: `quizzes:write`,
+1. Přihlaste se do aplikace Lore → **API tokeny** → **Vytvořit token** (výchozí oprávnění: `quizzes:write`,
    `quizzes:read`, `games:write`, `games:read`).
 2. Token se zobrazí **jen jednou**, v databázi je uložen jen jeho SHA-256 otisk. Zkopírujte ho do proměnné
    `KVIZHUB_TOKEN` na serveru agenta. Nikdy ho neposílejte do chatu.
@@ -216,6 +218,70 @@ Agent (API token se scope `classes:read`) vidí jen názvy tříd a **souhrny** 
 jména, kódy ani výsledky jednotlivých žáků přes API nedostane (výsledky třídních her jako „Žák N“, jména jen se scope
 `results:pii`). Soupisku lze vkládat jen v aplikaci.
 
+## Vzhled a motivy
+
+Lore má vlastní vizuální styl (Dodatek 4). Nekopíruje vzhled, barvy, tvary ani maskoty jiných kvízových
+produktů. Snímky obrazovek ve světlém a tmavém režimu jsou v [docs/screens](docs/screens).
+
+**Značka Lore.** Logo je otevřená kniha se zářivou hvězdičkou (nápad) a slovní znak „lore“ (Dodatek 4B). Hotová grafika leží
+v `design/brand` a je jediným zdrojem pravdy; nic se nepřekresluje ani nepřebarvuje akcentem či motivem.
+`pnpm brand:build` (spouští se sám před `pnpm build` i `pnpm dev`) z ní zkopíruje SVG do `apps/web/public/brand`
+a vyrenderuje ikony (favicon 32 px, apple-touch 180 px, 192/512 px, maskovatelnou 512 px a náhled odkazů 1200×630)
+do `apps/web/public/icons`; tyto soubory se do gitu neukládají. Náhled odkazu v Teams či chatu je vždy obecný
+(„Lore – Kvízy a testy pro třídu.“), nikdy v něm není PIN ani název kvízu. Maskot **Lorík** (živá kniha) má šest
+póz a nikdy se neobjeví v testu.
+
+**Režim a pohodlí.** Tlačítko vzhledu je na každé obrazovce (na projektoru i klávesa **T**): světlý, tmavý
+nebo podle zařízení, omezený pohyb a čitelné písmo (Atkinson Hyperlegible). Učiteli se volba ukládá k účtu,
+žákovi **jen v jeho prohlížeči** (`localStorage`, klíč `lore.ui`). Žádné cookies pro žáky, nic nového o žácích
+na serveru. Režim se nastaví ještě před prvním vykreslením, takže stránka nebliká.
+
+**Dvě nálady.** Živá hra je hravá (motiv v pozadí, pomalý pohyb, konfety na pódiu). Test, třídy a editor jsou klidné.
+**Test je vždy klidný:** statický motiv pod silným závojem, žádné konfety, pódium, body, zvuky ani zvýraznění
+správnosti. S omezeným pohybem se nehýbe nic.
+
+**Odpověď = barva + tvar + písmeno.** Každá možnost má barvu, vlastní tvar (hvězda, šestiúhelník, kapka, kopule,
+plus) a písmeno A–E. Barvy jsou rozlišitelné i při deuteranopii, protanopii a tritanopii (ověřuje `pnpm check:contrast`).
+
+**Motivy.** 24 obrázkových motivů v pěti kategoriích (Klidné, Věda a technika, Příroda, Hravé, Sezónní)
+a 12 barev a přechodů. Všechny kreslí kód (SVG), žádné stažené obrázky. Vzhled se vybírá tlačítkem **Vzhled**
+v záhlaví kvízu nebo v dialogu **Spustit hru** („Použít jen pro tuto hru“ / „Uložit jako výchozí pro kvíz“)
+s náhledem lobby, otázky a testu očima žáka. **Nastavení → Vzhled** určuje výchozí motiv nových kvízů.
+Hra si vzhled při startu zmrazí; pozdější změna kvízu ji nezmění. Pro testy doporučujeme klidné motivy
+(v nabídce označené lístkem).
+
+**Vlastní obrázek pozadí.** Učitel může v aplikaci nahrát fotku (JPEG, PNG nebo WebP do 15 MB, nejvýš 30 obrázků
+a 50 MB, 10 za hodinu). Server obrázek otočí podle fotoaparátu, **odstraní z něj všechna metadata** (EXIF, GPS),
+zmenší ho a uloží jako WebP do `MEDIA_DIR` (výchozí `data/media`, v Dockeru `/data/media`; zálohuje ho
+`scripts/backup.sh`). Přes API ani skill obrázek nastavit nejde. Nahrávejte jen fotky, ke kterým máte práva,
+bez tváří žáků. `THEME_UPLOADS=0` nahrávání vypne.
+
+**Přes API a agenta.** Kvíz může mít `"theme": {"motive": "vesmir", "accent": "modra"}`; seznam motivů vrací
+`GET /api/v1/themes`. Neznámé id se ignoruje a odpověď obsahuje `warnings` (nikdy 422). Hra může mít vlastní
+`settings.theme`. Skill: `post_quiz.py --themes`, `--motive <id>`, `--accent <id>`. **Agent motiv sám nevybírá**,
+jen na výslovné přání učitele. Žák dostane jen `theme: {motive, accent, imageUrl, scrimHint}` v informacích o hře.
+
+**Klávesy.** Projektor: mezerník další krok, Enter odhalit, T režim, F celá obrazovka, ? přehled zkratek;
+kurzor se po 3 s schová. Telefon: A–E nebo 1–5 vybere odpověď, Enter potvrdí výběr více možností.
+
+### Pro vývojáře: motivy, tokeny, kontrast
+
+- **Tokeny** (barvy, plochy, stíny, zaoblení) jsou v `apps/web/src/theme/tokens.css` (bloky `:root`,
+  `[data-theme='dark']`, `[data-mood='play'|'focus']`, `@media (prefers-contrast: more)`). Po každé změně spusťte
+  `pnpm check:contrast`: projde 8 kontextů × 44 dvojic (text 4,5 : 1, ovládací prvky 3 : 1), všech 8 akcentů,
+  nejhorší případ textu na ploše nad každou barvou každého motivu a rozlišitelnost odpovědí při barvosleposti.
+- **Nový motiv** přidejte do `packages/core/src/motives.ts`: objekt `MotiveDef` s `id` (malá písmena, číslice,
+  pomlčky), `name`, `category`, `calm` (vhodný pro testy), `animated`, paletou `{light, dark}` (první barva je pozadí)
+  a funkcí `draw`, která z náhodného generátoru `x.r` vrátí SVG prvky. Pohyb jen přes `transform`/`opacity`
+  s cyklem ≥ 20 s a jen když `x.animate`. Pak `pnpm test` (determinismus, platné SVG, ≤ 30 kB v každé variantě)
+  a `pnpm check:contrast`. Motiv se sám objeví ve výběru, v `GET /api/v1/themes` i na stránce `/_design`
+  (zapne ji `DESIGN_PAGE=1`).
+- **Kontroly:** `pnpm check:budgets` (po `pnpm build`: JS každé žákovské stránky ≤ 150 kB gzip, CSS ≤ 30 kB,
+  písma ≤ 120 kB, motiv ≤ 30 kB), `pnpm check:lighthouse` (mobilní Lighthouse na zadání PINu a lobby žáka:
+  výkon ≥ 85, přístupnost ≥ 95, CLS < 0,05), `pnpm test:visual` (vizuální regrese 20 obrazovek × 2 režimy,
+  tolerance 0,2 %; záměrnou změnu přijmete `pnpm test:visual -u`), `pnpm docs:screens` (snímky do `docs/screens`).
+- Vlastní obrázek nahrajete v aplikaci: kvíz → **Vzhled** → **Nahrát obrázek**.
+
 ## Osobní údaje žáků
 
 **Co se ukládá:** přihlašovací jméno (školní účet bez domény, např. `novak12`, nebo pseudonym či číslo), číslo
@@ -261,7 +327,7 @@ Není to právní posudek a nenahrazuje rozhodnutí školy.
 
 ### Vzor informace pro žáky a zákonné zástupce
 
-> Ve výuce předmětu **[předmět]** používáme aplikaci KvizHub, která běží na serveru školy / pronajatém serveru
+> Ve výuce předmětu **[předmět]** používáme aplikaci Lore, která běží na serveru školy / pronajatém serveru
 > **[kde]**. Pro třídu **[třída]** v ní vedeme průběžný přehled výsledků kvízů a testů, abychom viděli, která témata
 > je potřeba zopakovat. Ukládáme jen školní přihlašovací jméno žáka (bez jména a příjmení), číslo v třídním výkazu
 > a výsledky. Žáci v aplikaci nemají účty; přihlašují se osobním kódem z karty. Výsledky vidí jen vyučující třídy,
@@ -281,7 +347,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
 # 2) proměnné prostředí pro relaci agenta (např. v ~/.bashrc nebo v souboru, který načítá tmux relace agenta)
 export KVIZHUB_URL=http://127.0.0.1:3000          # agent běží na stejném VPS
-export KVIZHUB_TOKEN=khp_...                      # token z KvizHubu (API tokeny)
+export KVIZHUB_TOKEN=khp_...                      # token z aplikace Lore (API tokeny)
 chmod 600 ~/.bashrc                               # token nesmí být čitelný pro ostatní uživatele
 
 # 3) kontrola bez jazykového modelu: skripty proti běžící aplikaci
@@ -293,7 +359,7 @@ chmod 600 ~/.bashrc                               # token nesmí být čitelný 
 4. Restartujte relaci agenta (aby načetla skill a proměnné) a pošlete mu v Telegramu testovací soubor, např.
    `fixtures/optika.docx`, se zprávou „udělej z toho kvíz na 8 otázek pro 8. třídu“.
 5. **Očekávaný výsledek:** agent nejdřív odpoví „Zpracovávám optika.docx (…)“. Po několika minutách pošle zprávu
-   „Kvíz "…" je v KvizHubu.“ s počtem otázek (v pořádku / ke kontrole) a odkazem na kontrolu. V KvizHubu se objeví
+   „Kvíz "…" je v aplikaci Lore.“ s počtem otázek (v pořádku / ke kontrole) a odkazem na kontrolu. V aplikaci Lore se objeví
    kvíz se zdroji u otázek. Na zprávu „spusť“ agent pošle PIN, odkaz pro žáky a odkaz pro projektor.
 
 Skill (SKILL.md) popisuje 10 kroků: příjem, extrakci, plán, tvorbu, kontrolu, slepé řešení podagentem, odeslání,
@@ -302,7 +368,7 @@ jazykový model.
 
 ## Nasazení na sdíleném VPS s HTTPS
 
-Na serveru už běží další služby a agenti v tmux. KvizHub proto neobsazuje porty 80/443, nesahá mimo svůj
+Na serveru už běží další služby a agenti v tmux. Lore proto neobsazuje porty 80/443, nesahá mimo svůj
 adresář a nic neinstaluje globálně. Všechno běží v Dockeru.
 
 **Před instalací zkontrolujte porty a místo:**
@@ -318,15 +384,17 @@ df -h .                                 # image má cca 470 MB, data jsou malá 
 git clone <repo> /opt/kvizhub && cd /opt/kvizhub
 cp .env.example .env
 sed -i "s/^SESSION_SECRET=.*/SESSION_SECRET=$(openssl rand -hex 32)/" .env
-sed -i "s#^PUBLIC_URL=.*#PUBLIC_URL=https://kviz.mojeskola.cz#" .env
+sed -i "s#^PUBLIC_URL=.*#PUBLIC_URL=https://lore.zdenekstasta.cz#" .env
 docker compose up -d --build
 ```
 
-**Caddy – nová subdoména** (Caddy zajistí certifikát Let's Encrypt; DNS záznam `kviz.mojeskola.cz` musí
-mířit na VPS):
+**DNS:** u domény vytvořte záznam `A` (a případně `AAAA`) pro `lore.zdenekstasta.cz` s IP adresou VPS,
+např. `lore  3600  IN  A  203.0.113.10`. Stačí jen ASCII název bez diakritiky.
+
+**Caddy – nová subdoména** (Caddy zajistí certifikát Let's Encrypt, jakmile DNS záznam míří na VPS):
 
 ```caddy
-kviz.mojeskola.cz {
+lore.zdenekstasta.cz {
     encode zstd gzip
     reverse_proxy 127.0.0.1:3000
 }
@@ -393,9 +461,14 @@ Doporučená doba uchování záloh je 30 dní (druhý parametr skriptu).
 - [x] API tokeny jsou uložené jen jako SHA-256, mají oprávnění (scopes), volitelnou expiraci a jdou odvolat.
       Rate limit je 60 požadavků za minutu na token. Audit log obsahuje jen metadata.
 - [x] Logy neobsahují tokeny, cookies ani těla požadavků, jen metodu, cestu bez parametrů, velikost, stav a dobu.
-- [x] Aplikace nepřijímá dokumenty, jen JSON do 2 MB.
+- [x] Aplikace nepřijímá dokumenty, jen JSON do 2 MB. **Výjimka (Dodatek 4, V8):** učitel v aplikaci nahrává
+      obrázky pozadí (JPEG/PNG/WebP podle magických bajtů, max. 15 MB a 40 MP, nikdy SVG, GIF, HEIC ani stažení
+      z URL); server je překóduje do WebP bez metadat a servíruje s `nosniff` a vlastní CSP `default-src 'none'`.
+- [x] **Doplněno Dodatkem 4:** žák nemá žádné cookies; volba vzhledu (režim, pohyb, písmo) zůstává jen
+      v `localStorage` jeho zařízení. CSP se neoslabila (`img-src 'self' data:`), žádné vložené skripty.
 - [x] Žáci nemají účty ani hesla. Bez třídy se ukládá jen přezdívka a odpovědi, žádné IP adresy. Jediný technický token hry je
-      v sessionStorage. Nejsou tu analytické skripty, externí fonty ani CDN.
+      v sessionStorage (spolu s PINem hry, aby po obnovení stránky vyšlo stejné pozadí). Nejsou tu analytické skripty,
+      externí fonty ani CDN; písma jsou uložená u nás (`apps/web/public/fonts`, licence OFL).
 - [x] **Změna pravidla (Dodatek 3):** u tříd se navíc ukládají jména, číslo v třídním výkazu, hash osobního kódu
       a výsledky za školní rok, viz [Osobní údaje žáků](#osobní-údaje-žáků). Logy neobsahují jména ani kódy (ověřuje test).
 - [x] Retence: výsledky her a hráči se mažou po `RETENTION_DAYS` (denní úloha). Kvízy zůstávají.
@@ -418,6 +491,11 @@ pnpm dev                 # server :3000 (tsx watch) + Vite :5173 s proxy
 pnpm check               # typecheck + lint + unit/API/engine testy + zátěžový test 150 hráčů
 pnpm build && pnpm test:e2e   # Playwright: učitel, token, API, schválení, hra 1 host + 3 hráči, reconnect, WebSocket rámce,
                               # test, hlídání okna, třídy (soupiska, kódy, třídní test, náhradní termín, matice, projektor)
+pnpm brand:build         # logo, favicon a ikony z design/brand (běží i před build a dev)
+pnpm check:budgets       # po buildu: velikost JS/CSS/písem žákovských stránek a motivů (Dodatek 4)
+pnpm check:lighthouse    # po buildu: Lighthouse na zadání PINu a lobby žáka
+pnpm test:visual         # vizuální regrese světlý/tmavý (-u přijme změnu)
+pnpm docs:screens        # snímky obrazovek do docs/screens
 pnpm seed:demo-class     # ukázková třída s 24 pseudonymy (jen mimo produkci, potřebuje DB_PATH a CODE_PEPPER)
 pnpm loadtest 150        # zátěž (volitelně proti KVIZHUB_URL + KVIZHUB_TOKEN)
 pnpm demo
@@ -457,6 +535,11 @@ Struktura: `apps/server` (Fastify + Socket.IO + Drizzle/SQLite), `apps/web` (Rea
   zatím nejsou; oprávnění rolí jsou ale implementovaná a otestovaná. Dvoufázové přihlášení učitele není.
   Vybrat jen některé žáky pro hru jde jen v aplikaci, ne přes API (záměrně). Vyřazení otázky z hodnocení (D6.4)
   v kódu neexistuje, takže se po něm evidence nepřepočítává.
+- **Vzhled (Dodatek 4) [OVĚŘ]:** sestavení Docker obrazu s nativním modulem `sharp` a nahrání obrázku v kontejneru
+  nebylo v prostředí vývoje spuštěné (lokálně a v testech funguje). Referenční snímky vizuální regrese vznikly na
+  jednom stroji; na jiném systému se vykreslení písma může lišit, pak je přegenerujte `pnpm test:visual -u`.
+  INP se neměří přímo (Lighthouse v režimu navigace ho neumí); náhradou je TBT pod 20 ms. Rezerva rozpočtu
+  JS žákovských stránek je jen asi 3 kB.
 - **Právní rámec tříd [OVĚŘ]:** kontrolní seznam v [Osobní údaje žáků](#osobní-údaje-žáků) není právní posudek;
   region serveru a smluvní podmínky poskytovatele VPS je potřeba ověřit u poskytovatele.
 

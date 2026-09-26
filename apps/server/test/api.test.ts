@@ -58,6 +58,12 @@ describe('POST /api/v1/quizzes', () => {
     expect(r.body.stats).toEqual({ total: 7, ok: 6, flagged: 1 });
   });
 
+  it('the quiz list counts questions and flagged questions of each quiz', async () => {
+    const r = await t.http.post('/api/v1/quizzes').set(auth()).send({ ...fixture('valid/optika.json'), title: 'Počty v seznamu' });
+    const list = await t.http.get('/api/v1/quizzes?q=Počty').set(auth());
+    expect(list.body.quizzes).toEqual([expect.objectContaining({ id: r.body.quizId, questionCount: 7, flaggedCount: 1 })]);
+  });
+
   it('returns 422 with Czech errors for invalid fixtures', async () => {
     const expected = fixture('invalid/_expected.json') as Record<string, { path: string; code: string }[]>;
     for (const [name, errs] of Object.entries(expected)) {

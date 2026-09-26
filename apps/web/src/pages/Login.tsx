@@ -1,12 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router';
 import { api, type ApiError } from '../api';
 import { useAuth } from '../auth';
 import { Button, ErrorBox, Field, inputCls } from '../components/ui';
+import { Logo } from '../ui/Logo';
+import { Mascot } from '../ui/Mascot';
+import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 export default function Login() {
   const { t } = useTranslation();
+  useTitle(t('titles.login'));
   const { teacher, login, register, loading } = useAuth();
   const [params] = useSearchParams();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -40,10 +45,14 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg bg-white p-6 shadow">
-        <h1 className="text-2xl font-bold text-hra-700">KvizHub</h1>
-        <p className="text-sm text-slate-600">{t(mode === 'login' ? 'login.introLogin' : 'login.introRegister')}</p>
+    <div className="relative flex min-h-screen items-center justify-center p-4">
+      <SchemeSwitcher className="absolute right-4 top-4" />
+      <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg bg-surface p-6 shadow">
+        <Mascot pose="hello" size={96} className="mx-auto -mb-2" />
+        <h1 className="flex justify-center py-2">
+          <Logo height={48} />
+        </h1>
+        <p className="text-sm text-muted">{t(mode === 'login' ? 'login.introLogin' : 'login.introRegister')}</p>
         <Field label={t('login.email')}>
           <input className={inputCls} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </Field>
@@ -63,7 +72,7 @@ export default function Login() {
           {t(mode === 'login' ? 'login.submitLogin' : 'login.submitRegister')}
         </Button>
         {allowRegistration && (
-          <button type="button" className="w-full text-sm text-hra-700 hover:underline" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
+          <button type="button" className="w-full text-sm text-primary hover:underline" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
             {t(mode === 'login' ? 'login.switchToRegister' : 'login.switchToLogin')}
           </button>
         )}

@@ -66,3 +66,16 @@ export async function download(path: string): Promise<{ summary: unknown }> {
   const s = res.headers.get('x-export-summary');
   return { summary: s ? JSON.parse(s) : null };
 }
+
+/** Raw binary upload (custom backgrounds, V8); same CSRF rules as api(). */
+export async function apiUpload<T = unknown>(path: string, file: Blob): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'content-type': file.type || 'application/octet-stream', 'x-csrf-token': csrf }, body: file });
+  } catch {
+    throw new ApiError(0, i18n.t('errors.network'));
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, data.error ?? i18n.t('errors.generic'), [], data.code);
+  return data as T;
+}

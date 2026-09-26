@@ -10,6 +10,7 @@ export function jsonExport(quiz: ExportQuiz, opts: { includeIds?: boolean } = {}
     sourceFiles: quiz.sourceFiles,
     settings: quiz.settings,
     ...(quiz.tags?.length ? { tags: quiz.tags } : {}),
+    ...themeOf(quiz.theme),
     questions: quiz.questions.map((q) => ({
       ...(opts.includeIds && q.id ? { id: q.id } : {}),
       type: q.type,
@@ -30,4 +31,12 @@ export function jsonExport(quiz: ExportQuiz, opts: { includeIds?: boolean } = {}
     })),
   };
   return { data, summary: buildSummary('json', quiz.questions.length, {}, []) };
+}
+
+/** Only the portable part of the look: a custom image belongs to one server and is not exported (V7.4). */
+function themeOf(theme: unknown): { theme?: { motive?: string; accent?: string } } {
+  if (!theme || typeof theme !== 'object') return {};
+  const { motive, accent } = theme as { motive?: unknown; accent?: unknown };
+  const out = { ...(typeof motive === 'string' ? { motive } : {}), ...(typeof accent === 'string' ? { accent } : {}) };
+  return Object.keys(out).length ? { theme: out } : {};
 }

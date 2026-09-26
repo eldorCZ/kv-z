@@ -191,6 +191,8 @@ export const quizSchema = z.object({
   sourceFiles: z.array(sourceFileSchema).max(20).default([]),
   tags: z.array(z.string().trim().min(1).max(40)).max(5).optional(),
   settings: quizSettingsSchema.default({ shuffleQuestions: false, shuffleOptions: true }),
+  /** optional look {"motive", "accent"} (Dodatek 4, V7.4); checked leniently by normalizeTheme, never a 422 */
+  theme: z.unknown().optional(),
   questions: z.array(questionSchema).min(1).max(LIMITS.questionsMax),
 });
 
@@ -202,6 +204,8 @@ export const quizMetaPatchSchema = z.object({
   language: z.string().trim().min(2).max(10).optional(),
   gradeLevel: z.string().trim().max(60).optional(),
   settings: quizSettingsSchema.partial().optional(),
+  /** null clears the look; ids are checked by normalizeTheme */
+  theme: z.unknown().optional(),
 });
 
 
@@ -240,6 +244,8 @@ export const gameSettingsSchema = z.object({
   countInStats: z.boolean().default(true),
   /** selected students (UI only); omitted = all active students of the class */
   audience: z.array(z.string().min(1).max(40)).max(200).optional(),
+  /** look of this game only (V7.2); overrides the quiz, checked by normalizeTheme */
+  theme: z.unknown().optional(),
 });
 
 export const createGameSchema = z.object({

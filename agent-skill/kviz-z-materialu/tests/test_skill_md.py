@@ -19,7 +19,7 @@ def test_ten_steps():
 def test_templates_and_rules():
     for snippet in [
         "Zpracovávám optika.pdf",
-        'Kvíz "Optika: lom světla" je v KvizHubu.',
+        'Kvíz "Optika: lom světla" je v aplikaci Lore.',
         "Hra je připravená. PIN:",
         "Nejhůř zvládnuté otázky",
         "You are a careful student taking a quiz.",
@@ -42,4 +42,10 @@ def test_classes_section():
         "Soupisku žáků prosím vložte přímo v aplikaci",
         '"topic": "Lom světla"',
     ]:
+        assert snippet in SKILL, snippet
+
+
+def test_look_rule():
+    # Dodatek 4, V7.4: the agent never picks a motive on its own
+    for snippet in ["Motiv NEVYBÍREJ z vlastní iniciativy", "--themes", "--motive <id>", "jen v aplikaci"]:
         assert snippet in SKILL, snippet

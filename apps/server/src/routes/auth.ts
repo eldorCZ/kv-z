@@ -1,6 +1,8 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
+import { normalizeTheme, sanitizeUiPrefs } from '@kvizhub/core';
+import { ownImageOnly } from '../theme.js';
 import { csrfToken, sendError, type Services } from '../app.js';
 import { RegistrationError } from '../auth/provider.js';
 import { SESSION_COOKIE } from '../game/socket.js';
@@ -33,6 +35,9 @@ export const authRoutes =
       provider: s.auth.name,
       allowRegistration: s.cfg.allowRegistration && s.auth.supportsPassword,
       classesEnabled: classesEnabled(s.cfg),
+      appName: s.cfg.appName,
+      designPage: s.cfg.designPage,
+      themeUploads: s.cfg.themeUploads,
     }));
 
     app.post('/register', { config: { public: true } }, async (req, reply) => {
@@ -46,7 +51,7 @@ export const authRoutes =
         if (s.cfg.seedSampleQuiz) seedSampleQuiz(s.quizzes, t.id);
         const sid = startSession(t.id);
         reply.setCookie(SESSION_COOKIE, sid, cookieOpts);
-        return { teacher: t, csrfToken: csrfToken(s.cfg, sid) };
+        return { teacher: t, csrfToken: csrfToken(s.cfg, sid), uiPrefs: s.accounts.uiPrefs(t.id) };
       } catch (e) {
         if (e instanceof RegistrationError) return sendError(reply, 400, e.message, 'invalid');
         throw e;
@@ -62,7 +67,7 @@ export const authRoutes =
       if (!t) return sendError(reply, 401, 'Nesprávný e-mail nebo heslo.', 'invalid_credentials');
       const sid = startSession(t.id);
       reply.setCookie(SESSION_COOKIE, sid, cookieOpts);
-      return { teacher: t, csrfToken: csrfToken(s.cfg, sid) };
+      return { teacher: t, csrfToken: csrfToken(s.cfg, sid), uiPrefs: s.accounts.uiPrefs(t.id) };
     });
 
     app.post('/logout', { config: { public: true } }, async (req, reply) => {
@@ -76,6 +81,25 @@ export const authRoutes =
       if (req.auth?.kind !== 'session') return sendError(reply, 401, 'Nejste přihlášeni.', 'unauthorized');
       const t = s.accounts.getTeacher(req.auth.teacherId);
       if (!t) return sendError(reply, 401, 'Nejste přihlášeni.', 'unauthorized');
-      return { teacher: { id: t.id, email: t.email }, csrfToken: csrfToken(s.cfg, req.auth.sessionId!) };
+      return {
+        teacher: { id: t.id, email: t.email },
+        csrfToken: csrfToken(s.cfg, req.auth.sessionId!),
+        uiPrefs: s.accounts.uiPrefs(t.id),
+        defaultTheme: s.accounts.defaultTheme(t.id),
+      };
+    });
+
+    /** Appearance preferences of the teacher (V5.3); unknown values are replaced by defaults. */
+    app.put('/prefs', { config: { sessionOnly: true } }, async (req) => {
+      const prefs = sanitizeUiPrefs(req.body);
+      s.accounts.setUiPrefs(req.auth!.teacherId, prefs);
+      return { uiPrefs: prefs };
+    });
+
+    /** Look of the teacher's new quizzes (V7.3); unknown ids are dropped with a warning, null resets. */
+    app.put('/default-theme', { config: { sessionOnly: true } }, async (req) => {
+      const { theme, warnings } = ownImageOnly(normalizeTheme((req.body as { theme?: unknown } | undefined)?.theme ?? null, ['theme'], true), (id) => s.themeImages.owns(req.auth!.teacherId, id));
+      s.accounts.setDefaultTheme(req.auth!.teacherId, theme);
+      return { defaultTheme: theme, ...(warnings.length ? { warnings } : {}) };
     });
   };

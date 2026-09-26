@@ -21,7 +21,7 @@ export function periodQuery(p: PeriodState): Record<string, string> {
 
 export function PeriodFilter({ value, onChange, kind, setKind }: { value: PeriodState; onChange: (p: PeriodState) => void; kind: string; setKind: (k: string) => void }) {
   const { t } = useTranslation();
-  const sel = 'rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm';
+  const sel = 'rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm';
   return (
     <div className="no-print flex flex-wrap items-center gap-2 text-sm">
       <label className="flex items-center gap-1">
@@ -68,25 +68,25 @@ export function printOverview(classId: string) {
 
 function Cell({ c }: { c: MatrixCell | undefined }) {
   const { t } = useTranslation();
-  if (!c || c.state === 'na') return <span className="text-slate-400" title={t('overview.cell.na')}>–</span>;
+  if (!c || c.state === 'na') return <span className="text-muted" title={t('overview.cell.na')}>–</span>;
   if (c.state === 'missing')
     return (
-      <span className="font-medium text-red-700" data-cell="missing">
+      <span className="font-medium text-danger" data-cell="missing">
         {t('overview.cell.missing')}
       </span>
     );
   if (c.state === 'excluded')
     return (
-      <span className="text-slate-400 line-through" title={t('overview.cell.excluded')} data-cell="excluded">
+      <span className="text-muted line-through" title={t('overview.cell.excluded')} data-cell="excluded">
         {c.percent}
       </span>
     );
-  const tone = c.percent! < 50 ? 'text-amber-800' : 'text-slate-900';
+  const tone = c.percent! < 50 ? 'text-warning' : 'text-fg';
   return (
     <span className={tone} data-cell="result">
       {c.percent}
       {c.makeup && (
-        <sup className="text-hra-700" title={t('overview.cell.makeup')}>
+        <sup className="text-primary" title={t('overview.cell.makeup')}>
           d
         </sup>
       )}
@@ -129,7 +129,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
         <PeriodFilter value={period} onChange={setPeriod} kind={kind} setKind={setKind} />
         <label className="no-print flex items-center gap-1 text-sm">
           {t('overview.sort')}
-          <select className="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} data-testid="sort">
+          <select className="rounded-md border border-line-strong bg-surface px-2 py-1.5 text-sm" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} data-testid="sort">
             {(['number', 'name', 'avg', 'trend'] as const).map((k) => (
               <option key={k} value={k}>
                 {t(`overview.sorts.${k}`)}
@@ -138,23 +138,23 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
           </select>
         </label>
         <div className="no-print ml-auto flex flex-wrap gap-2">
-          <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100" href={`/api/v1/classes/${cls.id}/export.csv?sep=%3B`} download>
+          <a className="rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm hover:bg-surface-2" href={`/api/v1/classes/${cls.id}/export.csv?sep=%3B`} download>
             {t('overview.csvExcel')}
           </a>
-          <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100" href={`/api/v1/classes/${cls.id}/export.csv?sep=%2C`} download>
+          <a className="rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm hover:bg-surface-2" href={`/api/v1/classes/${cls.id}/export.csv?sep=%2C`} download>
             {t('overview.csvComma')}
           </a>
           <Button onClick={() => printOverview(cls.id)}>{t('overview.print')}</Button>
         </div>
       </div>
-      <p className="text-xs text-slate-500">{t('overview.legend')}</p>
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <p className="text-xs text-muted">{t('overview.legend')}</p>
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="min-w-full border-collapse text-sm" data-testid="matrix">
-          <thead className="bg-slate-50 text-xs text-slate-600">
+          <thead className="bg-surface-2 text-xs text-muted">
             <tr>
-              <th className="sticky left-0 z-10 bg-slate-50 p-2 text-left">{t('roster.accountName')}</th>
+              <th className="sticky left-0 z-10 bg-surface-2 p-2 text-left">{t('roster.accountName')}</th>
               {m.activities.map((a) => (
-                <th key={a.id} className={`min-w-16 p-2 text-center font-medium ${a.kind === 'test' ? 'bg-sky-50' : ''} ${a.counted ? '' : 'text-slate-400'}`} title={a.counted ? a.label : `${a.label} – ${t('overview.notCounted')}`}>
+                <th key={a.id} className={`min-w-16 p-2 text-center font-medium ${a.kind === 'test' ? 'bg-info-soft' : ''} ${a.counted ? '' : 'text-muted'}`} title={a.counted ? a.label : `${a.label} – ${t('overview.notCounted')}`}>
                   <div className="max-w-24 truncate">
                     {a.gameId ? (
                       <Link to={gameLink(a.kind, a.gameId)} className="hover:underline">
@@ -178,15 +178,15 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
           </thead>
           <tbody>
             {rows.map((s) => (
-              <tr key={s.id} className="border-t border-slate-100" data-testid="matrix-row">
-                <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-white p-2 text-left font-medium">
-                  <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-hra-700 hover:underline">
+              <tr key={s.id} className="border-t border-line" data-testid="matrix-row">
+                <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-surface p-2 text-left font-medium">
+                  <Link to={`/classes/${cls.id}/students/${s.id}`} className="text-primary hover:underline">
                     {name(s)}
                   </Link>
-                  {!s.active && <span className="ml-1 text-xs text-slate-500">({t('roster.leftShort')})</span>}
+                  {!s.active && <span className="ml-1 text-xs text-muted">({t('roster.leftShort')})</span>}
                 </th>
                 {m.activities.map((a) => (
-                  <td key={a.id} className={`p-2 text-center tabular-nums ${a.kind === 'test' ? 'bg-sky-50/60' : ''}`}>
+                  <td key={a.id} className={`p-2 text-center tabular-nums ${a.kind === 'test' ? 'bg-info-soft/60' : ''}`}>
                     <Cell c={s.cells[a.id]} />
                   </td>
                 ))}
@@ -198,7 +198,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
                 <td className="p-2 text-center tabular-nums">{pct(s.summary.participation)}</td>
                 <td className="whitespace-nowrap p-2 text-xs">
                   {s.summary.flags.map((f) => (
-                    <span key={f.rule} className="mr-1 inline-block whitespace-nowrap rounded bg-amber-100 px-1 text-amber-900" title={f.text} data-testid="flag">
+                    <span key={f.rule} className="mr-1 inline-block whitespace-nowrap rounded bg-warning-soft px-1 text-warning" title={f.text} data-testid="flag">
                       ⚑ {t(`overview.flags.${f.rule}`)}
                     </span>
                   ))}
@@ -207,15 +207,15 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
             ))}
             {m.students.length === 0 && (
               <tr>
-                <td className="p-3 text-slate-500" colSpan={m.activities.length + 6}>
+                <td className="p-3 text-muted" colSpan={m.activities.length + 6}>
                   {t('roster.empty')}
                 </td>
               </tr>
             )}
           </tbody>
-          <tfoot className="border-t-2 border-slate-200 bg-slate-50 text-xs">
+          <tfoot className="border-t-2 border-line bg-surface-2 text-xs">
             <tr>
-              <th className="sticky left-0 bg-slate-50 p-2 text-left">{t('overview.classRow')}</th>
+              <th className="sticky left-0 bg-surface-2 p-2 text-left">{t('overview.classRow')}</th>
               {m.activities.map((a) => (
                 <td key={a.id} className="p-2 text-center tabular-nums" title={t('overview.medianTitle', { median: a.stats.median ?? '–' })}>
                   {pct(a.stats.avg)}
@@ -230,8 +230,8 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
           </tfoot>
         </table>
       </div>
-      {m.activities.length === 0 && <p className="text-sm text-slate-500">{t('overview.noActivities')}</p>}
-      <p className="text-xs text-slate-500">{t('classes.settings.rulesText', { threshold: cls.settings.supportThresholdPercent, drop: cls.settings.trendDropPp, split: cls.settings.halfYearSplit })}</p>
+      {m.activities.length === 0 && <p className="text-sm text-muted">{t('overview.noActivities')}</p>}
+      <p className="text-xs text-muted">{t('classes.settings.rulesText', { threshold: cls.settings.supportThresholdPercent, drop: cls.settings.trendDropPp, split: cls.settings.halfYearSplit })}</p>
     </div>
   );
 }

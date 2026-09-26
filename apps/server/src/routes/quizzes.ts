@@ -1,8 +1,10 @@
 import {
   LIMITS,
+  normalizeTheme,
   questionPatchSchema,
   quizMetaPatchSchema,
   quizStats,
+  themeCatalog,
   validateQuestion,
   validateQuiz,
   validateWith,
@@ -14,6 +16,7 @@ import { z } from 'zod';
 import { sendError, type Services } from '../app.js';
 import { APPROVE_SCOPE } from '../repo/accounts.js';
 import type { StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
+import { ownImageOnly } from '../theme.js';
 import { canonicalJson, sha256 } from '../util.js';
 
 type QuizParams = { Params: { id: string } };
@@ -58,8 +61,12 @@ export const quizRoutes =
       sourceFiles: q.sourceFiles,
       settings: q.settings,
       tags: q.tags ?? [],
+      ...(q.theme ? { theme: q.theme } : {}),
       questions: q.questions.map(publicQuestion),
     });
+
+    // ---------- built-in looks (V7.4) ----------
+    app.get('/themes', { config: { scope: 'quizzes:read' } }, async () => themeCatalog());
 
     // ---------- list ----------
     /** Topics used in the teacher's questions so far, for consistent naming (C10.3). */
@@ -74,8 +81,12 @@ export const quizRoutes =
       const result = validateQuiz(req.body);
       if (!result.ok) return unprocessable(reply, result.errors);
       const stats = quizStats(result.data.questions);
+      // the look never blocks an upload: unknown ids are dropped with a warning (V7.4)
+      const own = (id: string) => s.themeImages.owns(req.auth!.teacherId, id);
+      const { theme, warnings } = ownImageOnly(normalizeTheme(result.data.theme, ['theme'], req.auth!.kind === 'session'), own);
+      const extra = warnings.length ? { warnings } : {};
       const dryRun = req.query.dry_run === '1' || req.query.dry_run === 'true';
-      if (dryRun) return reply.code(200).send({ valid: true, stats });
+      if (dryRun) return reply.code(200).send({ valid: true, stats, ...extra });
 
       const teacherId = req.auth!.teacherId;
       const keyHeader = req.headers['idempotency-key'];
@@ -92,13 +103,15 @@ export const quizRoutes =
       }
       let quiz: StoredQuiz;
       try {
-        quiz = s.quizzes.create(teacherId, result.data, key ? { key, hash } : undefined);
+        // without an explicit look a new quiz gets the teacher's default (V7.3)
+        const look = result.data.theme === undefined ? s.accounts.defaultTheme(teacherId) : theme;
+        quiz = s.quizzes.create(teacherId, { ...result.data, theme: look }, key ? { key, hash } : undefined);
       } catch (e) {
         // concurrent request with the same key
         if (key && /UNIQUE/.test(String(e))) return sendError(reply, 409, 'Požadavek se stejným Idempotency-Key se právě zpracovává. Zkuste to znovu.', 'idempotency_conflict');
         throw e;
       }
-      const body = { quizId: quiz.id, reviewUrl: reviewUrl(quiz.id), stats };
+      const body = { quizId: quiz.id, reviewUrl: reviewUrl(quiz.id), stats, ...extra };
       if (key) s.quizzes.setIdempotencyResponse(quiz.id, body);
       return reply.code(201).send(body);
     });
@@ -171,8 +184,12 @@ export const quizRoutes =
       if (!quiz) return;
       const r = validateWith(quizMetaPatchSchema, req.body);
       if (!r.ok) return unprocessable(reply, r.errors);
-      s.quizzes.updateMeta(quiz.id, { ...r.data, settings: r.data.settings ? { ...quiz.settings, ...r.data.settings } : undefined });
-      return quizResponse(s.quizzes.get(quiz.id)!);
+      const { theme: rawTheme, ...meta } = r.data;
+      const own = (imageId: string) => s.themeImages.owns(req.auth!.teacherId, imageId);
+      const look = rawTheme === undefined ? undefined : ownImageOnly(normalizeTheme(rawTheme, ['theme'], req.auth!.kind === 'session'), own);
+      s.quizzes.updateMeta(quiz.id, { ...meta, settings: meta.settings ? { ...quiz.settings, ...meta.settings } : undefined, theme: look?.theme });
+      const updated = quizResponse(s.quizzes.get(quiz.id)!);
+      return look?.warnings.length ? { ...updated, warnings: look.warnings } : updated;
     });
 
     app.delete<QuizParams>('/quizzes/:id', { config: { scope: 'quizzes:write' } }, async (req, reply) => {

@@ -11,7 +11,7 @@ const quiz = JSON.parse(readFileSync(join(import.meta.dirname, '../fixtures/quiz
 const NICKS = ['Adéla', 'Bořek', 'Cilka', 'Dominik', 'Ema'];
 
 const t = await target();
-console.log(`KvizHub: ${t.url}`);
+console.log(`Lore: ${t.url}`);
 const created = await apiCall<{ quizId: string; reviewUrl: string; stats: { total: number; ok: number; flagged: number } }>(t, 'POST', '/quizzes', quiz);
 console.log(`Kvíz vložen: ${created.reviewUrl} (otázek ${created.stats.total}, v pořádku ${created.stats.ok}, ke kontrole ${created.stats.flagged})`);
 const game = await apiCall<{ gameId: string; pin: string; hostUrl: string; joinUrl: string; questionCount: number }>(t, 'POST', `/quizzes/${created.quizId}/games`, {

@@ -4,10 +4,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const PORT = Number(process.env.E2E_PORT ?? 3210);
-const dbDir = mkdtempSync(join(tmpdir(), 'kvizhub-e2e-'));
+const dbDir = mkdtempSync(join(tmpdir(), 'lore-e2e-'));
 
 export default defineConfig({
   testDir: 'e2e',
+  // visual regression runs on its own: pnpm test:visual (-u to accept changes)
+  testIgnore: process.env.VISUAL ? [] : ['visual/**'],
+  snapshotPathTemplate: '{testDir}/visual/__screens__/{arg}{ext}',
   timeout: 90_000,
   fullyParallel: false,
   workers: 1,
@@ -33,6 +36,7 @@ export default defineConfig({
       LOG_LEVEL: 'warn',
       JOIN_RATE_LIMIT: '100',
       CODE_PEPPER: 'e2e-pepper-0123456789abcdef0123456789abcdef',
+      DESIGN_PAGE: '1',
     },
   },
 });

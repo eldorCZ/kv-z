@@ -16,7 +16,12 @@
     "games": "Hry a výsledky",
     "tokens": "API tokeny",
     "logout": "Odhlásit",
-    "classes": "Třídy"
+    "classes": "Třídy",
+    "home": "{{app}}, domů",
+    "expand": "Rozbalit navigaci",
+    "collapse": "Sbalit navigaci",
+    "menu": "Nabídka",
+    "look": "Vzhled"
   },
   "login": {
     "introLogin": "Přihlaste se ke svému účtu učitele.",
@@ -34,7 +39,7 @@
     "create": "Nový kvíz",
     "uploadJson": "Nahrát JSON",
     "search": "Hledat podle názvu…",
-    "empty": "Zatím tu nejsou žádné kvízy.",
+    "empty": "Zatím tu není žádný kvíz.",
     "emptyHint": "Pošlete soubor svému agentovi na Telegramu, vytvořte kvíz ručně, nebo nahrajte JSON.",
     "questionCount_one": "{{count}} otázka",
     "questionCount_few": "{{count}} otázky",
@@ -46,9 +51,11 @@
     "clone": "Klonovat",
     "confirmDelete": "Opravdu smazat kvíz „{{title}}“? Smažou se i výsledky jeho her.",
     "tooLarge": "Soubor je větší než 2 MB.",
-    "invalidJson": "Soubor není platný JSON. Nahrajte export z KvizHubu nebo soubor ve formátu kontraktu (schemaVersion 1).",
+    "invalidJson": "Soubor není platný JSON. Nahrajte export z aplikace {{app}} nebo soubor ve formátu kontraktu (schemaVersion 1).",
     "newTitle": "Nový kvíz",
-    "newQuestion": "Upravte tuto otázku"
+    "newQuestion": "Upravte tuto otázku",
+    "actions": "Akce pro kvíz {{title}}",
+    "noMatch": "Hledání nic nenašlo."
   },
   "review": {
     "back": "Zpět na kvízy",
@@ -195,6 +202,25 @@
       "selected": "Vybraní žáci",
       "allowGuests": "Povolit hosty bez kódu",
       "countInStats": "Započítat do evidence třídy (vypněte pro zkušební hru)"
+    },
+    "secondsLeft_one": "Zbývá {{count}} sekunda",
+    "secondsLeft_few": "Zbývají {{count}} sekundy",
+    "secondsLeft_other": "Zbývá {{count}} sekund",
+    "points_one": "{{count}} bod",
+    "points_few": "{{count}} body",
+    "points_other": "{{count}} bodů",
+    "fullscreen": "Celá obrazovka",
+    "exitFullscreen": "Ukončit celou obrazovku",
+    "shortcuts": "Klávesové zkratky",
+    "shortcutsHint": "Klávesové zkratky (?)",
+    "keys": {
+      "next": "Spustit / další krok",
+      "reveal": "Odhalit odpověď",
+      "answer": "Vybrat odpověď A–E",
+      "confirm": "Potvrdit odpověď",
+      "scheme": "Přepnout světlý / tmavý režim",
+      "fullscreen": "Celá obrazovka",
+      "help": "Tento přehled"
     }
   },
   "export": {
@@ -203,7 +229,7 @@
     "formats": {
       "kahoot": "Kahoot (xlsx)",
       "gift": "Moodle GIFT",
-      "json": "JSON (KvizHub)"
+      "json": "JSON ({{app}})"
     },
     "includeFlagged": "Zahrnout i otázky ke kontrole",
     "jsonInfo": "JSON obsahuje všechny otázky včetně vysvětlení, zdrojů a stavu kontroly. Lze ho znovu nahrát.",
@@ -234,7 +260,9 @@
       "quizzes:write": "vkládat a upravovat kvízy",
       "quizzes:read": "číst kvízy a exporty",
       "games:write": "spouštět hry",
-      "games:read": "číst stav a výsledky her"
+      "games:read": "číst stav a výsledky her",
+      "classes:read": "seznam tříd a souhrny bez jmen",
+      "results:pii": "jména žáků ve výsledcích (jen když je agent opravdu potřebuje)"
     },
     "noApprove": "Oprávnění schvalovat otázky tokenům nelze přidělit.",
     "expires": "Platnost (dní)",
@@ -322,7 +350,10 @@
     "allowReturn": "Povolit návrat (žák se připojí z jiného zařízení)",
     "notJoined_one": "Ještě se nepřipojil {{count}} žák",
     "notJoined_few": "Ještě se nepřipojili {{count}} žáci",
-    "notJoined_other": "Ještě se nepřipojilo {{count}} žáků"
+    "notJoined_other": "Ještě se nepřipojilo {{count}} žáků",
+    "correctLabel": "Správně",
+    "answeredShort": "odpovědí",
+    "waiting": "Čekáme na hráče…"
   },
   "play": {
     "pin": "PIN hry",
@@ -352,7 +383,11 @@
     "numericHint": "Desetinná čárka i tečka jsou v pořádku.",
     "numberLabel": "Vaše číselná odpověď",
     "textLabel": "Vaše odpověď",
-    "submit": "Odeslat"
+    "submit": "Odeslat",
+    "inGameAs": "Jste ve hře, {{name}}",
+    "youAre": "Hrajete jako {{name}}",
+    "sent": "Odesláno",
+    "encourage": "Nevadí, další je tvoje."
   },
   "dash": {
     "test": "Test",
@@ -735,5 +770,107 @@
     "hint": "Výsledek hosta se do evidence zapíše, až ho přiřadíte žákovi. Nepřiřazení hosté zůstanou jen ve výsledcích hry.",
     "choose": "— vyberte žáka —",
     "assign": "Přiřadit"
+  },
+  "appearance": {
+    "button": "Vzhled: {{value}}",
+    "title": "Vzhled",
+    "schemeLabel": "Barevný režim",
+    "scheme": {
+      "system": "podle zařízení",
+      "light": "světlý",
+      "dark": "tmavý"
+    },
+    "motionLabel": "Omezit animace",
+    "motion": {
+      "system": "podle zařízení",
+      "reduce": "zapnuto",
+      "full": "vypnuto"
+    },
+    "fontLabel": "Čitelné písmo",
+    "font": {
+      "default": "vypnuto",
+      "readable": "zapnuto"
+    }
+  },
+  "preview": {
+    "title": "Očima žáka",
+    "phone": "Telefon žáka",
+    "projector": "Projektor",
+    "send": "Odeslat"
+  },
+  "theme": {
+    "title": "Vzhled",
+    "button": "Vzhled",
+    "current": "Vzhled: {{name}}",
+    "default": "Výchozí vzhled",
+    "defaultHint": "Jemná mlha pro hru, papír pro test",
+    "all": "Vše",
+    "calm": "Vhodné pro test",
+    "calmHint": "Pro testy doporučujeme klidný motiv. V testu se motiv vždy zobrazí bez pohybu a pod silnějším závojem.",
+    "random": "Náhodný",
+    "motive": "Motiv pozadí",
+    "accent": "Barva",
+    "preview": "Náhled očima žáka",
+    "screens": {
+      "lobby": "Lobby",
+      "question": "Otázka",
+      "test": "Test"
+    },
+    "applyGame": "Použít jen pro tuto hru",
+    "saveQuiz": "Uložit jako výchozí pro kvíz",
+    "save": "Uložit",
+    "saved": "Vzhled uložen.",
+    "change": "Změnit vzhled",
+    "gameLook": "Vzhled této hry",
+    "fromQuiz": "podle kvízu",
+    "onlyThisGame": "jen pro tuto hru",
+    "settingsTitle": "Vzhled",
+    "defaultForNew": "Výchozí motiv nových kvízů",
+    "defaultForNewHint": "Použije se u kvízů, které vytvoříte vy nebo agent bez vlastní volby vzhledu. Stávající kvízy se nemění.",
+    "appearanceHint": "Světlý nebo tmavý režim, omezený pohyb a čitelné písmo nastavíte přepínačem vzhledu v horní liště; uloží se k vašemu účtu.",
+    "sample": {
+      "prompt": "Jak se nazývá změna směru světla na rozhraní?",
+      "options": [
+        "Lom",
+        "Odraz",
+        "Ohyb",
+        "Rozklad"
+      ],
+      "waiting": "Čekáme na hráče…",
+      "test": "Test: Optika"
+    },
+    "images": "Vlastní obrázek",
+    "imagesHint": "JPEG, PNG nebo WebP do 15 MB. Obrázek zmenšíme, otočíme podle fotoaparátu a odstraníme z něj údaje o místě a přístroji. Nahrávejte jen fotky, ke kterým máte práva, a bez tváří žáků.",
+    "upload": "Nahrát obrázek",
+    "uploading": "Nahrávám…",
+    "imageAlt": "Vlastní obrázek {{n}}",
+    "deleteImage": "Smazat obrázek",
+    "confirmDeleteImage": "Smazat obrázek? Kvízy, které ho používají, se vrátí k motivu.",
+    "noImage": "Bez obrázku",
+    "usage": "Využito {{used}} z {{total}} MB, {{count}} z {{max}} obrázků"
+  },
+  "errorPage": {
+    "notFoundTitle": "Tuhle stránku jsme v knize nenašli.",
+    "notFoundText": "Odkaz je možná neúplný nebo stránka zmizela. Zkontrolujte adresu, nebo pokračujte odsud.",
+    "serverTitle": "Něco se v knize zaseklo.",
+    "serverText": "Zkus to za chvíli znovu. Uložená práce zůstává na serveru.",
+    "offlineTitle": "Jsi offline.",
+    "offlineText": "Jakmile se připojení vrátí, pokračujeme.",
+    "offlineBanner": "Jste offline. Změny se uloží, až se spojení obnoví.",
+    "reload": "Načíst znovu",
+    "toQuizzes": "Na moje kvízy",
+    "toPlay": "Připojit se ke hře"
+  },
+  "brand": {
+    "mascotName": "Lorík",
+    "description": "Kvízy a testy pro třídu."
+  },
+  "titles": {
+    "login": "Přihlášení",
+    "play": "Připojení ke hře",
+    "test": "Test",
+    "host": "Projektor",
+    "code": "Můj kód",
+    "notFound": "Stránka nenalezena"
   }
 }

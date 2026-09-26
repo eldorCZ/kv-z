@@ -271,6 +271,25 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE students DROP COLUMN public_name;
   CREATE UNIQUE INDEX students_account ON students(class_id, account_name);
   `,
+  // 6: Dodatek 4 – appearance preferences of teachers and quiz/game themes (V5.3, V7.1)
+  `
+  ALTER TABLE teachers ADD COLUMN ui_prefs_json TEXT;
+  ALTER TABLE teachers ADD COLUMN default_theme_json TEXT;
+  ALTER TABLE quizzes ADD COLUMN theme_json TEXT;
+  ALTER TABLE games ADD COLUMN theme_json TEXT;
+  `,
+  // 7: Dodatek 4, V8 – custom background images of teachers (files in MEDIA_DIR, metadata here)
+  `
+  CREATE TABLE theme_images (
+    id TEXT PRIMARY KEY,
+    teacher_id TEXT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+    bytes INTEGER NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX theme_images_teacher ON theme_images(teacher_id);
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

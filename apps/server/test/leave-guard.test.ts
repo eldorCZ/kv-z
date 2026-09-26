@@ -238,6 +238,10 @@ describe('exemption, gaps, submitted attempts', () => {
     expect(Object.keys(h.body).sort()).toEqual(['guardExempt', 'leaveCount', 'locked', 'maxLeaves', 'remainingSec', 'serverTimeMs', 'status']);
     const view = await t.http.get('/play/test/attempt').set('x-player-token', s.token);
     expect(JSON.stringify(view.body)).not.toMatch(/correctIndices|acceptedAnswers|explanation|sourceRef|awayTotal|events/);
+    // the only look sent to students is exactly this object, in game info and never inside questions (V7.4)
+    expect(Object.keys(view.body.theme).sort()).toEqual(['accent', 'imageUrl', 'motive', 'scrimHint']);
+    expect(view.body.theme.scrimHint).toBe('strong');
+    for (const q of view.body.questions ?? []) expect(q).not.toHaveProperty('theme');
   });
 
   it('rate limits guard requests per token', async () => {

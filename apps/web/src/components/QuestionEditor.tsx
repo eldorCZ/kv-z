@@ -1,8 +1,15 @@
-import { QUESTION_TYPES, TIME_LIMITS, validateQuestion, type ContractError, type QuestionType } from '@kvizhub/core';
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { api, ApiError } from '../api';
-import { Button, Field, inputCls } from './ui';
+import {
+  QUESTION_TYPES,
+  TIME_LIMITS,
+  validateQuestion,
+  type ContractError,
+  type QuestionType,
+} from "@kvizhub/core";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { api, ApiError } from "../api";
+import { Button, Field, inputCls } from "./ui";
+import { StudentPreview } from "./StudentPreview";
 
 export interface EditableQuestion {
   id: string;
@@ -17,17 +24,29 @@ export interface EditableQuestion {
   /** Dodatek 3 (C10.1): topic for tracking mastery in classes */
   topic?: string | null;
   timeLimitSec: number;
-  points: 'standard' | 'double' | 'none';
+  points: "standard" | "double" | "none";
   bloom?: string | null;
   difficulty?: string | null;
   sourceRef?: { file: string; locator: string; quote: string } | null;
-  qa: { status: 'ok' | 'flagged'; notes: string };
+  qa: { status: "ok" | "flagged"; notes: string };
   approvedAt: number | null;
 }
 
-type Draft = Omit<EditableQuestion, 'id' | 'approvedAt' | 'qa'>;
+type Draft = Omit<EditableQuestion, "id" | "approvedAt" | "qa">;
 
-const EDITABLE_KEYS = ['type', 'prompt', 'options', 'correctIndices', 'acceptedAnswers', 'numericAnswer', 'numericTolerance', 'explanation', 'topic', 'timeLimitSec', 'points'] as const;
+const EDITABLE_KEYS = [
+  "type",
+  "prompt",
+  "options",
+  "correctIndices",
+  "acceptedAnswers",
+  "numericAnswer",
+  "numericTolerance",
+  "explanation",
+  "topic",
+  "timeLimitSec",
+  "points",
+] as const;
 
 function toDraft(q: EditableQuestion): Draft {
   const { id: _id, approvedAt: _a, qa: _qa, ...rest } = q;
@@ -36,38 +55,86 @@ function toDraft(q: EditableQuestion): Draft {
 
 /** Adapt type specific fields when the teacher changes the question type. */
 function changeType(d: Draft, type: QuestionType): Draft {
-  const opts = d.options.length ? d.options : ['', '', ''];
+  const opts = d.options.length ? d.options : ["", "", ""];
   switch (type) {
-    case 'single': {
+    case "single": {
       const o = opts.slice(0, 4);
-      while (o.length < 3) o.push('');
-      return { ...d, type, options: o, correctIndices: [0], acceptedAnswers: [], numericAnswer: null, numericTolerance: null };
+      while (o.length < 3) o.push("");
+      return {
+        ...d,
+        type,
+        options: o,
+        correctIndices: [0],
+        acceptedAnswers: [],
+        numericAnswer: null,
+        numericTolerance: null,
+      };
     }
-    case 'multi': {
+    case "multi": {
       const o = [...opts];
-      while (o.length < 4) o.push('');
-      return { ...d, type, options: o.slice(0, 5), correctIndices: [0, 1], acceptedAnswers: [], numericAnswer: null, numericTolerance: null };
+      while (o.length < 4) o.push("");
+      return {
+        ...d,
+        type,
+        options: o.slice(0, 5),
+        correctIndices: [0, 1],
+        acceptedAnswers: [],
+        numericAnswer: null,
+        numericTolerance: null,
+      };
     }
-    case 'truefalse':
-      return { ...d, type, options: ['Pravda', 'Nepravda'], correctIndices: [0], acceptedAnswers: [], numericAnswer: null, numericTolerance: null };
-    case 'short':
-      return { ...d, type, options: [], correctIndices: [], acceptedAnswers: d.acceptedAnswers.length ? d.acceptedAnswers : [''], numericAnswer: null, numericTolerance: null };
-    case 'numeric':
-      return { ...d, type, options: [], correctIndices: [], acceptedAnswers: [], numericAnswer: d.numericAnswer ?? 0, numericTolerance: d.numericTolerance ?? 0 };
-    case 'order': {
+    case "truefalse":
+      return {
+        ...d,
+        type,
+        options: ["Pravda", "Nepravda"],
+        correctIndices: [0],
+        acceptedAnswers: [],
+        numericAnswer: null,
+        numericTolerance: null,
+      };
+    case "short":
+      return {
+        ...d,
+        type,
+        options: [],
+        correctIndices: [],
+        acceptedAnswers: d.acceptedAnswers.length ? d.acceptedAnswers : [""],
+        numericAnswer: null,
+        numericTolerance: null,
+      };
+    case "numeric":
+      return {
+        ...d,
+        type,
+        options: [],
+        correctIndices: [],
+        acceptedAnswers: [],
+        numericAnswer: d.numericAnswer ?? 0,
+        numericTolerance: d.numericTolerance ?? 0,
+      };
+    case "order": {
       const o = [...opts];
-      while (o.length < 3) o.push('');
-      return { ...d, type, options: o.slice(0, 5), correctIndices: [], acceptedAnswers: [], numericAnswer: null, numericTolerance: null };
+      while (o.length < 3) o.push("");
+      return {
+        ...d,
+        type,
+        options: o.slice(0, 5),
+        correctIndices: [],
+        acceptedAnswers: [],
+        numericAnswer: null,
+        numericTolerance: null,
+      };
     }
   }
 }
 
-const draftKey = (qid: string) => `kvizhub-draft-${qid}`;
+const draftKey = (qid: string) => `lore-draft-${qid}`;
 
 // topics used so far by the teacher, loaded once per page for the suggestions
 let topicsPromise: Promise<string[]> | null = null;
 function loadTopics(): Promise<string[]> {
-  topicsPromise ??= api<{ topics: string[] }>('GET', '/api/v1/topics')
+  topicsPromise ??= api<{ topics: string[] }>("GET", "/api/v1/topics")
     .then((r) => r.topics)
     .catch(() => {
       topicsPromise = null;
@@ -76,7 +143,22 @@ function loadTopics(): Promise<string[]> {
   return topicsPromise;
 }
 
-export default function QuestionEditor({ quizId, question, onSaved }: { quizId: string; question: EditableQuestion; onSaved: (q: EditableQuestion) => void }) {
+export default function QuestionEditor({
+  quizId,
+  question,
+  onSaved,
+  index = 0,
+  total = 1,
+  look,
+}: {
+  quizId: string;
+  question: EditableQuestion;
+  onSaved: (q: EditableQuestion) => void;
+  index?: number;
+  total?: number;
+  /** look of the quiz, shown in the student preview */
+  look?: { motive?: string; accent?: string } | null;
+}) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Draft>(() => {
     // restore an unsaved local draft (e.g. after a lost connection)
@@ -88,9 +170,11 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     }
     return toDraft(question);
   });
-  const [state, setState] = useState<'idle' | 'dirty' | 'saving' | 'saved' | 'error'>('idle');
+  const [state, setState] = useState<
+    "idle" | "dirty" | "saving" | "saved" | "error"
+  >("idle");
   const [errors, setErrors] = useState<ContractError[]>([]);
-  const [serverError, setServerError] = useState('');
+  const [serverError, setServerError] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const first = useRef(true);
   const [topics, setTopics] = useState<string[]>([]);
@@ -103,13 +187,18 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
       first.current = false;
       return;
     }
-    setState('dirty');
+    setState("dirty");
     try {
       localStorage.setItem(draftKey(question.id), JSON.stringify(draft));
     } catch {
       /* storage may be unavailable */
     }
-    const v = validateQuestion({ ...draft, topic: draft.topic?.trim() || null, qa: question.qa, sourceRef: question.sourceRef ?? null });
+    const v = validateQuestion({
+      ...draft,
+      topic: draft.topic?.trim() || null,
+      qa: question.qa,
+      sourceRef: question.sourceRef ?? null,
+    });
     if (!v.ok) {
       setErrors(v.errors);
       return;
@@ -117,16 +206,25 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     setErrors([]);
     clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
-      setState('saving');
+      setState("saving");
       try {
-        const body = Object.fromEntries(EDITABLE_KEYS.map((k) => [k, k === 'topic' ? draft.topic?.trim() || null : draft[k]]));
-        const r = await api<{ question: EditableQuestion }>('PATCH', `/api/v1/quizzes/${quizId}/questions/${question.id}`, body);
+        const body = Object.fromEntries(
+          EDITABLE_KEYS.map((k) => [
+            k,
+            k === "topic" ? draft.topic?.trim() || null : draft[k],
+          ]),
+        );
+        const r = await api<{ question: EditableQuestion }>(
+          "PATCH",
+          `/api/v1/quizzes/${quizId}/questions/${question.id}`,
+          body,
+        );
         localStorage.removeItem(draftKey(question.id));
-        setState('saved');
-        setServerError('');
+        setState("saved");
+        setServerError("");
         onSaved(r.question);
       } catch (e) {
-        setState('error');
+        setState("error");
         const err = e as ApiError;
         if (err.errors?.length) setErrors(err.errors);
         setServerError(err.message);
@@ -135,28 +233,44 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     return () => clearTimeout(timer.current);
   }, [draft]);
 
-  const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft((d) => ({ ...d, [k]: v }));
-  const errFor = (prefix: string) => errors.filter((e) => e.path === prefix || e.path.startsWith(`${prefix}[`) || e.path.startsWith(`${prefix}.`));
+  const set = <K extends keyof Draft>(k: K, v: Draft[K]) =>
+    setDraft((d) => ({ ...d, [k]: v }));
+  const errFor = (prefix: string) =>
+    errors.filter(
+      (e) =>
+        e.path === prefix ||
+        e.path.startsWith(`${prefix}[`) ||
+        e.path.startsWith(`${prefix}.`),
+    );
   const ErrList = ({ path }: { path: string }) => (
     <>
       {errFor(path).map((e, i) => (
-        <p key={i} className="mt-1 text-xs text-red-700">
+        <p key={i} className="mt-1 text-xs text-danger">
           {e.message}
         </p>
       ))}
     </>
   );
 
-  const choice = draft.type === 'single' || draft.type === 'multi' || draft.type === 'truefalse';
-  const maxOptions = draft.type === 'single' ? 4 : 5;
-  const minOptions = draft.type === 'multi' ? 4 : 3;
+  const choice =
+    draft.type === "single" ||
+    draft.type === "multi" ||
+    draft.type === "truefalse";
+  const maxOptions = draft.type === "single" ? 4 : 5;
+  const minOptions = draft.type === "multi" ? 4 : 3;
 
-  const setOption = (i: number, v: string) => set('options', draft.options.map((o, j) => (j === i ? v : o)));
+  const setOption = (i: number, v: string) =>
+    set(
+      "options",
+      draft.options.map((o, j) => (j === i ? v : o)),
+    );
   const removeOption = (i: number) => {
     setDraft((d) => ({
       ...d,
       options: d.options.filter((_, j) => j !== i),
-      correctIndices: d.correctIndices.filter((c) => c !== i).map((c) => (c > i ? c - 1 : c)),
+      correctIndices: d.correctIndices
+        .filter((c) => c !== i)
+        .map((c) => (c > i ? c - 1 : c)),
     }));
   };
   const moveOption = (i: number, dir: -1 | 1) => {
@@ -164,177 +278,319 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
     if (j < 0 || j >= draft.options.length) return;
     const o = [...draft.options];
     [o[i], o[j]] = [o[j]!, o[i]!];
-    set('options', o);
+    set("options", o);
   };
   const toggleCorrect = (i: number) => {
-    if (draft.type === 'multi') set('correctIndices', draft.correctIndices.includes(i) ? draft.correctIndices.filter((c) => c !== i) : [...draft.correctIndices, i].sort());
-    else set('correctIndices', [i]);
+    if (draft.type === "multi")
+      set(
+        "correctIndices",
+        draft.correctIndices.includes(i)
+          ? draft.correctIndices.filter((c) => c !== i)
+          : [...draft.correctIndices, i].sort(),
+      );
+    else set("correctIndices", [i]);
   };
 
   const status = {
-    idle: '',
-    dirty: errors.length ? t('editor.invalid') : t('editor.pending'),
-    saving: t('editor.saving'),
-    saved: t('editor.saved'),
-    error: t('editor.error', { message: serverError }),
+    idle: "",
+    dirty: errors.length ? t("editor.invalid") : t("editor.pending"),
+    saving: t("editor.saving"),
+    saved: t("editor.saved"),
+    error: t("editor.error", { message: serverError }),
   }[state];
 
   return (
-    <div className="mt-4 space-y-4 border-t border-slate-200 pt-4" data-testid="editor">
-      <div className="flex flex-wrap gap-3">
-        <Field label={t('editor.type')}>
-          <select className={inputCls} value={draft.type} onChange={(e) => setDraft((d) => changeType(d, e.target.value as QuestionType))}>
-            {QUESTION_TYPES.map((ty) => (
-              <option key={ty} value={ty}>
-                {t(`types.${ty}`)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t('editor.time')}>
-          <select className={inputCls} value={draft.timeLimitSec} onChange={(e) => set('timeLimitSec', Number(e.target.value))}>
-            {TIME_LIMITS.map((v) => (
-              <option key={v} value={v}>
-                {v} s
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label={t('editor.points')}>
-          <select className={inputCls} value={draft.points} onChange={(e) => set('points', e.target.value as Draft['points'])}>
-            {(['standard', 'double', 'none'] as const).map((p) => (
-              <option key={p} value={p}>
-                {t(`points.${p}`)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <p className={`ml-auto self-end text-sm ${state === 'error' || errors.length ? 'text-red-700' : 'text-slate-500'}`} aria-live="polite" data-testid="save-state">
-          {status}
-        </p>
-      </div>
-
-      <Field label={t('editor.prompt')} hint={t('editor.promptHint', { count: draft.prompt.length })}>
-        <textarea className={inputCls} rows={2} maxLength={300} value={draft.prompt} onChange={(e) => set('prompt', e.target.value)} />
-        <ErrList path="prompt" />
-      </Field>
-
-      {(choice || draft.type === 'order') && (
-        <fieldset>
-          <legend className="mb-1 text-sm font-medium text-slate-700">{draft.type === 'order' ? t('editor.orderItems') : t('editor.options')}</legend>
-          <ul className="space-y-2">
-            {draft.options.map((o, i) => (
-              <li key={i} className="flex items-center gap-2">
-                {choice && (
-                  <input
-                    type={draft.type === 'multi' ? 'checkbox' : 'radio'}
-                    name={`correct-${question.id}`}
-                    className="h-5 w-5"
-                    checked={draft.correctIndices.includes(i)}
-                    onChange={() => toggleCorrect(i)}
-                    aria-label={t('editor.markCorrect', { n: i + 1 })}
-                  />
-                )}
-                {draft.type === 'order' && <span className="w-6 text-right text-sm text-slate-500">{i + 1}.</span>}
-                <input
-                  className={inputCls}
-                  value={o}
-                  maxLength={120}
-                  disabled={draft.type === 'truefalse'}
-                  onChange={(e) => setOption(i, e.target.value)}
-                  aria-label={t('editor.optionN', { n: i + 1 })}
-                />
-                {draft.type === 'order' && (
-                  <>
-                    <Button type="button" variant="ghost" onClick={() => moveOption(i, -1)} aria-label={t('review.moveUp')}>
-                      ▲
-                    </Button>
-                    <Button type="button" variant="ghost" onClick={() => moveOption(i, 1)} aria-label={t('review.moveDown')}>
-                      ▼
-                    </Button>
-                  </>
-                )}
-                {draft.type !== 'truefalse' && draft.options.length > minOptions && (
-                  <Button type="button" variant="ghost" className="text-red-700" onClick={() => removeOption(i)} aria-label={t('editor.removeOption', { n: i + 1 })}>
-                    ✕
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {draft.type !== 'truefalse' && draft.options.length < maxOptions && (
-            <Button type="button" className="mt-2" onClick={() => set('options', [...draft.options, ''])}>
-              + {t('editor.addOption')}
-            </Button>
-          )}
-          <p className="mt-1 text-xs text-slate-500">{draft.type === 'order' ? t('editor.orderHint') : draft.type === 'multi' ? t('editor.multiHint') : t('editor.singleHint')}</p>
-          <ErrList path="options" />
-          <ErrList path="correctIndices" />
-        </fieldset>
-      )}
-
-      {draft.type === 'short' && (
-        <fieldset>
-          <legend className="mb-1 text-sm font-medium text-slate-700">{t('editor.acceptedAnswers')}</legend>
-          <ul className="space-y-2">
-            {draft.acceptedAnswers.map((a, i) => (
-              <li key={i} className="flex gap-2">
-                <input
-                  className={inputCls}
-                  value={a}
-                  maxLength={60}
-                  onChange={(e) => set('acceptedAnswers', draft.acceptedAnswers.map((x, j) => (j === i ? e.target.value : x)))}
-                  aria-label={t('editor.acceptedN', { n: i + 1 })}
-                />
-                {draft.acceptedAnswers.length > 1 && (
-                  <Button type="button" variant="ghost" className="text-red-700" onClick={() => set('acceptedAnswers', draft.acceptedAnswers.filter((_, j) => j !== i))}>
-                    ✕
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {draft.acceptedAnswers.length < 5 && (
-            <Button type="button" className="mt-2" onClick={() => set('acceptedAnswers', [...draft.acceptedAnswers, ''])}>
-              + {t('editor.addAccepted')}
-            </Button>
-          )}
-          <p className="mt-1 text-xs text-slate-500">{t('editor.shortHint')}</p>
-          <ErrList path="acceptedAnswers" />
-        </fieldset>
-      )}
-
-      {draft.type === 'numeric' && (
+    <div className="mt-4 grid gap-6 border-t border-line pt-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="space-y-4" data-testid="editor">
         <div className="flex flex-wrap gap-3">
-          <Field label={t('editor.numericAnswer')}>
-            <input className={inputCls} type="number" step="any" value={draft.numericAnswer ?? ''} onChange={(e) => set('numericAnswer', e.target.value === '' ? null : Number(e.target.value))} />
-            <ErrList path="numericAnswer" />
+          <Field label={t("editor.type")}>
+            <select
+              className={inputCls}
+              value={draft.type}
+              onChange={(e) =>
+                setDraft((d) => changeType(d, e.target.value as QuestionType))
+              }
+            >
+              {QUESTION_TYPES.map((ty) => (
+                <option key={ty} value={ty}>
+                  {t(`types.${ty}`)}
+                </option>
+              ))}
+            </select>
           </Field>
-          <Field label={t('editor.numericTolerance')}>
-            <input className={inputCls} type="number" step="any" min={0} value={draft.numericTolerance ?? ''} onChange={(e) => set('numericTolerance', e.target.value === '' ? null : Number(e.target.value))} />
-            <ErrList path="numericTolerance" />
+          <Field label={t("editor.time")}>
+            <select
+              className={inputCls}
+              value={draft.timeLimitSec}
+              onChange={(e) => set("timeLimitSec", Number(e.target.value))}
+            >
+              {TIME_LIMITS.map((v) => (
+                <option key={v} value={v}>
+                  {v} s
+                </option>
+              ))}
+            </select>
           </Field>
+          <Field label={t("editor.points")}>
+            <select
+              className={inputCls}
+              value={draft.points}
+              onChange={(e) => set("points", e.target.value as Draft["points"])}
+            >
+              {(["standard", "double", "none"] as const).map((p) => (
+                <option key={p} value={p}>
+                  {t(`points.${p}`)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <p
+            className={`ml-auto self-end text-sm ${state === "error" || errors.length ? "text-danger" : "text-muted"}`}
+            aria-live="polite"
+            data-testid="save-state"
+          >
+            {status}
+          </p>
         </div>
-      )}
 
-      <Field label={t('editor.explanation')}>
-        <textarea className={inputCls} rows={2} maxLength={300} value={draft.explanation} onChange={(e) => set('explanation', e.target.value)} />
-        <ErrList path="explanation" />
-      </Field>
-      <Field label={t('editor.topic')} hint={t('editor.topicHint')}>
-        <input className={inputCls} list={`topics-${question.id}`} maxLength={60} value={draft.topic ?? ''} onChange={(e) => set('topic', e.target.value)} data-testid="topic" />
-        <datalist id={`topics-${question.id}`}>
-          {topics.map((x) => (
-            <option key={x} value={x} />
+        <Field
+          label={t("editor.prompt")}
+          hint={t("editor.promptHint", { count: draft.prompt.length })}
+        >
+          <textarea
+            className={inputCls}
+            rows={2}
+            maxLength={300}
+            value={draft.prompt}
+            onChange={(e) => set("prompt", e.target.value)}
+          />
+          <ErrList path="prompt" />
+        </Field>
+
+        {(choice || draft.type === "order") && (
+          <fieldset>
+            <legend className="mb-1 text-sm font-medium text-fg">
+              {draft.type === "order"
+                ? t("editor.orderItems")
+                : t("editor.options")}
+            </legend>
+            <ul className="space-y-2">
+              {draft.options.map((o, i) => (
+                <li key={i} className="flex items-center gap-2">
+                  {choice && (
+                    <input
+                      type={draft.type === "multi" ? "checkbox" : "radio"}
+                      name={`correct-${question.id}`}
+                      className="h-5 w-5"
+                      checked={draft.correctIndices.includes(i)}
+                      onChange={() => toggleCorrect(i)}
+                      aria-label={t("editor.markCorrect", { n: i + 1 })}
+                    />
+                  )}
+                  {draft.type === "order" && (
+                    <span className="w-6 text-right text-sm text-muted">
+                      {i + 1}.
+                    </span>
+                  )}
+                  <input
+                    className={inputCls}
+                    value={o}
+                    maxLength={120}
+                    disabled={draft.type === "truefalse"}
+                    onChange={(e) => setOption(i, e.target.value)}
+                    aria-label={t("editor.optionN", { n: i + 1 })}
+                  />
+                  {draft.type === "order" && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => moveOption(i, -1)}
+                        aria-label={t("review.moveUp")}
+                      >
+                        ▲
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => moveOption(i, 1)}
+                        aria-label={t("review.moveDown")}
+                      >
+                        ▼
+                      </Button>
+                    </>
+                  )}
+                  {draft.type !== "truefalse" &&
+                    draft.options.length > minOptions && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-danger"
+                        onClick={() => removeOption(i)}
+                        aria-label={t("editor.removeOption", { n: i + 1 })}
+                      >
+                        ✕
+                      </Button>
+                    )}
+                </li>
+              ))}
+            </ul>
+            {draft.type !== "truefalse" &&
+              draft.options.length < maxOptions && (
+                <Button
+                  type="button"
+                  className="mt-2"
+                  onClick={() => set("options", [...draft.options, ""])}
+                >
+                  + {t("editor.addOption")}
+                </Button>
+              )}
+            <p className="mt-1 text-xs text-muted">
+              {draft.type === "order"
+                ? t("editor.orderHint")
+                : draft.type === "multi"
+                  ? t("editor.multiHint")
+                  : t("editor.singleHint")}
+            </p>
+            <ErrList path="options" />
+            <ErrList path="correctIndices" />
+          </fieldset>
+        )}
+
+        {draft.type === "short" && (
+          <fieldset>
+            <legend className="mb-1 text-sm font-medium text-fg">
+              {t("editor.acceptedAnswers")}
+            </legend>
+            <ul className="space-y-2">
+              {draft.acceptedAnswers.map((a, i) => (
+                <li key={i} className="flex gap-2">
+                  <input
+                    className={inputCls}
+                    value={a}
+                    maxLength={60}
+                    onChange={(e) =>
+                      set(
+                        "acceptedAnswers",
+                        draft.acceptedAnswers.map((x, j) =>
+                          j === i ? e.target.value : x,
+                        ),
+                      )
+                    }
+                    aria-label={t("editor.acceptedN", { n: i + 1 })}
+                  />
+                  {draft.acceptedAnswers.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="text-danger"
+                      onClick={() =>
+                        set(
+                          "acceptedAnswers",
+                          draft.acceptedAnswers.filter((_, j) => j !== i),
+                        )
+                      }
+                    >
+                      ✕
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {draft.acceptedAnswers.length < 5 && (
+              <Button
+                type="button"
+                className="mt-2"
+                onClick={() =>
+                  set("acceptedAnswers", [...draft.acceptedAnswers, ""])
+                }
+              >
+                + {t("editor.addAccepted")}
+              </Button>
+            )}
+            <p className="mt-1 text-xs text-muted">{t("editor.shortHint")}</p>
+            <ErrList path="acceptedAnswers" />
+          </fieldset>
+        )}
+
+        {draft.type === "numeric" && (
+          <div className="flex flex-wrap gap-3">
+            <Field label={t("editor.numericAnswer")}>
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                value={draft.numericAnswer ?? ""}
+                onChange={(e) =>
+                  set(
+                    "numericAnswer",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
+              />
+              <ErrList path="numericAnswer" />
+            </Field>
+            <Field label={t("editor.numericTolerance")}>
+              <input
+                className={inputCls}
+                type="number"
+                step="any"
+                min={0}
+                value={draft.numericTolerance ?? ""}
+                onChange={(e) =>
+                  set(
+                    "numericTolerance",
+                    e.target.value === "" ? null : Number(e.target.value),
+                  )
+                }
+              />
+              <ErrList path="numericTolerance" />
+            </Field>
+          </div>
+        )}
+
+        <Field label={t("editor.explanation")}>
+          <textarea
+            className={inputCls}
+            rows={2}
+            maxLength={300}
+            value={draft.explanation}
+            onChange={(e) => set("explanation", e.target.value)}
+          />
+          <ErrList path="explanation" />
+        </Field>
+        <Field label={t("editor.topic")} hint={t("editor.topicHint")}>
+          <input
+            className={inputCls}
+            list={`topics-${question.id}`}
+            maxLength={60}
+            value={draft.topic ?? ""}
+            onChange={(e) => set("topic", e.target.value)}
+            data-testid="topic"
+          />
+          <datalist id={`topics-${question.id}`}>
+            {topics.map((x) => (
+              <option key={x} value={x} />
+            ))}
+          </datalist>
+          <ErrList path="topic" />
+        </Field>
+        {errors
+          .filter(
+            (e) =>
+              !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(
+                e.path,
+              ),
+          )
+          .map((e, i) => (
+            <p key={i} className="text-xs text-danger">
+              {e.path}: {e.message}
+            </p>
           ))}
-        </datalist>
-        <ErrList path="topic" />
-      </Field>
-      {errors.filter((e) => !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(e.path)).map((e, i) => (
-        <p key={i} className="text-xs text-red-700">
-          {e.path}: {e.message}
-        </p>
-      ))}
+      </div>
+      <aside className="lg:sticky lg:top-4 lg:self-start">
+        <StudentPreview q={draft} index={index} total={total} look={look} />
+      </aside>
     </div>
   );
 }

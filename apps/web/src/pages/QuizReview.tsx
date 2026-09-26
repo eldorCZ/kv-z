@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { EmptyState } from '../ui/Feedback';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { api, ApiError } from '../api';
 import ExportModal from '../components/ExportModal';
 import QuestionEditor, { type EditableQuestion } from '../components/QuestionEditor';
 import StartGameModal from '../components/StartGameModal';
+import { lookName, motiveThumb, ThemePicker, type Look } from '../components/ThemePicker';
+import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core/client';
+import { usePrefs } from '../theme/prefs';
+import { useToast } from '../ui/Toast';
+import { Check, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { Badge, Button, ErrorBox, inputCls } from '../components/ui';
 
 export interface QuizDto {
@@ -16,16 +23,20 @@ export interface QuizDto {
   sourceFiles: { name: string; sha256: string }[];
   stats: { total: number; ok: number; flagged: number };
   questions: EditableQuestion[];
+  theme?: Look;
 }
 
 export default function QuizReview() {
   const { t } = useTranslation();
   const { id } = useParams();
   const [quiz, setQuiz] = useState<QuizDto | null>(null);
+  useTitle(quiz?.title);
   const [error, setError] = useState<ApiError | Error | null>(null);
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
-  const [modal, setModal] = useState<'game' | 'export' | null>(null);
+  const [modal, setModal] = useState<'game' | 'export' | 'look' | null>(null);
+  const { theme: scheme } = usePrefs();
+  const toast = useToast();
   const [dragId, setDragId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [titleState, setTitleState] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -71,7 +82,7 @@ export default function QuizReview() {
     }, 700);
   };
 
-  if (!quiz) return error ? <ErrorBox error={error} /> : <p className="text-slate-500">{t('common.loading')}</p>;
+  if (!quiz) return error ? <ErrorBox error={error} /> : <p className="text-muted">{t('common.loading')}</p>;
 
   const questions = onlyFlagged ? quiz.questions.filter((q) => q.qa.status === 'flagged') : quiz.questions;
 
@@ -111,7 +122,7 @@ export default function QuizReview() {
   return (
     <div>
       <p className="mb-2 text-sm">
-        <Link to="/quizzes" className="text-hra-700 hover:underline">
+        <Link to="/quizzes" className="text-primary hover:underline">
           ← {t('review.back')}
         </Link>
       </p>
@@ -121,7 +132,7 @@ export default function QuizReview() {
             {t('review.quizTitle')}
           </label>
           <input id="quiz-title" className={`${inputCls} text-xl font-bold`} value={title} maxLength={120} onChange={(e) => saveTitle(e.target.value)} />
-          <p className="mt-1 text-xs text-slate-500" aria-live="polite">
+          <p className="mt-1 text-xs text-muted" aria-live="polite">
             {titleState === 'saving' ? t('editor.saving') : titleState === 'saved' ? t('editor.saved') : ''}
             {quiz.gradeLevel && ` ${quiz.gradeLevel}`}
             {quiz.sourceFiles.length > 0 && ` · ${t('review.sources')}: ${quiz.sourceFiles.map((f) => f.name).join(', ')}`}
@@ -130,22 +141,26 @@ export default function QuizReview() {
         <Button variant="success" onClick={() => setModal('game')} data-testid="start-game">
           ▶ {t('review.startGame')}
         </Button>
+        <Button onClick={() => setModal('look')} data-testid="quiz-look" title={t('theme.current', { name: lookName(quiz.theme ?? null, t) })}>
+          <img src={motiveThumb(getMotive(quiz.theme?.motive)?.id ?? DEFAULT_LIVE_MOTIVE, scheme)} alt="" className="h-6 w-10 rounded-sm object-cover" />
+          {t('theme.button')}
+        </Button>
         <Button onClick={() => setModal('export')}>{t('review.export')}</Button>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
         <span>{t('review.stats', { total: quiz.stats.total, ok: quiz.stats.ok })}</span>
-        {quiz.stats.flagged > 0 ? <Badge tone="flagged">⚠ {t('review.flaggedCount', { count: quiz.stats.flagged })}</Badge> : <Badge tone="ok">✓ {t('review.allOk')}</Badge>}
+        {quiz.stats.flagged > 0 ? <Badge tone="flagged">{t('review.flaggedCount', { count: quiz.stats.flagged })}</Badge> : <Badge tone="ok">{t('review.allOk')}</Badge>}
         <label className="ml-auto flex items-center gap-2">
           <input type="checkbox" checked={onlyFlagged} onChange={(e) => setOnlyFlagged(e.target.checked)} />
           {t('review.onlyFlagged')}
         </label>
-        <Button onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/approve-ok`))}>✓ {t('review.approveAllOk')}</Button>
+        <Button icon={<Check className="h-4 w-4" aria-hidden="true" />} onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/approve-ok`))}>{t('review.approveAllOk')}</Button>
         <Button variant="primary" onClick={addQuestion}>
           + {t('review.addQuestion')}
         </Button>
       </div>
-      {quiz.stats.flagged > 0 && <p className="mb-3 text-sm text-amber-900">{t('review.flaggedInfo')}</p>}
+      {quiz.stats.flagged > 0 && <p className="mb-3 text-sm text-warning">{t('review.flaggedInfo')}</p>}
 
       <ErrorBox error={error} onClose={() => setError(null)} />
 
@@ -165,55 +180,55 @@ export default function QuizReview() {
                 setDragId(null);
               }}
               onDragEnd={() => setDragId(null)}
-              className={`rounded-lg border bg-white p-4 shadow-sm ${q.qa.status === 'flagged' ? 'border-amber-400' : 'border-slate-200'} ${dragId === q.id ? 'opacity-60' : ''}`}
+              className={`rounded-lg border bg-surface p-4 shadow-soft ${q.qa.status === 'flagged' ? 'border-warning-line' : 'border-line'} ${dragId === q.id ? 'opacity-60' : ''}`}
             >
               <div className="flex flex-wrap items-start gap-3">
                 {!onlyFlagged && (
-                  <div className="flex flex-col items-center text-slate-400">
-                    <button className="px-1 hover:text-slate-700" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
-                      ▲
+                  <div className="flex flex-col items-center text-muted">
+                    <button className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md hover:bg-surface-2 hover:text-fg" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
+                      <ChevronUp className="h-5 w-5" aria-hidden="true" />
                     </button>
                     <span className="cursor-grab select-none" title={t('review.dragHint')} aria-hidden="true">
-                      ⠿
+                      <GripVertical className="h-5 w-5" />
                     </span>
-                    <button className="px-1 hover:text-slate-700" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
-                      ▼
+                    <button className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md hover:bg-surface-2 hover:text-fg" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
+                      <ChevronDown className="h-5 w-5" aria-hidden="true" />
                     </button>
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span className="font-bold text-slate-700">{index + 1}.</span>
+                  <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                    <span className="font-bold text-fg">{index + 1}.</span>
                     <span>{typeLabel(q.type)}</span>
                     <span>· {q.timeLimitSec} s</span>
                     {q.points !== 'standard' && <span>· {t(`points.${q.points}`)}</span>}
                     {q.qa.status === 'flagged' ? (
-                      <Badge tone="flagged">⚠ {t('review.badgeFlagged')}</Badge>
+                      <Badge tone="flagged">{t('review.badgeFlagged')}</Badge>
                     ) : q.approvedAt ? (
-                      <Badge tone="approved">✓✓ {t('review.badgeApproved')}</Badge>
+                      <Badge tone="approved">{t('review.badgeApproved')}</Badge>
                     ) : (
-                      <Badge tone="ok">✓ {t('review.badgeOk')}</Badge>
+                      <Badge tone="ok">{t('review.badgeOk')}</Badge>
                     )}
                     {q.difficulty && <span>· {t(`difficulty.${q.difficulty}`)}</span>}
                     {q.bloom && <span>· {t(`bloom.${q.bloom}`)}</span>}
                   </div>
                   <p className="font-medium">{q.prompt}</p>
                   {q.qa.status === 'flagged' && q.qa.notes && (
-                    <p className="mt-1 rounded bg-amber-50 px-2 py-1 text-sm text-amber-900">
+                    <p className="mt-1 rounded bg-warning-soft px-2 py-1 text-sm text-warning">
                       <strong>{t('review.qaNote')}:</strong> {q.qa.notes}
                     </p>
                   )}
                   {!isEditing && <AnswerPreview q={q} />}
                   {(q.sourceRef || q.explanation) && !isEditing && (
                     <details className="mt-2 text-sm">
-                      <summary className="cursor-pointer text-hra-700">{t('review.sourceAndExplanation')}</summary>
+                      <summary className="cursor-pointer text-primary">{t('review.sourceAndExplanation')}</summary>
                       {q.sourceRef && (
-                        <div className="mt-2 rounded bg-slate-50 p-2">
-                          <p className="text-xs text-slate-500">
+                        <div className="mt-2 rounded bg-surface-2 p-2">
+                          <p className="text-xs text-muted">
                             {t('review.source')}: {q.sourceRef.file}
                             {q.sourceRef.locator && `, ${q.sourceRef.locator}`}
                           </p>
-                          {q.sourceRef.quote && <blockquote className="mt-1 border-l-4 border-slate-300 pl-2 italic">„{q.sourceRef.quote}“</blockquote>}
+                          {q.sourceRef.quote && <blockquote className="mt-1 border-l-4 border-line-strong pl-2 italic">„{q.sourceRef.quote}“</blockquote>}
                         </div>
                       )}
                       {q.explanation && (
@@ -226,8 +241,8 @@ export default function QuizReview() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {q.qa.status === 'flagged' && (
-                    <Button variant="success" onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/questions/${q.id}/approve`))}>
-                      ✓ {t('review.approve')}
+                    <Button variant="success" icon={<Check className="h-4 w-4" aria-hidden="true" />} onClick={() => run(() => api('POST', `/api/v1/quizzes/${id}/questions/${q.id}/approve`))}>
+                      {t('review.approve')}
                     </Button>
                   )}
                   <Button onClick={() => setEditing(isEditing ? null : q.id)}>{isEditing ? t('review.closeEditor') : t('review.edit')}</Button>
@@ -236,7 +251,7 @@ export default function QuizReview() {
                   </Button>
                   <Button
                     variant="ghost"
-                    className="text-red-700"
+                    className="text-danger"
                     onClick={() => {
                       if (quiz.questions.length <= 1) return setError(new Error(t('review.lastQuestion')));
                       if (confirm(t('review.confirmDelete'))) void run(() => api('DELETE', `/api/v1/quizzes/${id}/questions/${q.id}`));
@@ -250,6 +265,9 @@ export default function QuizReview() {
                 <QuestionEditor
                   quizId={quiz.id}
                   question={q}
+                  index={index}
+                  total={quiz.questions.length}
+                  look={quiz.theme}
                   onSaved={(saved) => setQuiz((cur) => (cur ? { ...cur, questions: cur.questions.map((x) => (x.id === saved.id ? saved : x)) } : cur))}
                 />
               )}
@@ -257,9 +275,22 @@ export default function QuizReview() {
           );
         })}
       </ol>
-      {questions.length === 0 && <p className="text-slate-500">{t('review.noneFlagged')}</p>}
+      {questions.length === 0 && <EmptyState title={t('review.noneFlagged')} />}
 
-      {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} />}
+      {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} onQuizTheme={(theme) => setQuiz({ ...quiz, theme })} />}
+      {modal === 'look' && (
+        <ThemePicker
+          value={quiz.theme ?? null}
+          onClose={() => setModal(null)}
+          actions={[{ id: 'save', label: t('theme.save'), primary: true, testId: 'theme-save-quiz' }]}
+          onAction={async (_a, theme) => {
+            await api('PATCH', `/api/v1/quizzes/${id}`, { theme });
+            setQuiz({ ...quiz, theme });
+            toast(t('theme.saved'));
+            setModal(null);
+          }}
+        />
+      )}
       {modal === 'export' && <ExportModal quiz={quiz} onClose={() => setModal(null)} />}
     </div>
   );
@@ -267,10 +298,10 @@ export default function QuizReview() {
 
 function AnswerPreview({ q }: { q: EditableQuestion }) {
   const { t } = useTranslation();
-  if (q.type === 'short') return <p className="mt-1 text-sm text-emerald-800">✓ {q.acceptedAnswers.join(' / ')}</p>;
+  if (q.type === 'short') return <p className="mt-1 text-sm text-success">✓ {q.acceptedAnswers.join(' / ')}</p>;
   if (q.type === 'numeric')
     return (
-      <p className="mt-1 text-sm text-emerald-800">
+      <p className="mt-1 text-sm text-success">
         ✓ {q.numericAnswer} {q.numericTolerance ? `± ${q.numericTolerance}` : ''}
       </p>
     );
@@ -287,7 +318,7 @@ function AnswerPreview({ q }: { q: EditableQuestion }) {
       {q.options.map((o, i) => {
         const ok = q.correctIndices.includes(i);
         return (
-          <li key={i} className={`rounded px-2 py-1 ${ok ? 'bg-emerald-50 font-medium text-emerald-900' : 'bg-slate-50'}`}>
+          <li key={i} className={`rounded px-2 py-1 ${ok ? 'bg-success-soft font-medium text-success' : 'bg-surface-2'}`}>
             {ok ? '✓ ' : '✗ '}
             {o}
             {ok && <span className="sr-only"> ({t('editor.correct')})</span>}

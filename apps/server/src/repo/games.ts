@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, lt } from 'drizzle-orm';
-import type { GameSettings } from '@kvizhub/core';
+import type { GameSettings, QuizTheme } from '@kvizhub/core';
 import type { Db } from '../db/index.js';
 import { answers, games, players, quizzes } from '../db/schema.js';
 import { newId } from '../util.js';
@@ -26,10 +26,12 @@ export interface GameRow {
   audience: string[] | null;
   snapshot: unknown[] | null;
   played: string[] | null;
+  /** look frozen at creation (V7.2): later changes of the quiz do not affect a running game */
+  theme: QuizTheme | null;
 }
 
 function toGame(r: typeof games.$inferSelect): GameRow {
-  const { audienceJson, snapshotJson, playedJson, allowGuests, ...rest } = r;
+  const { audienceJson, snapshotJson, playedJson, allowGuests, themeJson, ...rest } = r;
   return {
     ...rest,
     status: r.status as GameStatus,
@@ -39,6 +41,7 @@ function toGame(r: typeof games.$inferSelect): GameRow {
     audience: audienceJson ? JSON.parse(audienceJson) : null,
     snapshot: snapshotJson ? JSON.parse(snapshotJson) : null,
     played: playedJson ? JSON.parse(playedJson) : null,
+    theme: themeJson ? JSON.parse(themeJson) : null,
   };
 }
 
@@ -46,6 +49,8 @@ export class GameRepo {
   constructor(private readonly db: Db) {}
 
   create(g: Omit<GameRow, 'createdAt' | 'finishedAt' | 'status' | 'classId' | 'activityId' | 'allowGuests' | 'audience' | 'snapshot' | 'played'>): GameRow {
+    // the look is stored in its own column, not among the settings
+    const { theme: _look, ...settings } = g.settings;
     this.db
       .insert(games)
       .values({
@@ -56,7 +61,8 @@ export class GameRepo {
         pin: g.pin,
         hostKeyHash: g.hostKeyHash,
         status: 'lobby',
-        settingsJson: JSON.stringify(g.settings),
+        settingsJson: JSON.stringify(settings),
+        themeJson: g.theme ? JSON.stringify(g.theme) : null,
         questionIdsJson: JSON.stringify(g.questionIds),
         createdAt: Date.now(),
         endsAt: g.endsAt,

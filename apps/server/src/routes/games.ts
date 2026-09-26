@@ -1,4 +1,5 @@
-import { createGameSchema, validateWith } from '@kvizhub/core';
+import { createGameSchema, normalizeTheme, validateWith } from '@kvizhub/core';
+import { ownImageOnly } from '../theme.js';
 import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import { sendError, type Services } from '../app.js';
 import type { GameRow } from '../repo/games.js';
@@ -22,6 +23,13 @@ export const gameRoutes =
       if (!quiz) return sendError(reply, 404, 'Kvíz nenalezen (nebo k němu nemáte přístup).', 'not_found');
       const input = validateWith(createGameSchema, req.body ?? {});
       if (!input.ok) return reply.code(422).send({ errors: input.errors });
+      // look of this game only (V7.2); unknown ids are ignored with a warning, a custom image only from the app
+      const look = ownImageOnly(
+        normalizeTheme(input.data.settings.theme, ['settings', 'theme'], req.auth!.kind === 'session'),
+        (id) => s.themeImages.owns(req.auth!.teacherId, id),
+        'settings.theme',
+      );
+      input.data.settings.theme = look.theme ?? undefined;
       let classInfo = null;
       if (input.data.settings.classId) {
         if (!req.auth!.scopes.has('classes:read')) return sendError(reply, 403, 'API token nemá oprávnění classes:read.', 'forbidden');
@@ -29,7 +37,7 @@ export const gameRoutes =
         classInfo = s.classGames.prepare(req.auth!.teacherId, input.data);
       }
       const res = input.data.mode === 'test' ? s.testService.create(quiz, input.data, classInfo) : s.gameService.create(quiz, input.data, classInfo);
-      return reply.code(201).send(res);
+      return reply.code(201).send(look.warnings.length ? { ...res, warnings: look.warnings } : res);
     });
 
     app.get<{ Querystring: { quizId?: string } }>('/games', { config: { scope: 'games:read' } }, async (req) => ({
