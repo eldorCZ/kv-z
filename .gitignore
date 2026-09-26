@@ -1,6 +1,6 @@
 node_modules/
 dist/
-data/
+/data/
 *.db
 *.db-*
 .env
@@ -14,4 +14,3 @@ work/
 *.tsbuildinfo
 .sandbox-ca.crt
 kviz.log
-data/
