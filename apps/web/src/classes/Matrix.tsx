@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { api, ApiError } from '../api';
 import i18n from '../i18n';
 import { Button, ErrorBox } from '../components/ui';
-import { fullName, gameLink, pct, shortDate, TREND_ARROW, type ClassDto, type MatrixCell, type MatrixDto } from './types';
+import { gameLink, studentName, pct, shortDate, TREND_ARROW, type ClassDto, type MatrixCell, type MatrixDto } from './types';
 
 export interface PeriodState {
   period: string;
@@ -111,14 +111,15 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
   }, [cls.id, period, kind]);
 
   if (!m) return <ErrorBox error={error} />;
-  const name = (s: MatrixDto['students'][number]) => (showNames ? fullName(s) : s.publicName);
+  // hidden names: "Žák <číslo>", or the position in the roster order when the number is missing
+  const name = (s: MatrixDto['students'][number]) => studentName(s, !showNames, m.students.indexOf(s));
   const coll = new Intl.Collator('cs');
   const TREND_ORDER = { falling: 0, stable: 1, rising: 2, little_data: 3 };
   const rows = [...m.students].sort((a, b) => {
-    if (sort === 'name') return coll.compare(fullName(a), fullName(b));
-    if (sort === 'avg') return (a.summary.testAvg ?? 101) - (b.summary.testAvg ?? 101) || coll.compare(fullName(a), fullName(b));
+    if (sort === 'name') return coll.compare(a.accountName, b.accountName);
+    if (sort === 'avg') return (a.summary.testAvg ?? 101) - (b.summary.testAvg ?? 101) || coll.compare(a.accountName, b.accountName);
     if (sort === 'trend') return TREND_ORDER[a.summary.testTrend.label] - TREND_ORDER[b.summary.testTrend.label] || (a.summary.testTrend.delta ?? 0) - (b.summary.testTrend.delta ?? 0);
-    return 0; // server order: roster number, family name
+    return 0; // server order: roster number, account name
   });
 
   return (
@@ -151,7 +152,7 @@ export default function Matrix({ cls, showNames = true }: { cls: ClassDto; showN
         <table className="min-w-full border-collapse text-sm" data-testid="matrix">
           <thead className="bg-slate-50 text-xs text-slate-600">
             <tr>
-              <th className="sticky left-0 z-10 bg-slate-50 p-2 text-left">{t('roster.name')}</th>
+              <th className="sticky left-0 z-10 bg-slate-50 p-2 text-left">{t('roster.accountName')}</th>
               {m.activities.map((a) => (
                 <th key={a.id} className={`min-w-16 p-2 text-center font-medium ${a.kind === 'test' ? 'bg-sky-50' : ''} ${a.counted ? '' : 'text-slate-400'}`} title={a.counted ? a.label : `${a.label} – ${t('overview.notCounted')}`}>
                   <div className="max-w-24 truncate">

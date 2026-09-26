@@ -15,14 +15,14 @@ export default function RosterCodeStep({
 }: {
   pin: string;
   allowGuests: boolean;
-  onTicket: (ticket: string, publicName: string) => Promise<void> | void;
+  onTicket: (ticket: string, accountName: string) => Promise<void> | void;
   onGuest: () => void;
   dark?: boolean;
 }) {
   const { t } = useTranslation();
   const saved = readDeviceCode();
   const [code, setCode] = useState(saved ?? '');
-  const [who, setWho] = useState<{ publicName: string; ticket: string } | null>(null);
+  const [who, setWho] = useState<{ accountName: string; ticket: string } | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [noCode, setNoCode] = useState(false);
@@ -57,13 +57,13 @@ export default function RosterCodeStep({
   if (who)
     return (
       <div className={box} data-testid="roster-confirm">
-        <p className="text-center text-2xl font-bold">{t('rosterLogin.isItYou', { name: who.publicName })}</p>
+        <p className="text-center text-2xl font-bold">{t('rosterLogin.isItYou', { name: who.accountName })}</p>
         <button
           className="w-full rounded-md bg-indigo-600 py-3 text-lg font-bold text-white"
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            await onTicket(who.ticket, who.publicName);
+            await onTicket(who.ticket, who.accountName);
             setBusy(false);
           }}
           data-testid="roster-yes"

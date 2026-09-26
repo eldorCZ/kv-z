@@ -2,18 +2,13 @@ import {
   classInputSchema,
   classSettingsSchema,
   currentSchoolYear,
-  derivePublicName,
   formatCode,
   generateCode,
   normalizeCode,
-  parseRosterCsv,
-  parseRosterLines,
-  rosterWarnings,
   schoolYearEnd,
   studentInputSchema,
   validateWith,
   type ClassSettings,
-  type RosterRow,
 } from '@kvizhub/core';
 import { randomInt } from 'node:crypto';
 import type Database from 'better-sqlite3';
@@ -41,9 +36,8 @@ export interface ClassRow {
 export interface StudentRow {
   id: string;
   classId: string;
-  familyName: string;
-  givenName: string;
-  publicName: string;
+  /** the only name of the student: school login without the domain (C4.2) */
+  accountName: string;
   rosterNo: number | null;
   active: boolean;
   since: string;
@@ -73,9 +67,7 @@ export function toStudent(r: Raw): StudentRow {
   return {
     id: r.id as string,
     classId: r.class_id as string,
-    familyName: r.family_name as string,
-    givenName: r.given_name as string,
-    publicName: r.public_name as string,
+    accountName: r.account_name as string,
     rosterNo: (r.roster_no as number | null) ?? null,
     active: r.active === 1,
     since: r.since as string,
@@ -86,11 +78,9 @@ export function toStudent(r: Raw): StudentRow {
 }
 
 const collator = new Intl.Collator('cs');
-export function sortStudents<T extends { rosterNo: number | null; familyName: string; givenName: string }>(list: T[]): T[] {
-  return [...list].sort(
-    (a, b) =>
-      (a.rosterNo ?? 1000) - (b.rosterNo ?? 1000) || collator.compare(a.familyName, b.familyName) || collator.compare(a.givenName, b.givenName),
-  );
+/** By the number in the class register (when filled in), then by account name. */
+export function sortStudents<T extends { rosterNo: number | null; accountName: string }>(list: T[]): T[] {
+  return [...list].sort((a, b) => (a.rosterNo ?? 1000) - (b.rosterNo ?? 1000) || collator.compare(a.accountName, b.accountName));
 }
 
 const today = (now: number) => new Date(now).toISOString().slice(0, 10);
@@ -168,7 +158,12 @@ export class ClassService {
     if (v.data.name !== undefined) this.sql.prepare('UPDATE classes SET name = ? WHERE id = ?').run(v.data.name, c.id);
     if (v.data.subject !== undefined) this.sql.prepare('UPDATE classes SET subject = ? WHERE id = ?').run(v.data.subject || null, c.id);
     if (v.data.schoolYear !== undefined) this.sql.prepare('UPDATE classes SET school_year = ?, school_year_end = ? WHERE id = ?').run(v.data.schoolYear, schoolYearEnd(v.data.schoolYear), c.id);
-    if (v.data.settings) this.sql.prepare('UPDATE classes SET settings_json = ? WHERE id = ?').run(JSON.stringify(classSettingsSchema.parse({ ...c.settings, ...v.data.settings })), c.id);
+    if (v.data.settings) {
+      // only the keys actually sent (zod defaults of the partial schema would reset the others)
+      const sent = ((input as { settings?: Record<string, unknown> }).settings ?? {}) as Record<string, unknown>;
+      const patch = Object.fromEntries(Object.entries(v.data.settings).filter(([k]) => k in sent));
+      this.sql.prepare('UPDATE classes SET settings_json = ? WHERE id = ?').run(JSON.stringify(classSettingsSchema.parse({ ...c.settings, ...patch })), c.id);
+    }
   }
 
   archive(c: ClassRow) {
@@ -185,6 +180,12 @@ export class ClassService {
     })();
   }
 
+  /** Settings of a class without an access check (for the join flow, which has no teacher). */
+  settingsOf(classId: string): ClassSettings {
+    const r = this.sql.prepare('SELECT settings_json FROM classes WHERE id = ?').get(classId) as { settings_json: string } | undefined;
+    return classSettingsSchema.parse(r ? JSON.parse(r.settings_json) : {});
+  }
+
   // ---------------------------------------------------------------- students
 
   students(classId: string): StudentRow[] {
@@ -195,22 +196,6 @@ export class ClassService {
     const r = this.sql.prepare('SELECT * FROM students WHERE id = ? AND class_id = ?').get(studentId, classId) as Raw | undefined;
     if (!r) throw new HttpError(404, 'Žák nenalezen.', 'not_found');
     return toStudent(r);
-  }
-
-  preview(c: ClassRow, body: { text?: unknown; format?: unknown; order?: unknown }) {
-    const text = typeof body.text === 'string' ? body.text.slice(0, 200_000) : '';
-    const rows: RosterRow[] =
-      body.format === 'csv' ? parseRosterCsv(text) : parseRosterLines(text, body.order === 'given-family' ? 'given-family' : 'family-given');
-    const existing = this.students(c.id);
-    const taken = existing.map((s) => s.publicName);
-    const withNames = rows.map((r) => {
-      if (r.error) return { ...r, publicName: null };
-      const publicName = derivePublicName(r.givenName, r.familyName, taken);
-      taken.push(publicName);
-      return { ...r, publicName };
-    });
-    const warnings = rosterWarnings(rows, existing, this.cfg.maxStudentsPerClass);
-    return { rows: withNames, warnings, valid: rows.filter((r) => !r.error).length, total: existing.length + rows.filter((r) => !r.error).length };
   }
 
   private newCode(): { code: string; lookup: string } {
@@ -229,25 +214,26 @@ export class ClassService {
     if (existing.length + input.length > this.cfg.maxStudentsPerClass) {
       throw new HttpError(422, `Třída může mít nejvýše ${this.cfg.maxStudentsPerClass} žáků.`, 'too_many_students');
     }
-    const taken = existing.map((s) => s.publicName);
+    const taken = new Set(existing.map((s) => s.accountName));
+    // only accountName, rosterNo and since are read; any other field (names from an import) is dropped (C4.3)
     const parsed = input.map((raw, i) => {
       const v = validateWith(studentInputSchema, raw);
       if (!v.ok) throw Object.assign(new HttpError(422, `Řádek ${i + 1}: ${v.errors[0]!.message}`, 'validation'), { errors: v.errors });
+      if (taken.has(v.data.accountName)) throw new HttpError(409, `Přihlašovací jméno ${v.data.accountName} už ve třídě je.`, 'duplicate_account');
+      taken.add(v.data.accountName);
       return v.data;
     });
     const out: { student: StudentRow; code: string }[] = [];
     const now = this.now();
     this.sql.transaction(() => {
       for (const s of parsed) {
-        const publicName = s.publicName ?? derivePublicName(s.givenName, s.familyName, taken);
-        taken.push(publicName);
         const { code, lookup } = this.newCode();
         const id = newId();
         this.sql
           .prepare(
-            'INSERT INTO students (id, class_id, family_name, given_name, public_name, roster_no, code_lookup, code_rotated_at, active, since, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)',
+            'INSERT INTO students (id, class_id, account_name, roster_no, code_lookup, code_rotated_at, active, since, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)',
           )
-          .run(id, c.id, s.familyName, s.givenName, publicName, s.rosterNo ?? null, lookup, now, s.since ?? today(now), now);
+          .run(id, c.id, s.accountName, s.rosterNo ?? null, lookup, now, s.since ?? today(now), now);
         out.push({ student: this.student(c.id, id), code: formatCode(code) });
       }
     })();
@@ -259,9 +245,12 @@ export class ClassService {
     const v = validateWith(studentInputSchema.partial(), input);
     if (!v.ok) throw Object.assign(new HttpError(422, v.errors[0]!.message, 'validation'), { errors: v.errors });
     const d = v.data;
+    if (d.accountName && d.accountName !== cur.accountName && this.students(c.id).some((x) => x.accountName === d.accountName)) {
+      throw new HttpError(409, `Přihlašovací jméno ${d.accountName} už ve třídě je.`, 'duplicate_account');
+    }
     this.sql
-      .prepare('UPDATE students SET family_name = ?, given_name = ?, public_name = ?, roster_no = ?, since = ? WHERE id = ?')
-      .run(d.familyName ?? cur.familyName, d.givenName ?? cur.givenName, d.publicName ?? cur.publicName, d.rosterNo === undefined ? cur.rosterNo : d.rosterNo, d.since ?? cur.since, studentId);
+      .prepare('UPDATE students SET account_name = ?, roster_no = ?, since = ? WHERE id = ?')
+      .run(d.accountName ?? cur.accountName, d.rosterNo === undefined ? cur.rosterNo : d.rosterNo, d.since ?? cur.since, studentId);
     return this.student(c.id, studentId);
   }
 

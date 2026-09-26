@@ -11,8 +11,8 @@ Učitel kvíz v KvizHubu zkontroluje a upraví a spustí hru: žáci se připoj�
 - **Otázky s výhradou** (stav „ke kontrole“, `flagged`) se do hry ani exportu nedostanou, dokud je učitel neschválí.
   Agent je schválit nemůže.
 - **Data zůstávají na vašem serveru.** Žáci nemají účty ani hesla. U hry bez třídy se ukládá jen přezdívka a odpovědi;
-  u volitelných **tříd** (průběžná evidence za školní rok) jméno, zobrazované jméno, číslo v třídním výkazu, hash osobního
-  kódu a výsledky. Pokrok vidí jen učitelé třídy, nikdy agent ani Telegram (viz [Třídy](#třídy-a-průběžná-evidence)).
+  u volitelných **tříd** (průběžná evidence za školní rok) jen školní přihlašovací jméno žáka (např. `novak12`, nebo
+  pseudonym či číslo), číslo v třídním výkazu, hash osobního kódu a výsledky. Žádná křestní ani celá jména. Pokrok vidí jen učitelé třídy, nikdy agent ani Telegram (viz [Třídy](#třídy-a-průběžná-evidence)).
 - **6 typů otázek:** jedna správná, více správných, pravda/nepravda, krátká odpověď, číselná odpověď a seřazení.
 - **Aplikace nevolá žádný jazykový model.** Otázky vyrábí agent (skill `kviz-z-materialu`). Kvíz jde vytvořit
   i bez agenta, ručně v editoru nebo nahráním JSON.
@@ -171,13 +171,24 @@ prosím doplňte:
 Třída je volitelná. Hra bez třídy funguje stejně jako dřív. Třídy se zapnou nastavením `CODE_PEPPER` v `.env`.
 
 1. **Třídy → Nová třída** (např. „8.A Fyzika“, školní rok se doplní sám).
-2. **Soupiska:** vložte seznam (jeden žák na řádek, „Příjmení Jméno“), nebo nahrajte CSV z Excelu
-   (středník i čárka, UTF‑8 i windows‑1250). Před zápisem uvidíte náhled s varováními.
-   Pokud škola nepovolí celá jména, použijte pseudonymy (např. „Jana N.“ nebo „Žák 07“); aplikace funguje stejně.
+2. **Soupiska:** žák se v aplikaci jmenuje stejně jako jeho školní účet, bez domény (např. `novak12`). Vložte seznam
+   (jeden žák na řádek: přihlašovací jméno nebo celá adresa `novak12@skola.cz`, volitelně číslo na začátku), nebo
+   nahrajte CSV (středník, čárka i tabulátor, UTF‑8 i windows‑1250). Sloupec s přihlašovacím jménem se pozná podle
+   názvu (`login`, `SamAccountName`, `ucet`, `UPN`), jinak je to první sloupec; volitelný sloupec `cislo`.
+   **Soubor se zpracuje v prohlížeči** a na server se pošle jen přihlašovací jméno a číslo; ostatní sloupce
+   (jména z exportu) se zahodí. Před zápisem uvidíte náhled (duplicity, neplatné znaky, limit třídy).
+   Aplikace není napojená na Entra ID, Teams ani jiný školní systém; shoda se školním účtem je jen formální.
+   Pokud škola nepovolí ani přihlašovací jména, vložte čísla nebo pseudonymy (např. `z12`); vše funguje stejně.
+
+   Příklad exportu z Active Directory (OU třídy doplňte; správný atribut si ověřte [OVĚŘ]):
+   ```powershell
+   Get-ADUser -SearchBase "<OU třídy>" -Filter * | Select-Object @{n='login';e={$_.SamAccountName}} | Export-Csv 8A.csv -Delimiter ';' -Encoding UTF8 -NoTypeInformation
+   ```
 3. **Osobní kódy** (8 znaků, např. `K7MQ-2XRT`) se ukážou **jen jednou**: vytiskněte karty (A4, 10 na list, s QR kódem),
    nebo stáhněte CSV s kódy. Ztracený kód nahradíte tlačítkem „Nový kód“ (starý okamžitě přestane platit).
-4. Při spuštění hry nebo testu vyberte **Třídu**. Žák zadá PIN, pak svůj kód a potvrdí „Jsi to ty, Jana N.?“.
-   Spolužáci a projektor vidí jen zobrazované jméno; celé jméno vidí jen přihlášený učitel po přepnutí.
+4. Při spuštění hry nebo testu vyberte **Třídu**. Žák zadá PIN, pak svůj kód a potvrdí „Jsi to ty, novak12?“.
+   V živé hře vidí spolužáci a projektor přihlašovací jména, nebo „Žák <číslo>“, když to nastavíte ve třídě
+   (Nastavení → Jména v živé hře). V testu žák nevidí nikoho. Učitel i ovládání přes `hostUrl` vidí přihlašovací jména.
 5. Výsledky se zapisují do **evidence třídy**: matice žáci × aktivity (testy a kvízy zvlášť, „chybí“, „dopsáno“, „nezapočteno“),
    trend, účast, příznak „Ke sledování“ podle pevných pravidel, zvládnutí témat, nejslabší otázky, profil žáka s grafy,
    tisk (A4) a CSV. U testu jde vytvořit **náhradní termín** se stejnými otázkami jen pro nepřítomné.
@@ -186,29 +197,35 @@ Třída je volitelná. Hra bez třídy funguje stejně jako dřív. Třídy se z
 Aplikace počítá a zobrazuje, ale **nehodnotí**: žádné automatické známky ani závěry o žákovi.
 
 Vyzkoušení bez skutečných žáků (jen mimo produkci): `pnpm seed:demo-class` vytvoří třídu s 24 pseudonymy
-(„Žák 01“ až „Žák 24“) a 10 aktivitami a vypíše přihlašovací údaje ukázkového učitele.
+(`zak01` až `zak24`, čísla 1–24; přihlašovací jméno nesmí obsahovat mezeru) a 10 aktivitami a vypíše přihlašovací
+údaje ukázkového učitele. Přepínač „Skrýt jména“ je v přehledech ukáže jako „Žák 1“ až „Žák 24“.
 
-Agent (API token se scope `classes:read`) vidí jen názvy tříd a **souhrny** (průměry, účast, slabá témata); jména,
-kódy ani výsledky jednotlivých žáků přes API nedostane. Soupisku lze vkládat jen v aplikaci.
+Agent (API token se scope `classes:read`) vidí jen názvy tříd a **souhrny** (průměry, účast, slabá témata); přihlašovací
+jména, kódy ani výsledky jednotlivých žáků přes API nedostane (výsledky třídních her jako „Žák N“, jména jen se scope
+`results:pii`). Soupisku lze vkládat jen v aplikaci.
 
 ## Osobní údaje žáků
 
-**Co se ukládá:** příjmení, jméno (nebo pseudonym), zobrazované jméno, číslo v třídním výkazu, data „ve třídě od / do“,
-příslušnost ke třídě, **hash** osobního kódu (HMAC‑SHA256 s `CODE_PEPPER`) a výsledky.
-**Co se neukládá:** poznámky o žácích, podpůrná opatření, zdravotní ani jiné citlivé údaje, e‑mail, datum narození,
+**Co se ukládá:** přihlašovací jméno (školní účet bez domény, např. `novak12`, nebo pseudonym či číslo), číslo
+v třídním výkazu, data „ve třídě od / do“, příslušnost ke třídě, **hash** osobního kódu (HMAC‑SHA256 s `CODE_PEPPER`)
+a výsledky. Přihlašovací jméno obsahuje příjmení a v rámci třídy identifikuje dítě: jde o **pseudonymizovaný** osobní
+údaj, ne anonymní.
+**Co se neukládá:** křestní ani celá jména, doména účtu, poznámky o žácích, podpůrná opatření, zdravotní ani jiné citlivé údaje, e‑mail, datum narození,
 rodné číslo, fotografie, IP adresy, identifikace zařízení. Aplikace nemá volné textové pole o žákovi.
 
 - **Kódy:** otevřený kód se nikdy neukládá ani neloguje; posílá se jen v těle požadavku. Proto ho nejde zobrazit znovu,
   ale únik databáze nedá použitelné kódy. Po 20 chybných kódech za 5 minut se zadávání v dané hře na 60 s zablokuje
   a učitel vidí upozornění. **Změna `CODE_PEPPER` zneplatní všechny kódy** (bude třeba vytisknout nové karty).
-- **Kdo co vidí:** žák jen zobrazovaná jména spolužáků v živé hře (v testu nikoho); ovládání přes `hostUrl` jen zobrazovaná
-  jména; učitel s rolí ve třídě jména v přehledech; agent jen souhrny; Telegram nic z toho.
+- **Kdo co vidí:** žák jen přihlašovací jména spolužáků v živé hře (nebo „Žák <číslo>“), v testu nikoho, nikdy cizí kód;
+  ovládání přes `hostUrl` jen přihlašovací jména; učitel s rolí ve třídě přihlašovací jména, čísla a výsledky;
+  agent jen souhrny; Telegram nic z toho.
 - **Přístupový log:** zobrazení soupisky, matice a profilu, tisk, export, rotace kódů a výmaz se zapisují
   (jen metadata). Vlastník třídy ho vidí v Nastavení třídy. Retence `ACCESS_LOG_RETENTION_MONTHS`.
-- **Retence:** po `CLASS_RETENTION_MONTHS` od konce školního roku se třída anonymizuje: jména a kódy se smažou,
+- **Retence:** po `CLASS_RETENTION_MONTHS` od konce školního roku se třída anonymizuje: přihlašovací jména a kódy se smažou,
   výsledky zůstanou jen jako nespojitelné souhrny a hráči ve výsledcích her se přejmenují na „Žák N“. Datum je vidět
-  v přehledu třídy a vlastník může anonymizovat dříve. Mazání her podle `RETENTION_DAYS` evidenci nemění.
-- **Výmaz:** „Smazat osobní údaje“ u žáka (vlastník) smaže jméno a kód, výsledky se odpojí. „Smazat třídu“ smaže
+  v přehledu třídy a vlastník může anonymizovat dříve. Přepínač „Skrýt jména (promítání)“ v přehledech nahradí
+  přihlašovací jména označením „Žák <číslo>“. Mazání her podle `RETENTION_DAYS` evidenci nemění.
+- **Výmaz:** „Smazat osobní údaje“ u žáka (vlastník) smaže přihlašovací jméno a kód, výsledky se odpojí. „Smazat třídu“ smaže
   i evidenci. „Žák odešel“ je jen deaktivace (kód přestane platit).
 - **Zálohy** obsahují osobní údaje: šifrujte je (`BACKUP_AGE_RECIPIENT` nebo `BACKUP_GPG_RECIPIENT`, viz
   [Zálohování](#zálohování)) a držte je nejvýš 30 dní, aby po anonymizaci nezůstávaly starší kopie.
@@ -224,7 +241,9 @@ Není to právní posudek a nenahrazuje rozhodnutí školy.
 - [ ] **Informování žáků a zákonných zástupců** (vzor níže si škola upraví).
 - [ ] **Umístění serveru a smlouva s poskytovatelem VPS** (zpracovatelská smlouva, region datového centra).
       [OVĚŘ region a podmínky u poskytovatele.]
-- [ ] **Pseudonymy**, pokud škola nepovolí celá jména.
+- [ ] **Přihlašovací jméno obsahuje příjmení**, pro školu jde o (pseudonymizovaný) osobní údaj. Když škola nepovolí
+      ani to, vložte místo přihlašovacích jmen čísla nebo pseudonymy; aplikace funguje stejně a párování se žáky
+      zůstane u učitele mimo aplikaci.
 - [ ] **Přístupy:** kdo zná heslo učitele, kdo má přístup na VPS; šifrované zálohy a doba jejich uchování.
 - [ ] **Postup při úniku údajů** a kontakt na pověřence.
 
@@ -232,9 +251,9 @@ Není to právní posudek a nenahrazuje rozhodnutí školy.
 
 > Ve výuce předmětu **[předmět]** používáme aplikaci KvizHub, která běží na serveru školy / pronajatém serveru
 > **[kde]**. Pro třídu **[třída]** v ní vedeme průběžný přehled výsledků kvízů a testů, abychom viděli, která témata
-> je potřeba zopakovat. Ukládáme jen jméno a příjmení (nebo pseudonym), číslo v třídním výkazu a výsledky.
-> Žáci nemají účty; přihlašují se osobním kódem z karty. Výsledky vidí jen vyučující třídy, spolužáci vidí jen
-> zkrácené jméno. Aplikace nic neznámkuje ani nehodnotí automaticky. Osobní údaje se anonymizují **[datum, 12 měsíců
+> je potřeba zopakovat. Ukládáme jen školní přihlašovací jméno žáka (bez jména a příjmení), číslo v třídním výkazu
+> a výsledky. Žáci v aplikaci nemají účty; přihlašují se osobním kódem z karty. Výsledky vidí jen vyučující třídy,
+> spolužáci vidí v kvízu nanejvýš přihlašovací jméno (nebo „Žák <číslo>“). Aplikace nic neznámkuje ani nehodnotí automaticky. Osobní údaje se anonymizují **[datum, 12 měsíců
 > po konci školního roku]**, zálohy se drží nejvýš 30 dní. Správcem údajů je **[škola]**, s dotazy se obracejte
 > na **[vyučující]** nebo pověřence pro ochranu osobních údajů **[kontakt]**.
 

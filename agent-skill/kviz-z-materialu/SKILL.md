@@ -32,7 +32,7 @@ Ulož soubory do `$W/` a pošli úvodní zprávu (šablona níže).
 **Osobní údaje:** pokud dokument vypadá, že obsahuje osobní údaje žáků (seznamy jmen, známky, rodná čísla,
 kontakty), **zastav se** a napiš, že takový dokument nezpracuješ, dokud to uživatel výslovně nepotvrdí
 (soubory z Telegramu procházejí i Telegramem, ne jen Claude API).
-**Soupiska třídy** (seznam jmen žáků, CSV nebo tabulka žáků pro KvizHub) se nikdy nezpracovává přes agenta:
+**Soupiska třídy** (seznam jmen nebo přihlašovacích jmen žáků, export z AD, CSV nebo tabulka žáků pro KvizHub) se nikdy nezpracovává přes agenta:
 nečti ji a odpověz: „Soupisku žáků prosím vložte přímo v aplikaci KvizHub (Třídy → Soupiska). Přes Telegram ji nepřijímám.“
 
 ### 2. EXTRAKCE
@@ -141,7 +141,7 @@ Jedna shoda → pokračuj. Žádná nebo více → zeptej se **jednou** a pošli
   a nejslabší témata (šablona níže). Hodnota `null` nebo poznámka „malá skupina“ = souhrn se neposkytuje, řekni to.
 - „opakování pro 8.A“: načti souhrn, vezmi `weakTopics` a `weakQuestions` a z materiálu, který máš, vytvoř kvíz
   „Opakování: <téma>“ se stejnými názvy témat (kroky 2–8). Když materiál nemáš, požádej o soubor.
-Souhrn obsahuje jen agregace. Jména, kódy ani výsledky jednotlivých žáků agent nikdy nezná a nikdy je do Telegramu
+Souhrn obsahuje jen agregace. Jména ani přihlašovací jména žáků, kódy ani výsledky jednotlivců agent nikdy nezná a nikdy je do Telegramu
 neposílá, ani když o ně uživatel žádá; odkaž na aplikaci (přehled třídy).
 
 ### 10. ÚKLID

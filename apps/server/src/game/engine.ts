@@ -451,7 +451,7 @@ export class LiveGame {
   }
 
   /** Class game: join as a roster student (C5.1). A second connection is refused unless the host allowed a return. */
-  joinStudent(student: { id: string; publicName: string }): { player: LivePlayer; token: string } {
+  joinStudent(student: { id: string; displayName: string }): { player: LivePlayer; token: string } {
     const existing = [...this.players.values()].find((p) => p.studentId === student.id);
     const token = randomBytes(24).toString('base64url');
     if (existing) {
@@ -465,8 +465,8 @@ export class LiveGame {
     const blocked = this.canJoin();
     if (blocked) throw new GameError(blocked);
     const tokenHash = sha256(token);
-    const id = this.deps.repo.addPlayer(this.id, student.publicName, tokenHash, { studentId: student.id, isGuest: false });
-    const player: LivePlayer = { id, nickname: student.publicName, tokenHash, score: 0, streak: 0, sockets: 0, studentId: student.id, isGuest: false };
+    const id = this.deps.repo.addPlayer(this.id, student.displayName, tokenHash, { studentId: student.id, isGuest: false });
+    const player: LivePlayer = { id, nickname: student.displayName, tokenHash, score: 0, streak: 0, sockets: 0, studentId: student.id, isGuest: false };
     this.players.set(id, player);
     this.emitAll('lobby_update', this.lobby());
     this.broadcastHostState();

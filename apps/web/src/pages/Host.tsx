@@ -216,7 +216,7 @@ export default function Host() {
               {state.notJoined && state.notJoined.length > 0 && (
                 <div className="mt-4 text-lg text-slate-300" data-testid="host-not-joined">
                   <p>{t('host.notJoined', { count: state.notJoined.length })}</p>
-                  <p className="text-base">{state.notJoined.map((x) => x.publicName).join(', ')}</p>
+                  <p className="text-base">{state.notJoined.map((x) => x.name).join(', ')}</p>
                 </div>
               )}
             </div>

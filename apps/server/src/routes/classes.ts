@@ -163,13 +163,9 @@ export const classRoutes =
     });
 
     // ---------------- roster
-    app.post<ClassParams>('/classes/:id/students/preview', { config: { sessionOnly: true } }, async (req) => {
-      const c = access(req, 'editor');
-      return s.classes.preview(c, (req.body ?? {}) as { text?: unknown; format?: unknown; order?: unknown });
-    });
-
     app.post<ClassParams>('/classes/:id/students', { config: { sessionOnly: true } }, async (req, reply) => {
       const c = access(req, 'editor');
+      // the roster file is parsed in the browser; only accountName and rosterNo arrive here (C4.3)
       const list = (req.body as { students?: unknown } | undefined)?.students;
       if (!Array.isArray(list) || list.length === 0) return sendError(reply, 400, 'Pošlete alespoň jednoho žáka.', 'invalid');
       const created = s.classes.addStudents(c, list);

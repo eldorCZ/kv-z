@@ -26,7 +26,7 @@ beforeAll(async () => {
 });
 afterAll(async () => t.close());
 
-async function classGame(mode: 'test' | 'live', extra: Record<string, unknown> = {}, names = ['Nováková Jana', 'Svoboda Petr', 'Dvořák Adam']) {
+async function classGame(mode: 'test' | 'live', extra: Record<string, unknown> = {}, names = ['novak12', 'svoboda7', 'dvorak3']) {
   const cls = await classWithStudents(t, sess, names, `Třída ${Math.random().toString(36).slice(2, 7)}`);
   const r = await t.http
     .post(`/api/v1/quizzes/${quizId}/games`)
@@ -45,17 +45,17 @@ describe('identify (C5.1, C5.2)', () => {
     expect(l.body).toEqual({ mode: 'test', identity: 'roster', allowGuests: false });
     const tl = await t.http.get(`/play/test/lookup?pin=${game.pin}`);
     expect(tl.body.identity).toBe('roster');
-    expect(JSON.stringify(tl.body)).not.toMatch(/Nováková|Jana|students|count(?!.*questionCount)/);
+    expect(JSON.stringify(tl.body)).not.toMatch(/novak12|svoboda7|students|count(?!.*questionCount)/);
   });
 
-  it('valid code -> public name + ticket only; wrong, inactive and foreign codes get one generic message', async () => {
+  it('valid code -> account name + ticket only; wrong, inactive and foreign codes get one generic message', async () => {
     const { game, created, classId } = await classGame('test');
     const ok = await identify(game.pin, created[0]!.code.toLowerCase());
-    expect(Object.keys(ok.body).sort()).toEqual(['publicName', 'ticket']);
-    expect(ok.body.publicName).toBe('Jana N.');
+    expect(Object.keys(ok.body).sort()).toEqual(['accountName', 'ticket']);
+    expect(ok.body.accountName).toBe('novak12');
     const wrong = await identify(game.pin, 'AAAA-BBBB');
     expect(wrong.status).toBe(404);
-    const other = await classWithStudents(t, sess, ['Cizí Karel'], 'Jiná');
+    const other = await classWithStudents(t, sess, ['cizi1'], 'Jiná');
     const foreign = await identify(game.pin, other.created[0]!.code);
     expect(foreign.body.error).toBe(wrong.body.error);
     await t.http.post(`/api/v1/classes/${classId}/students/${created[1]!.student.id}/leave`).set(ui(sess));
@@ -65,7 +65,7 @@ describe('identify (C5.1, C5.2)', () => {
   });
 
   it('audience: only selected students', async () => {
-    const cls = await classWithStudents(t, sess, ['A Anna', 'B Bára'], 'Audience');
+    const cls = await classWithStudents(t, sess, ['anna1', 'bara2'], 'Audience');
     const g = await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'test', settings: { classId: cls.classId, audience: [cls.created[0]!.student.id] } });
     expect((await identify(g.body.pin, cls.created[0]!.code)).status).toBe(200);
     const no = await identify(g.body.pin, cls.created[1]!.code);
@@ -82,7 +82,7 @@ describe('tickets and joining a test', () => {
     const tk = (await identify(game.pin, created[0]!.code)).body.ticket;
     const j = await t.http.post('/play/test/join').send({ pin: game.pin, ticket: tk });
     expect(j.status).toBe(201);
-    expect(j.body.name).toBe('Jana N.');
+    expect(j.body.name).toBe('novak12');
     expect((await t.http.post('/play/test/join').send({ pin: game.pin, ticket: tk })).status).toBe(401);
     const tk2 = (await identify(game.pin, created[1]!.code)).body.ticket;
     clock.t += 2 * 60_000 + 1000;
@@ -103,14 +103,14 @@ describe('tickets and joining a test', () => {
     expect((await t.http.get('/play/test/attempt').set('x-player-token', first.body.playerToken)).status).toBe(401);
   });
 
-  it('guests: refused by default, allowed with allowGuests, cannot use a student public name', async () => {
+  it('guests: refused by default, allowed with allowGuests, cannot use a student account name', async () => {
     const { game } = await classGame('test');
     const no = await t.http.post('/play/test/join').send({ pin: game.pin, name: 'Host' });
     expect(no.status).toBe(403);
     const withGuests = await classGame('test', { allowGuests: true });
     expect((await t.http.get(`/play/roster/lookup?pin=${withGuests.game.pin}`)).body.allowGuests).toBe(true);
     expect((await t.http.post('/play/test/join').send({ pin: withGuests.game.pin, name: 'Host Karel' })).status).toBe(201);
-    expect((await t.http.post('/play/test/join').send({ pin: withGuests.game.pin, name: 'Jana N.' })).status).toBe(409);
+    expect((await t.http.post('/play/test/join').send({ pin: withGuests.game.pin, name: 'Novak12' })).status).toBe(409);
   });
 
   it('throttles after 20 wrong codes in 5 minutes and alerts the teacher', async () => {
@@ -127,19 +127,19 @@ describe('tickets and joining a test', () => {
 });
 
 describe('live class game', () => {
-  it('students join with a ticket, the host sees public names and who has not joined', async () => {
+  it('students join with a ticket, the host sees account names and who has not joined', async () => {
     const { game, created } = await classGame('live');
     const host = await connect(t.url);
-    const att = await emit<{ ok: boolean; state: { notJoined: { publicName: string }[]; classGame: boolean } }>(host, 'host_attach', {
+    const att = await emit<{ ok: boolean; state: { notJoined: { name: string }[]; classGame: boolean } }>(host, 'host_attach', {
       gameId: game.gameId,
       hostKey: new URL(game.hostUrl!).hash.slice(5),
     });
     expect(att.state.classGame).toBe(true);
-    expect(att.state.notJoined.map((x) => x.publicName)).toEqual(['Adam D.', 'Jana N.', 'Petr S.']);
+    expect(att.state.notJoined.map((x) => x.name)).toEqual(['dvorak3', 'novak12', 'svoboda7']);
     const p = await connect(t.url);
     const tk = (await identify(game.pin, created[0]!.code)).body.ticket;
     const j = await emit<{ ok: boolean; nickname: string }>(p, 'join', { pin: game.pin, ticket: tk });
-    expect(j).toMatchObject({ ok: true, nickname: 'Jana N.' });
+    expect(j).toMatchObject({ ok: true, nickname: 'novak12' });
     // nickname join without allowGuests is refused, second connection of the same student too
     const guest = await connect(t.url);
     expect(await emit(guest, 'join', { pin: game.pin, nickname: 'Host' })).toMatchObject({ ok: false });
@@ -149,5 +149,26 @@ describe('live class game', () => {
       error: 'Tento žák už je ve hře připojen. Požádej učitele o obnovení.',
     });
     [host, p, guest, dup].forEach((x) => x.disconnect());
+  });
+
+  it('leaderboardNames = "number": classmates and the projector see "Žák <číslo>" (C5.6)', async () => {
+    const cls = await classWithStudents(t, sess, ['novak12', 'dvorak3'], 'Čísla');
+    await t.http.patch(`/api/v1/classes/${cls.classId}`).set(ui(sess)).send({ settings: { supportThresholdPercent: 40 } });
+    await t.http.patch(`/api/v1/classes/${cls.classId}`).set(ui(sess)).send({ settings: { leaderboardNames: 'number' } });
+    // a partial update keeps the other settings
+    expect((await t.http.get(`/api/v1/classes/${cls.classId}`).set('cookie', sess.cookie)).body.settings).toMatchObject({ supportThresholdPercent: 40, leaderboardNames: 'number' });
+    await t.http.patch(`/api/v1/classes/${cls.classId}/students/${cls.created[0]!.student.id}`).set(ui(sess)).send({ rosterNo: 14 });
+    const game = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'live', settings: { classId: cls.classId } })).body;
+    const host = await connect(t.url);
+    const att = await emit<{ ok: boolean; state: { notJoined: { name: string }[] } }>(host, 'host_attach', { gameId: game.gameId, hostKey: new URL(game.hostUrl).hash.slice(5) });
+    // sorted by number, then account name: novak12 has number 14, dvorak3 is second without a number
+    expect(att.state.notJoined.map((x) => x.name)).toEqual(['Žák 14', 'Žák 2']);
+    // the student still confirms their own account name
+    const id = await identify(game.pin, cls.created[0]!.code);
+    expect(id.body.accountName).toBe('novak12');
+    const p = await connect(t.url);
+    expect(await emit(p, 'join', { pin: game.pin, ticket: id.body.ticket })).toMatchObject({ ok: true, nickname: 'Žák 14' });
+    expect(host.frames.join('')).not.toContain('novak12');
+    [host, p].forEach((x) => x.disconnect());
   });
 });

@@ -89,8 +89,8 @@ export interface HostState {
   answeredCount: number;
   paused: boolean;
   locked: boolean;
-  /** class games (Dodatek 3): public names of students who have not joined yet, only sent to hosts */
-  notJoined?: { studentId: string; publicName: string }[];
+  /** class games (Dodatek 3): students who have not joined yet (account name or "Žák <číslo>"), only sent to hosts */
+  notJoined?: { studentId: string; name: string }[];
   /** repeated wrong personal codes in this game (C5.4) */
   codeAlert?: boolean;
   classGame?: boolean;

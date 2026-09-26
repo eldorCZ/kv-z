@@ -17,7 +17,7 @@ const quiz = {
   ],
 };
 // distinctive names so that any leak is easy to find
-const NAMES = ['Kvasnička Jarmila', 'Popelková Radmila', 'Šťovíček Bohuslav'];
+const NAMES = ['kvasnicka1', 'popelkova2', 'stovicek3'];
 
 beforeAll(async () => {
   t = await startApp({ apiRateLimit: 10_000, joinRateLimit: 10_000 });
@@ -39,12 +39,13 @@ function strings(v: unknown, out: string[] = []): string[] {
   return out;
 }
 
-function forbidden(created: { code: string; student: { familyName: string; givenName: string } }[]) {
-  return created.flatMap((c) => [c.student.familyName, `${c.student.familyName} ${c.student.givenName}`, `${c.student.givenName} ${c.student.familyName}`, c.code, c.code.replace('-', '')]);
+/** codes must never travel to students, the host key, the projector or the agent */
+function forbidden(created: { code: string }[]) {
+  return created.flatMap((c) => [c.code, c.code.replace('-', '')]);
 }
 const leaks = (payload: unknown, words: string[]) => strings(payload).filter((s) => words.some((w) => s.includes(w)));
 
-describe('student, host key and projector payloads contain public names only (C11)', () => {
+describe('student, host key and projector payloads contain account names only, never codes (C11)', () => {
   it('live class game: every socket frame and HTTP response', async () => {
     const cls = await classWithStudents(t, sess, NAMES, 'Bezpečnost live');
     const bad = forbidden(cls.created);
@@ -58,7 +59,7 @@ describe('student, host key and projector payloads contain public names only (C1
       bodies.push((await t.http.post('/play/roster/lookup').send({ pin: g.pin })).body, (await t.http.get(`/play/test/lookup?pin=${g.pin}`)).body);
       const id = await t.http.post('/play/roster/identify').send({ pin: g.pin, code: c.code });
       // whitelist of the identify response
-      expect(Object.keys(id.body).sort()).toEqual(['publicName', 'ticket']);
+      expect(Object.keys(id.body).sort()).toEqual(['accountName', 'ticket']);
       const p = await connect(t.url);
       bodies.push(await emit(p, 'join', { pin: g.pin, ticket: id.body.ticket }));
       players.push(p);
@@ -73,14 +74,14 @@ describe('student, host key and projector payloads contain public names only (C1
     await sleep(200);
     for (const s of [host, ...players]) {
       expect(leaks(s.frames.join('\n'), bad)).toEqual([]);
-      // the public name does travel (leaderboard) – the check really inspected the frames
+      // account names do travel (lobby, leaderboard) – the check really inspected the frames
     }
-    expect(host.frames.join('\n')).toContain('Jarmila K.');
+    expect(host.frames.join('\n')).toContain('kvasnicka1');
     expect(leaks(bodies, bad)).toEqual([]);
     // agent: status and results without names
     expect(leaks((await t.http.get(`/api/v1/games/${g.gameId}`).set(agent)).body, bad)).toEqual([]);
     const res = (await t.http.get(`/api/v1/games/${g.gameId}/results`).set(agent)).body;
-    expect(leaks(res, [...bad, 'Jarmila', 'Radmila', 'Bohuslav'])).toEqual([]);
+    expect(leaks(res, [...bad, ...NAMES])).toEqual([]);
     [host, ...players].forEach((s) => s.disconnect());
   });
 
@@ -99,11 +100,11 @@ describe('student, host key and projector payloads contain public names only (C1
       const me = await t.http.get('/play/test/attempt').set('x-player-token', token);
       expect(me.status).toBe(200);
       bodies.push(j.body, st.body, a.body, sub.body, me.body);
-      // the student sees only their own public name
-      expect(strings(bodies).some((s) => s === c.student.publicName)).toBe(true);
+      // the student sees only their own account name
+      expect(strings(bodies).some((s) => s === c.student.accountName)).toBe(true);
     }
     expect(leaks(bodies, bad)).toEqual([]);
-    const others = cls.created.slice(1).map((c) => c.student.publicName);
+    const others = cls.created.slice(1).map((c) => c.student.accountName);
     const first = bodies.slice(0, 5);
     expect(leaks(first, others)).toEqual([]);
   });

@@ -50,7 +50,7 @@ async function classTest(names: string[], name: string) {
 
 describe('personal data (C9)', () => {
   it('erasing a student removes the name and code; results stay only as class aggregates', async () => {
-    const c = await classTest(['Hrubá Hana', 'Kratochvíl Karel', 'Lízalová Lea'], 'Výmaz');
+    const c = await classTest(['hruba1', 'kratochvil2', 'lizalova3'], 'Výmaz');
     const hana = c.created[0]!.student.id;
     expect(count('SELECT count(*) n FROM activity_results WHERE activity_id = ?', c.activityId)).toBe(3);
     const del = await t.http.delete(`/api/v1/classes/${c.classId}/students/${hana}`).set(ui(sess));
@@ -62,10 +62,9 @@ describe('personal data (C9)', () => {
     expect(acts[0].stats.n).toBe(3);
     // the player name in the game results is replaced
     const players = db().prepare('SELECT nickname FROM players WHERE game_id = ? ORDER BY joined_at').all(c.gameId) as { nickname: string }[];
-    expect(players.map((p) => p.nickname)).toEqual(['Žák 1', 'Karel K.', 'Lea L.']);
+    expect(players.map((p) => p.nickname)).toEqual(['Žák 1', 'kratochvil2', 'lizalova3']);
     const dump = JSON.stringify(db().prepare('SELECT * FROM players').all()) + JSON.stringify(db().prepare('SELECT * FROM students').all());
-    expect(dump).not.toContain('Hrubá');
-    expect(dump).not.toContain('Hana');
+    expect(dump).not.toContain('hruba1');
     // the old code no longer works
     const r = await t.http.post('/play/roster/identify').send({ pin: c.pin, code: c.created[0]!.code });
     expect(r.body.ticket).toBeUndefined();
@@ -74,7 +73,7 @@ describe('personal data (C9)', () => {
   });
 
   it('retention anonymises the class after the school year + CLASS_RETENTION_MONTHS and trims the access log', async () => {
-    const c = await classTest(['Malík Martin', 'Nová Nela', 'Oravcová Olga'], 'Retence');
+    const c = await classTest(['malik1', 'nova2', 'oravcova3'], 'Retence');
     const cls = t.services.classes.assertClassAccess((await t.http.get('/api/auth/me').set('cookie', sess.cookie)).body.teacher.id, c.classId, 'viewer');
     const at = t.services.classes.anonymizeAt(cls);
     expect(new Date(at).toISOString().slice(0, 7)).toBe(`${Number(cls.schoolYearEnd.slice(0, 4)) + 1}-08`);
@@ -100,7 +99,7 @@ describe('personal data (C9)', () => {
   });
 
   it('deleting a class removes the records; games stay without names', async () => {
-    const c = await classTest(['Pešek Pavel', 'Rybová Renata', 'Sokol Stanislav'], 'Smazat');
+    const c = await classTest(['pesek1', 'rybova2', 'sokol3'], 'Smazat');
     insertActivity(db(), { classId: c.classId, kind: 'quiz', label: 'Navíc', playedAt: Date.now(), rosterSize: 3, results: [{ studentId: c.created[0]!.student.id, percent: 50 }] });
     const del = await t.http.delete(`/api/v1/classes/${c.classId}`).set(ui(sess)).send({ confirmName: 'Smazat' });
     expect(del.status).toBe(204);
@@ -112,17 +111,18 @@ describe('personal data (C9)', () => {
     expect(players.every((p) => /^Žák \d+$/.test(p.nickname))).toBe(true);
   });
 
-  it('the server log contains no names and no codes (C9.6)', async () => {
+  it('the server log contains no account names and no codes (C9.8)', async () => {
     log = '';
-    const c = await classTest(['Zelenková Zuzana', 'Vrba Václav', 'Ulrichová Ursula'], 'Logy');
+    const c = await classTest(['zelenkova77', 'vrba88', 'ulrichova99'], 'Logy');
     await t.http.post('/play/roster/identify').send({ pin: c.pin, code: 'AAAA-BBBB' });
-    await t.http.get(`/api/v1/games/${c.gameId}/dashboard?names=full`).set('cookie', sess.cookie);
+    await t.http.get(`/api/v1/games/${c.gameId}/dashboard`).set('cookie', sess.cookie);
+    await t.http.post('/play/roster/identify').send({ pin: c.pin, code: c.created[0]!.code });
     await t.http.get(`/api/v1/classes/${c.classId}/matrix`).set('cookie', sess.cookie);
     await t.http.get(`/api/v1/classes/${c.classId}/students/${c.created[0]!.student.id}/profile`).set('cookie', sess.cookie);
     await t.http.get(`/api/v1/classes/${c.classId}/export.csv`).set('cookie', sess.cookie);
     const rot = await t.http.post(`/api/v1/classes/${c.classId}/rotate-all`).set(ui(sess));
     expect(log.length).toBeGreaterThan(1000); // the log really was captured
-    for (const word of ['Zelenková', 'Zuzana', 'Vrba', 'Václav', 'Ulrichová', 'Zuzana Z.', 'AAAA', 'names=full']) expect(log).not.toContain(word);
+    for (const word of ['zelenkova77', 'vrba88', 'ulrichova99', 'AAAA']) expect(log).not.toContain(word);
     for (const x of [...c.created, ...rot.body.created] as { code: string }[]) {
       expect(log).not.toContain(x.code);
       expect(log).not.toContain(x.code.replace('-', ''));

@@ -71,23 +71,10 @@ export const gameRoutes =
       return g;
     };
     type AttemptParams = { Params: { id: string; aid: string } };
-    const namesLogged = new Map<string, number>();
-
-    app.get<GameParams & { Querystring: { names?: string } }>('/games/:id/dashboard', { config: { sessionOnly: true } }, async (req, reply) => {
+    app.get<GameParams>('/games/:id/dashboard', { config: { sessionOnly: true } }, async (req, reply) => {
       const g = ownedTest(req.params.id, req.auth!.teacherId, reply);
       if (!g) return;
-      let fullNames = false;
-      if (req.query.names === 'full' && g.classId) {
-        s.classes.assertClassAccess(req.auth!.teacherId, g.classId, 'editor');
-        fullNames = true;
-        // the dashboard polls every 3 s: log a names view at most once per 10 minutes and game
-        const key = `${req.auth!.teacherId}:${g.id}`;
-        if ((namesLogged.get(key) ?? 0) < Date.now() - 600_000) {
-          namesLogged.set(key, Date.now());
-          s.classes.log(req.auth!.teacherId, 'names_view', g.classId);
-        }
-      }
-      return s.testService.dashboard(g, { fullNames });
+      return s.testService.dashboard(g);
     });
 
     app.get<AttemptParams>('/games/:id/attempts/:aid', { config: { sessionOnly: true } }, async (req, reply) => {

@@ -48,7 +48,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
   // Dodatek 3 (C6.1): class game
   const [classes, setClasses] = useState<{ id: string; name: string; status: string; role?: string }[]>([]);
   const [cls, setCls] = useState({ classId: '', label: quiz.title.slice(0, 60), audienceAll: true, audience: [] as string[], allowGuests: false, countInStats: true });
-  const [students, setStudents] = useState<{ id: string; publicName: string; familyName: string; givenName: string; active: boolean }[]>([]);
+  const [students, setStudents] = useState<{ id: string; accountName: string; rosterNo: number | null; active: boolean }[]>([]);
   useEffect(() => {
     api<{ classes: typeof classes }>('GET', '/api/v1/classes')
       .then((r) => setClasses(r.classes.filter((c) => c.status === 'active' && (c.role === 'owner' || c.role === 'editor'))))
@@ -162,7 +162,8 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
                               checked={cls.audience.includes(st.id)}
                               onChange={(e) => setCls({ ...cls, audience: e.target.checked ? [...cls.audience, st.id] : cls.audience.filter((x) => x !== st.id) })}
                             />
-                            {`${st.familyName} ${st.givenName}`.trim()}
+                            {st.rosterNo ? `${st.rosterNo}. ` : ''}
+                            {st.accountName}
                           </label>
                         </li>
                       ))}

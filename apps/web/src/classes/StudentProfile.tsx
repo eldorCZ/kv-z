@@ -6,7 +6,7 @@ import { Badge, Button, ErrorBox } from '../components/ui';
 import CodesPanel from './CodesPanel';
 import { printOverview, PrintWarning } from './Matrix';
 import { Bar } from './Topics';
-import { fullName, gameLink, pct, readShowNames, shortDate, TREND_ARROW, type CreatedCode, type ProfileDto, type SeriesPoint, type Summary } from './types';
+import { gameLink, pct, readShowNames, shortDate, TREND_ARROW, type CreatedCode, type ProfileDto, type SeriesPoint, type Summary } from './types';
 
 /** Own small SVG line chart: the student's percent and the class median (dashed); a table follows as an alternative (C8.3). */
 export function LineChart({ points, title }: { points: SeriesPoint[]; title: string }) {
@@ -178,11 +178,11 @@ export default function StudentProfile() {
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold" data-testid="profile-name">
-          {showNames ? fullName(s) : s.publicName}
+          {showNames ? s.accountName : `Žák ${s.rosterNo ?? ''}`.trim()}
         </h1>
         <span className="text-slate-600">
           {s.rosterNo ? `č. ${s.rosterNo} · ` : ''}
-          {t('roster.publicName')}: {s.publicName} · {p.class.name}
+          {p.class.name}
         </span>
         {s.active ? <Badge tone="ok">{t('roster.active')}</Badge> : <Badge tone="neutral">{t('roster.left', { date: s.leftAt })}</Badge>}
         <div className="no-print ml-auto flex gap-2">
@@ -197,7 +197,7 @@ export default function StudentProfile() {
       {canEdit && (
         <div className="no-print flex flex-wrap gap-2">
           {s.active && (
-            <Button onClick={() => confirm(t('roster.rotateConfirm', { name: s.publicName })) && act(async () => setCodes((await api<{ created: CreatedCode[] }>('POST', `${base}/rotate`)).created))}>
+            <Button onClick={() => confirm(t('roster.rotateConfirm', { name: s.accountName })) && act(async () => setCodes((await api<{ created: CreatedCode[] }>('POST', `${base}/rotate`)).created))}>
               {t('roster.newCode')}
             </Button>
           )}
@@ -206,7 +206,7 @@ export default function StudentProfile() {
             <Button
               variant="danger"
               onClick={() =>
-                confirm(t('overview.eraseConfirm', { name: fullName(s) })) &&
+                confirm(t('overview.eraseConfirm', { name: s.accountName })) &&
                 act(async () => {
                   await api('DELETE', base);
                   navigate(`/classes/${id}?tab=roster`);

@@ -39,7 +39,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
   const csv = () => {
     if (!confirm(t('roster.csvWarning'))) return;
     const esc = (v: string) => (/[";\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-    const lines = ['Číslo;Příjmení;Jméno;Zobrazované jméno;Kód', ...codes.map((c) => [c.student.rosterNo ?? '', c.student.familyName, c.student.givenName, c.student.publicName, c.code].map((v) => esc(String(v))).join(';'))];
+    const lines = ['Číslo;Přihlašovací jméno;Kód', ...codes.map((c) => [c.student.rosterNo ?? '', c.student.accountName, c.code].map((v) => esc(String(v))).join(';'))];
     const blob = new Blob([`\ufeff${lines.join('\r\n')}\r\n`], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -64,7 +64,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
         <ul className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
           {codes.map((c) => (
             <li key={c.student.id} className="flex justify-between gap-2 rounded bg-white px-2 py-1">
-              <span>{c.student.publicName}</span>
+              <span className="font-mono">{c.student.accountName}</span>
               <code className="font-mono font-bold" data-testid="plain-code">
                 {c.code}
               </code>
@@ -81,7 +81,7 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
                 <div>
                   <p className="text-xs font-semibold text-indigo-700">KvizHub · {className}</p>
                   <p className="mt-1 text-lg font-bold">
-                    {c.student.publicName}
+                    {c.student.accountName}
                     {c.student.rosterNo ? ` (${c.student.rosterNo})` : ''}
                   </p>
                   <p className="mt-2 font-mono text-2xl font-extrabold tracking-widest">{c.code}</p>

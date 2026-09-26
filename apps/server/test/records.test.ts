@@ -50,7 +50,7 @@ const answer = (token: string, qid: string, payload: unknown) => t.http.put(`/pl
 
 describe('class test -> records (C7.1)', () => {
   it('writes results on submit, same percent as the test, idempotent, recomputed after reopen', async () => {
-    const cls = await classWithStudents(t, sess, ['Nováková Jana', 'Svoboda Petr', 'Dvořák Adam'], 'Záznamy');
+    const cls = await classWithStudents(t, sess, ['novak12', 'svoboda7', 'dvorak3'], 'Záznamy');
     const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'test', settings: { classId: cls.classId, label: 'Písemka 1', test: { timeLimitMin: 20 } } })).body;
     const activityId = t.services.gameRepo.get(g.gameId)!.activityId!;
     expect(t.services.evidence.activity(activityId)).toMatchObject({ kind: 'test', label: 'Písemka 1', rosterSize: 3, countInStats: true });
@@ -93,7 +93,7 @@ describe('class test -> records (C7.1)', () => {
   });
 
   it('expired attempts are auto_submitted; guests are not written until assigned', async () => {
-    const cls = await classWithStudents(t, sess, ['Malá Eva', 'Velký Jan'], 'Hosté');
+    const cls = await classWithStudents(t, sess, ['mala4', 'velky5'], 'Hosté');
     const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'test', settings: { classId: cls.classId, allowGuests: true } })).body;
     const activityId = t.services.gameRepo.get(g.gameId)!.activityId!;
     const guest = await t.http.post('/play/test/join').send({ pin: g.pin, name: 'Neznámý host' });
@@ -104,12 +104,12 @@ describe('class test -> records (C7.1)', () => {
     expect(results(activityId)).toHaveLength(0);
     const gl = await t.http.get(`/api/v1/games/${g.gameId}/guests`).set('cookie', sess.cookie);
     expect(gl.body.guests).toHaveLength(1);
-    expect(gl.body.candidates.map((c: { publicName: string }) => c.publicName).sort()).toEqual(['Eva M.', 'Jan V.']);
+    expect(gl.body.candidates.map((c: { accountName: string }) => c.accountName).sort()).toEqual(['mala4', 'velky5']);
     const as = await t.http.post(`/api/v1/games/${g.gameId}/guests/${gl.body.guests[0].playerId}/assign`).set(ui(sess)).send({ studentId: cls.created[0]!.student.id });
     expect(as.status).toBe(200);
     expect(results(activityId)).toEqual([expect.objectContaining({ studentId: cls.created[0]!.student.id, percent: 33 })]);
     // the same student cannot be assigned twice
-    expect(as.body.candidates.map((c: { publicName: string }) => c.publicName)).toEqual(['Jan V.']);
+    expect(as.body.candidates.map((c: { accountName: string }) => c.accountName)).toEqual(['velky5']);
 
     // expiry
     const jan = await joinTest(g.pin, cls.created[1]!.code);
@@ -122,7 +122,7 @@ describe('class test -> records (C7.1)', () => {
 
 describe('live class game -> records', () => {
   it('writes correctness only (no speed points), skipped questions left out, on game end', async () => {
-    const cls = await classWithStudents(t, sess, ['Rychlá Rita', 'Pomalý Pavel'], 'Živá');
+    const cls = await classWithStudents(t, sess, ['rychla1', 'pomaly2'], 'Živá');
     const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'live', settings: { classId: cls.classId, showLeaderboard: false } })).body;
     const activityId = t.services.gameRepo.get(g.gameId)!.activityId!;
     expect(t.services.evidence.activity(activityId)!.kind).toBe('quiz');
@@ -160,7 +160,7 @@ describe('live class game -> records', () => {
 
 describe('makeup test (C6.4) and retention', () => {
   it('same snapshot, only missing students, merged column; RETENTION_DAYS keeps the records', async () => {
-    const cls = await classWithStudents(t, sess, ['A Anna', 'B Bára', 'C Cyril'], 'Dopisování');
+    const cls = await classWithStudents(t, sess, ['anna1', 'bara2', 'cyril3'], 'Dopisování');
     const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(ui(sess)).send({ mode: 'test', settings: { classId: cls.classId, label: 'Test 3' } })).body;
     const activityId = t.services.gameRepo.get(g.gameId)!.activityId!;
     const anna = await joinTest(g.pin, cls.created[0]!.code);

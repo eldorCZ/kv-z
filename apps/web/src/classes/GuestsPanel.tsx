@@ -5,11 +5,11 @@ import { Button, ErrorBox } from '../components/ui';
 
 interface GuestsDto {
   guests: { playerId: string; nickname: string }[];
-  candidates: { studentId: string; publicName: string; name: string }[];
+  candidates: { studentId: string; accountName: string; rosterNo: number | null }[];
 }
 
 /** Class games: guests without a code can be assigned to a student afterwards (C6.3). Hidden when there are none. */
-export default function GuestsPanel({ gameId, showNames = true }: { gameId: string; showNames?: boolean }) {
+export default function GuestsPanel({ gameId }: { gameId: string }) {
   const { t } = useTranslation();
   const [data, setData] = useState<GuestsDto | null>(null);
   const [pick, setPick] = useState<Record<string, string>>({});
@@ -49,7 +49,8 @@ export default function GuestsPanel({ gameId, showNames = true }: { gameId: stri
               <option value="">{t('guests.choose')}</option>
               {data.candidates.map((c) => (
                 <option key={c.studentId} value={c.studentId}>
-                  {showNames ? c.name : c.publicName}
+                  {c.rosterNo ? `${c.rosterNo}. ` : ''}
+                  {c.accountName}
                 </option>
               ))}
             </select>

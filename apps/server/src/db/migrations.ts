@@ -260,6 +260,17 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE questions ADD COLUMN topic TEXT;
   ALTER TABLE sessions ADD COLUMN last_seen_at INTEGER;
   `,
+  // 5: Dodatek 3, second version – a student is known only by the school login (account_name).
+  // Names from version 4 are dropped; existing rows get a neutral placeholder the teacher can rename.
+  `
+  ALTER TABLE students ADD COLUMN account_name TEXT NOT NULL DEFAULT '';
+  UPDATE students SET account_name = 'zak' || rowid;
+  UPDATE players SET nickname = (SELECT account_name FROM students s WHERE s.id = players.student_id) WHERE student_id IS NOT NULL AND student_id IN (SELECT id FROM students);
+  ALTER TABLE students DROP COLUMN family_name;
+  ALTER TABLE students DROP COLUMN given_name;
+  ALTER TABLE students DROP COLUMN public_name;
+  CREATE UNIQUE INDEX students_account ON students(class_id, account_name);
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

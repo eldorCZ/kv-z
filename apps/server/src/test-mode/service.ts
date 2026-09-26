@@ -155,12 +155,12 @@ export class TestService {
     return { gameId: g.id, quizId: g.quizId, mode: 'test', status: g.status, pin: g.pin, counts: this.counts(g), closesAt: testOf(g).closesAt, createdAt: g.createdAt };
   }
 
-  /** Dashboard rows (D8.2). `fullNames` only for a teacher session with owner/editor role (C6.2). */
-  dashboard(g: GameRow, opts: { fullNames?: boolean } = {}) {
+  /** Dashboard rows (D8.2). Class tests show the current account names (C6.2). */
+  dashboard(g: GameRow) {
     const now = this.now();
     const quizCount = g.questionIds.length;
     const list = this.attempts.listForGame(g.id);
-    const names = g.classId && opts.fullNames && this.classGames ? this.classGames.fullNames(g.classId) : null;
+    const names = g.classId && this.classGames ? this.classGames.accountNames(g.classId) : null;
     const joined = new Set(list.map((x) => x.attempt.studentId).filter((x): x is string => !!x));
     return {
       ...this.status(g),
@@ -420,10 +420,10 @@ export class TestService {
         if (!existing.attempt.allowReturn) throw new HttpError(409, ALREADY_JOINED_MSG, 'already_joined');
         this.attempts.setPlayerToken(existing.attempt.playerId, sha256(token));
         this.attempts.update(existing.attempt.id, { allowReturn: false });
-        return { playerToken: token, attemptId: existing.attempt.id, name: student.publicName, returned: true };
+        return { playerToken: token, attemptId: existing.attempt.id, name: student.accountName, returned: true };
       }
-      const a = this.newAttempt(g, student.publicName, token, now, { studentId: student.id, isGuest: false });
-      return { playerToken: token, attemptId: a.id, name: student.publicName, returned: false };
+      const a = this.newAttempt(g, student.accountName, token, now, { studentId: student.id, isGuest: false });
+      return { playerToken: token, attemptId: a.id, name: student.accountName, returned: false };
     }
     const nick = checkNickname(rawName);
     if (!nick.ok) throw new HttpError(422, nick.error, 'invalid_name');
