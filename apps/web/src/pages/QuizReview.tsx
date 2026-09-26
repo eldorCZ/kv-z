@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { api, ApiError } from '../api';
@@ -28,6 +29,7 @@ export default function QuizReview() {
   const { t } = useTranslation();
   const { id } = useParams();
   const [quiz, setQuiz] = useState<QuizDto | null>(null);
+  useTitle(quiz?.title);
   const [error, setError] = useState<ApiError | Error | null>(null);
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);

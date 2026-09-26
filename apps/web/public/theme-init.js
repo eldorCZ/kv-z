@@ -1,10 +1,11 @@
-/* Jiskra: appearance before the first paint (Dodatek 4, V5.4). External file so that the CSP needs no
+/* Lore: appearance before the first paint (Dodatek 4, V5.4). External file so that the CSP needs no
    inline script. Mirrors resolveTheme/resolveMotion in packages/core/src/ui-prefs.ts. */
 (function () {
   var d = document.documentElement;
   var p;
   try {
-    p = JSON.parse(window.localStorage.getItem('jiskra.ui') || '{}') || {};
+    // the key of the earlier product name is read once when lore.ui does not exist yet (Dodatek 4B, L1.3)
+    p = JSON.parse(window.localStorage.getItem('lore.ui') || window.localStorage.getItem('jiskra.ui') || '{}') || {};
   } catch {
     p = {};
   }

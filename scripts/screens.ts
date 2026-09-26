@@ -13,7 +13,7 @@ import { loadConfig } from '../apps/server/src/config.js';
 import { createDemoClass } from './demo-class.js';
 
 const OUT = join(import.meta.dirname, '../docs/screens');
-const EMAIL = 'ucitel@jiskra.example';
+const EMAIL = 'ucitel@lore.example';
 const PASSWORD = 'ukazka-heslo-1234';
 
 export interface Shot {
@@ -157,7 +157,7 @@ async function gameShots(browser: Browser, teacher: Page, ctx: ScreenCtx, scheme
 }
 
 async function main() {
-  const dir = mkdtempSync(join(tmpdir(), 'jiskra-screens-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lore-screens-'));
   const cfg = loadConfig({} as NodeJS.ProcessEnv, {
     dbPath: join(dir, 'screens.db'),
     logLevel: 'warn',

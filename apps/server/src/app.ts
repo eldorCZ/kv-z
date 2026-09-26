@@ -327,15 +327,35 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
       maxAge: '1h',
       // .br/.gz written by apps/web/precompress.mjs (V11.2)
       preCompressed: true,
+      // index.html is a template (PUBLIC_URL, product name): only through the SPA handler below
+      allowedPath: (path) => !/^\/index\.html/.test(path),
       // hashed build files never change: cache them for a year
       setHeaders: (res, path) => {
         if (/[\\/]assets[\\/]/.test(path)) res.header('cache-control', 'public, max-age=31536000, immutable');
       },
     });
   }
+  // browsers ask for /favicon.ico regardless of <link rel=icon>: answer with the 32 px PNG (Dodatek 4B, L3.2)
+  const faviconPng = join(cfg.webDist, 'icons/favicon-32.png');
+  app.get('/favicon.ico', { config: { public: true }, logLevel: 'warn' }, async (_req, reply) => {
+    if (!existsSync(faviconPng)) return sendError(reply, 404, 'Nenalezeno.', 'not_found');
+    return reply.type('image/png').header('cache-control', 'public, max-age=86400').send(readFileSync(faviconPng));
+  });
+
+  let indexTemplate: string | null = null;
+  const escapeAttr = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  /** index.html with the absolute link-preview image and the configured product name (generic, no game data). */
+  const renderIndex = () => {
+    indexTemplate ??= readFileSync(indexHtml, 'utf8');
+    const name = escapeAttr(services.cfg.appName);
+    return indexTemplate
+      .replaceAll('%PUBLIC_URL%', escapeAttr(services.cfg.publicUrl))
+      .replace('<title>Lore</title>', `<title>${name}</title>`)
+      .replaceAll('content="Lore"', `content="${name}"`);
+  };
   app.setNotFoundHandler((req, reply) => {
     if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/media/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/play/roster/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {
-      return reply.type('text/html').header('cache-control', 'no-cache').send(readFileSync(indexHtml));
+      return reply.type('text/html').header('cache-control', 'no-cache').send(renderIndex());
     }
     return sendError(reply, 404, 'Nenalezeno.', 'not_found');
   });

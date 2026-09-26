@@ -67,7 +67,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     retentionDays: int(env.RETENTION_DAYS, 365),
     testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
     heartbeatGapSec: int(env.HEARTBEAT_GAP_SEC, 25),
-    appName: (env.APP_NAME ?? 'Jiskra').trim().slice(0, 40) || 'Jiskra',
+    appName: (env.APP_NAME ?? 'Lore').trim().slice(0, 40) || 'Lore',
     designPage: env.DESIGN_PAGE === '1' || env.NODE_ENV === 'development',
     codePepper: env.CODE_PEPPER ?? '',
     classRetentionMonths: int(env.CLASS_RETENTION_MONTHS, 12),

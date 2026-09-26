@@ -29,8 +29,8 @@ describe('appearance preferences of teachers (Dodatek 4, V5.3)', () => {
     expect((await t.http.put('/api/auth/prefs').send({ scheme: 'dark' })).status).toBe(401);
   });
 
-  it('config tells the product name (APP_NAME, default Jiskra)', async () => {
-    expect((await t.http.get('/api/auth/config')).body.appName).toBe('Jiskra');
+  it('config tells the product name (APP_NAME, default Lore)', async () => {
+    expect((await t.http.get('/api/auth/config')).body.appName).toBe('Lore');
     const t2 = await startApp({ appName: 'Školní kvíz' });
     try {
       expect((await t2.http.get('/api/auth/config')).body.appName).toBe('Školní kvíz');

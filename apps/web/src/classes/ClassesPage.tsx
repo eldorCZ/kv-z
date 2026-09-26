@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { api, ApiError } from '../api';
@@ -18,6 +19,7 @@ interface Card {
 /** C8.1 */
 export default function ClassesPage() {
   const { t } = useTranslation();
+  useTitle(t('nav.classes'));
   const nav = useNavigate();
   const [list, setList] = useState<Card[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);

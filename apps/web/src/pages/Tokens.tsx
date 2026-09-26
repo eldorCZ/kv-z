@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../api';
 import { Badge, Button, ErrorBox, Field, formatDate, inputCls } from '../components/ui';
@@ -19,6 +20,7 @@ const DEFAULT_SCOPES = ALL_SCOPES.filter((s) => s !== 'results:pii');
 
 export default function Tokens() {
   const { t } = useTranslation();
+  useTitle(t('nav.tokens'));
   const [tokens, setTokens] = useState<TokenDto[]>([]);
   const [name, setName] = useState('Agent na Telegramu');
   const [scopes, setScopes] = useState<string[]>(DEFAULT_SCOPES);

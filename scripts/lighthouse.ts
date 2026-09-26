@@ -23,13 +23,13 @@ const CHROME = process.env.CHROME_PATH ?? chromium.executablePath();
 export const GOALS = { performance: 0.85, accessibility: 0.95, cls: 0.05 };
 
 async function main() {
-  const dir = mkdtempSync(join(tmpdir(), 'jiskra-lh-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lore-lh-'));
   const cfg = loadConfig({} as NodeJS.ProcessEnv, { dbPath: join(dir, 'lh.db'), logLevel: 'warn', joinRateLimit: 1000, apiRateLimit: 10_000, seedSampleQuiz: true, codePepper: 'lh-pepper-0123456789abcdef0123456789abcdef' });
   const { app, services } = await buildApp(cfg);
   await app.listen({ host: '127.0.0.1', port: 0 });
   const url = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}`;
   services.cfg.publicUrl = url;
-  const t = services.accounts.createTeacher('lighthouse@jiskra.example', null);
+  const t = services.accounts.createTeacher('lighthouse@lore.example', null);
   const { seedSampleQuiz } = await import('../apps/server/src/seed.js');
   seedSampleQuiz(services.quizzes, t.id);
   const quiz = services.quizzes.get(services.quizzes.list(t.id)[0]!.id)!;

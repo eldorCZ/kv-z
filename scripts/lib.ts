@@ -18,7 +18,7 @@ export interface Target {
 
 /** Starts a throw-away server with a temporary database and creates a teacher + API token. */
 export async function localServer(opts: { joinRateLimit?: number } = {}): Promise<Target> {
-  const dir = mkdtempSync(join(tmpdir(), 'kvizhub-script-'));
+  const dir = mkdtempSync(join(tmpdir(), 'lore-script-'));
   const cfg = loadConfig({} as NodeJS.ProcessEnv, {
     dbPath: join(dir, 'kvizhub.db'),
     logLevel: 'warn',
@@ -33,7 +33,7 @@ export async function localServer(opts: { joinRateLimit?: number } = {}): Promis
   const reg = await fetch(`${url}/api/auth/register`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'demo@kvizhub.local', password: 'demo-heslo-12345' }),
+    body: JSON.stringify({ email: 'demo@lore.local', password: 'demo-heslo-12345' }),
   });
   const { csrfToken } = (await reg.json()) as { csrfToken: string };
   const cookie = reg.headers.get('set-cookie')!.split(';')[0]!;

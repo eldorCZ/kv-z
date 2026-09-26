@@ -31,7 +31,7 @@ export class AccountRepo {
     this.db.$client.prepare('UPDATE teachers SET ui_prefs_json = ? WHERE id = ?').run(JSON.stringify(prefs), teacherId);
   }
 
-  /** Look of new quizzes (V7.3), null = Jiskra default. */
+  /** Look of new quizzes (V7.3), null = Lore default. */
   defaultTheme(teacherId: string): QuizTheme | null {
     const r = this.db.$client.prepare('SELECT default_theme_json FROM teachers WHERE id = ?').get(teacherId) as { default_theme_json: string | null } | undefined;
     return r?.default_theme_json ? normalizeTheme(JSON.parse(r.default_theme_json), ['theme'], true).theme : null;

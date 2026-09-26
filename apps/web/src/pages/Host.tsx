@@ -1,4 +1,5 @@
 import { hashSeed, type GameOverEvent, type HostState, type LeaderboardEvent, type LobbyUpdate, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
+import { useTitle } from '../ui/useTitle';
 import { Check, Keyboard, Lock, LockOpen, Play, RotateCcw, SkipForward, Square, TriangleAlert } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -12,11 +13,12 @@ import { call, createSocket, useCountdown, type GameSocket } from '../socket';
 import { Logo } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
-const keyStorage = (gameId: string) => `kvizhub-host-${gameId}`;
+const keyStorage = (gameId: string) => `lore-host-${gameId}`;
 
 /** Projector + host controls (V9.3). Optimised for 1280x720: large type, 5 % safe margins, keyboard control. */
 export default function Host() {
   const { t } = useTranslation();
+  useTitle(t('titles.host'));
   const { gameId = '' } = useParams();
   const sock = useRef<GameSocket | null>(null);
   const [error, setError] = useState('');
@@ -196,7 +198,7 @@ export default function Host() {
   return (
     <Stage theme={theme} seed={hashSeed(lobby.pin)} idleCursor testId="host-stage">
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-line bg-panel px-[5vw] py-3">
-        <Logo size="sm" />
+        <Logo height={28} />
         <h1 className="mr-auto min-w-0 truncate text-xl font-bold">{title}</h1>
         {phase !== 'lobby' && phase !== 'finished' && (
           <span className="text-lg tabular">

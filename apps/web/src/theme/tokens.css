@@ -1,5 +1,5 @@
 /*
- * Design tokens of Jiskra (Dodatek 4, V3). Single source of truth: components use only these
+ * Design tokens of Lore (Dodatek 4, V3). Single source of truth: components use only these
  * variables (through the Tailwind names in index.css), never hard-coded colours.
  * `pnpm check:contrast` parses this file – keep one declaration per line.
  *

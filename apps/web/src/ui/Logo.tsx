@@ -1,40 +1,61 @@
-import { useId } from 'react';
+import type { FunctionComponent, SVGProps } from 'react';
+import LogoDark from '../../../../design/brand/lore-logo-dark.svg?react';
+import LogoMono from '../../../../design/brand/lore-logo-mono.svg?react';
+import LogoLight from '../../../../design/brand/lore-logo.svg?react';
+import MarkDark from '../../../../design/brand/lore-mark-dark.svg?react';
+import MarkMono from '../../../../design/brand/lore-mark-mono.svg?react';
+import MarkLight from '../../../../design/brand/lore-mark.svg?react';
+import WordDark from '../../../../design/brand/lore-wordmark-dark.svg?react';
+import WordMono from '../../../../design/brand/lore-wordmark-mono.svg?react';
+import WordLight from '../../../../design/brand/lore-wordmark.svg?react';
 import { appName } from '../app-config';
+import { usePrefs } from '../theme/prefs';
 
-/** The Jiskra mark: a four-point spark with a small notch, amber to coral (Dodatek 4, V2.2). */
-export function SparkMark({ className = 'h-8 w-8', mono = false }: { className?: string; mono?: boolean }) {
-  const id = useId().replace(/:/g, '');
-  return (
-    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <defs>
-        {!mono && (
-          <linearGradient id={`g${id}`} x1="12" y1="8" x2="52" y2="56" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="#ffc247" />
-            <stop offset="1" stopColor="#ff5a5f" />
-          </linearGradient>
-        )}
-        <mask id={`n${id}`}>
-          <rect width="64" height="64" fill="#fff" />
-          <path d="M37 37 42.2 38.6 38.6 42.2z" fill="#000" />
-        </mask>
-      </defs>
-      <path
-        mask={`url(#n${id})`}
-        fill={mono ? 'currentColor' : `url(#g${id})`}
-        d="M32 6c1.9 14.8 8.6 22.6 24 26-15.4 3.4-22.1 11.2-24 26-1.9-14.8-8.6-22.6-24-26 15.4-3.4 22.1-11.2 24-26z"
-      />
-      <circle cx="47" cy="16" r="3.2" fill={mono ? 'currentColor' : '#ffc247'} />
-    </svg>
-  );
-}
+type Svg = FunctionComponent<SVGProps<SVGSVGElement>>;
+export type LogoVariant = 'horizontal' | 'mark' | 'wordmark';
 
-/** Mark + wordmark in the heading font; works on light and dark surfaces through currentColor. */
-export function Logo({ className = '', size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
-  const s = { sm: ['h-6 w-6', 'text-lg'], md: ['h-8 w-8', 'text-2xl'], lg: ['h-12 w-12', 'text-4xl'] }[size];
+/** The finished Lore artwork from design/brand (Dodatek 4B, L2, L3.5): never redrawn, recoloured or restyled. */
+const ART: Record<LogoVariant, { light: Svg; dark: Svg; mono: Svg; ratio: number; min: number }> = {
+  horizontal: { light: LogoLight, dark: LogoDark, mono: LogoMono, ratio: 373 / 120, min: 24 },
+  mark: { light: MarkLight, dark: MarkDark, mono: MarkMono, ratio: 1, min: 16 },
+  wordmark: { light: WordLight, dark: WordDark, mono: WordMono, ratio: 261 / 120, min: 20 },
+};
+
+/**
+ * Lore logo. tone="auto" follows the resolved scheme (data-theme, so the manual switcher works too) with
+ * the same box in both schemes, so switching never moves the layout; tone="mono" is the currentColor variant
+ * for coloured surfaces. `decorative` hides it from screen readers when the name stands next to it.
+ */
+export function Logo({
+  variant = 'horizontal',
+  tone = 'auto',
+  height = 32,
+  decorative = false,
+  className = '',
+  scheme,
+}: {
+  variant?: LogoVariant;
+  tone?: 'auto' | 'mono';
+  /** only for the /_design brand sheet: show one scheme regardless of the current one */
+  scheme?: 'light' | 'dark';
+  height?: number;
+  decorative?: boolean;
+  className?: string;
+}) {
+  const prefs = usePrefs();
+  const theme = scheme ?? prefs.theme;
+  const art = ART[variant];
+  const h = Math.max(height, art.min);
+  const Art = tone === 'mono' ? art.mono : theme === 'dark' ? art.dark : art.light;
+  const a11y = decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': appName };
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <SparkMark className={s[0]} />
-      <span className={`font-display font-bold leading-none text-fg ${s[1]}`}>{appName}</span>
-    </span>
+    <Art
+      {...a11y}
+      width={Math.round(h * art.ratio)}
+      height={h}
+      className={`shrink-0 ${className}`}
+      data-testid={`logo-${variant}`}
+      data-tone={tone === 'mono' ? 'mono' : theme}
+    />
   );
 }

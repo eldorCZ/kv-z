@@ -1,4 +1,4 @@
-"""Python mirror of the KvizHub contract rules (section 2.3). The server (zod, packages/core) stays the source of truth;
+"""Python mirror of the Lore contract rules (section 2.3). The server (zod, packages/core) stays the source of truth;
 tests in tests/test_contract.py check that both accept and reject the same fixtures."""
 from __future__ import annotations
 

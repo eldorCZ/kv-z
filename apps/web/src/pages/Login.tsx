@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router';
 import { api, type ApiError } from '../api';
@@ -9,6 +10,7 @@ import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 export default function Login() {
   const { t } = useTranslation();
+  useTitle(t('titles.login'));
   const { teacher, login, register, loading } = useAuth();
   const [params] = useSearchParams();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -45,8 +47,8 @@ export default function Login() {
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <SchemeSwitcher className="absolute right-4 top-4" />
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg bg-surface p-6 shadow">
-        <h1>
-          <Logo />
+        <h1 className="flex justify-center py-2">
+          <Logo height={48} />
         </h1>
         <p className="text-sm text-muted">{t(mode === 'login' ? 'login.introLogin' : 'login.introRegister')}</p>
         <Field label={t('login.email')}>

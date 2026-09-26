@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Send a checked quiz to KvizHub, create games and read results.
+"""Send a checked quiz to Lore, create games and read results.
 
 Usage:
   python post_quiz.py quiz.checked.json [--dry-run] [--params "15 otázek, 8. ročník"] [--new-key]
@@ -48,9 +48,9 @@ def env_config() -> tuple[str, str]:
     url = os.environ.get("KVIZHUB_URL", "").strip().rstrip("/")
     token = os.environ.get("KVIZHUB_TOKEN", "").strip()
     if not url:
-        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_URL (adresa KvizHubu, např. http://127.0.0.1:3000).")
+        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_URL (adresa aplikace Lore, např. http://127.0.0.1:3000).")
     if not token:
-        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_TOKEN (API token vytvořený v KvizHubu v Nastavení → API tokeny).")
+        raise ApiFailure("Chybí proměnná prostředí KVIZHUB_TOKEN (API token vytvořený v aplikaci Lore v Nastavení → API tokeny).")
     return url, token
 
 
@@ -90,14 +90,14 @@ def request(method: str, path: str, body: object | None = None, headers: dict | 
             return e.code, dict(e.headers), payload
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
             reason = getattr(e, "reason", e)
-            last = ApiFailure(redact(f"Aplikace KvizHub neodpovídá ({reason}).", token))
+            last = ApiFailure(redact(f"Aplikace Lore neodpovídá ({reason}).", token))
             continue
     assert last is not None
     if last.status == 429:
-        raise ApiFailure("Příliš mnoho požadavků na KvizHub (429). Zkuste to znovu za minutu.", 429, last.body)
+        raise ApiFailure("Příliš mnoho požadavků na aplikaci Lore (429). Zkuste to znovu za minutu.", 429, last.body)
     if last.status >= 500:
         msg = (last.body or {}).get("error") if isinstance(last.body, dict) else None
-        raise ApiFailure(f"KvizHub vrátil chybu serveru {last.status}{f': {msg}' if msg else ''}. Zkuste to znovu za chvíli.", last.status, last.body)
+        raise ApiFailure(f"Aplikace Lore vrátila chybu serveru {last.status}{f': {msg}' if msg else ''}. Zkuste to znovu za chvíli.", last.status, last.body)
     raise ApiFailure(f"{last} Zkontrolujte, že aplikace běží a KVIZHUB_URL je správně. Zkusím to znovu za minutu.")
 
 
@@ -115,7 +115,7 @@ def idempotency_key(quiz: dict, params: str) -> str:
 
 def error_message(status: int, body: object) -> str:
     msg = body.get("error") if isinstance(body, dict) else None
-    return f"KvizHub vrátil {status}: {msg or 'neznámá chyba'}"
+    return f"Aplikace Lore vrátila {status}: {msg or 'neznámá chyba'}"
 
 
 def theme_of(motive: str | None, accent: str | None) -> dict | None:
@@ -266,7 +266,7 @@ def results(game_id: str) -> tuple[int, object]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description="Odeslání kvízu do KvizHubu, spuštění hry a výsledky.")
+    ap = argparse.ArgumentParser(description="Odeslání kvízu do aplikace Lore, spuštění hry a výsledky.")
     ap.add_argument("quiz", nargs="?", type=Path)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--params", default="", help="parametry zakázky (počet otázek, ročník…) do Idempotency-Key")

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node precompress.mjs",
+    "dev": "node ../../scripts/brand-build.mjs && vite",
+    "build": "node ../../scripts/brand-build.mjs && vite build && node precompress.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -33,6 +33,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.1"
+    "vite": "^8.3.1",
+    "vite-plugin-svgr": "^5.2.0"
   }
 }

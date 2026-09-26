@@ -1,5 +1,5 @@
 /** Personal code remembered on the student's own device, only with explicit consent (C5.5). One code per device. */
-const KEY = 'kvizhub-student-code';
+const KEY = 'lore-student-code';
 
 export function readDeviceCode(): string | null {
   try {

@@ -159,6 +159,24 @@ export function checkMotives(ctxs: Context[]): Failure[] {
   return out;
 }
 
+/**
+ * Lore logo (Dodatek 4B, L2.4, L7.8): the book mark and the letters need 3:1 on --surface in both schemes.
+ * Fixed brand colours (never tokens); the spark is decorative and exempt.
+ */
+export const BRAND_COLOURS = { light: { mark: '#5B3DF5', letters: '#1B1640' }, dark: { mark: '#8B7BFF', letters: '#F4F1FF' } } as const;
+
+export function checkBrand(ctxs: Context[]): Failure[] {
+  const out: Failure[] = [];
+  for (const c of ctxs) {
+    const scheme = c.name.startsWith('dark') ? 'dark' : 'light';
+    for (const [part, colour] of Object.entries(BRAND_COLOURS[scheme])) {
+      const ratio = contrast(colour, resolve(c.vars, 'surface'));
+      if (ratio < THRESHOLD.ui) out.push({ context: c.name, pair: `logo ${part} ${colour} na --surface`, ratio, need: THRESHOLD.ui });
+    }
+  }
+  return out;
+}
+
 const CVDS: (Cvd | 'normal')[] = ['normal', 'deuteranopia', 'protanopia', 'tritanopia'];
 
 /** Adjacent answer colours must differ by ΔE00 ≥ 10 for normal vision and every simulated deficiency. */
@@ -184,12 +202,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const ctxs = contexts(css);
   const { failures } = checkContrast(ctxs);
   const cvd = checkAnswers(ctxs);
-  failures.push(...checkAccents(ctxs), ...checkMotives(ctxs));
+  failures.push(...checkAccents(ctxs), ...checkMotives(ctxs), ...checkBrand(ctxs));
   for (const f of failures) console.error(`✗ ${f.context}: ${f.pair} = ${f.ratio.toFixed(2)}:1 (potřeba ${f.need}:1)`);
   for (const f of cvd) console.error(`✗ ${f}`);
   if (failures.length || cvd.length) {
     console.error(`Kontrast: ${failures.length} chyb, barvoslepost: ${cvd.length} chyb.`);
     process.exit(1);
   }
-  console.log(`Kontrast v pořádku: ${ctxs.length} kontextů × ${MANIFEST.length} dvojic; ${ACCENTS.length} akcentů, ${MOTIVE_LIST.length} motivů v nejhorším případě; odpovědi rozlišitelné i při deuteranopii, protanopii a tritanopii.`);
+  console.log(`Kontrast v pořádku: ${ctxs.length} kontextů × ${MANIFEST.length} dvojic; ${ACCENTS.length} akcentů, ${MOTIVE_LIST.length} motivů v nejhorším případě, logo Lore; odpovědi rozlišitelné i při deuteranopii, protanopii a tritanopii.`);
 }

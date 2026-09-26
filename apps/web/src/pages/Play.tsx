@@ -1,4 +1,5 @@
 import { hashSeed, type GameOverEvent, type JoinResult, type LeaderboardEvent, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
+import { useTitle } from '../ui/useTitle';
 import { Check, CircleSlash, Hourglass, LoaderCircle, SquareCheck, Square, X, Medal } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,9 +13,9 @@ import { Logo } from '../ui/Logo';
 import { Mascot } from '../ui/Mascot';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
-const TOKEN_KEY = 'kvizhub-player';
+const TOKEN_KEY = 'lore-player';
 /** PIN of the joined game, only to seed the same background picture as the projector after a reload */
-const PIN_KEY = 'kvizhub-player-pin';
+const PIN_KEY = 'lore-player-pin';
 
 type View = 'join' | 'lobby' | 'question' | 'answered' | 'reveal' | 'leaderboard' | 'over' | 'kicked';
 
@@ -46,6 +47,7 @@ function writeToken(v: string | null, pin?: string) {
 /** Student screen (mobile first). No account, only a nickname and a technical game token in sessionStorage. */
 export default function Play() {
   const { t } = useTranslation();
+  useTitle(t('titles.play'));
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const sock = useRef<GameSocket | null>(null);
@@ -188,7 +190,7 @@ export default function Play() {
   };
 
   const seed = hashSeed(pin || readPin());
-  // before joining, the PIN screen always has the default Jiskra look (V7.3)
+  // before joining, the PIN screen always has the default Lore look (V7.3)
   const shell = (children: ReactNode) => (
     <Stage theme={me ? theme : null} seed={seed} testId="play-stage">
       <header className="flex min-h-12 items-center justify-between gap-3 bg-panel px-4 py-1 text-base shadow-soft">
@@ -197,7 +199,7 @@ export default function Play() {
             {me.nickname}
           </span>
         ) : (
-          <Logo size="sm" />
+          <Logo variant="mark" height={28} />
         )}
         <span className="flex items-center gap-3">
           {question && view !== 'join' && view !== 'lobby' && view !== 'over' && (
@@ -228,8 +230,8 @@ export default function Play() {
   if (view === 'join')
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-5 rounded-lg bg-panel p-6 text-fg shadow-pop">
-        <h1 className="flex justify-center">
-          <Logo />
+        <h1 className="flex justify-center py-1">
+          <Logo height={52} />
         </h1>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">{t('play.pin')}</span>
@@ -275,7 +277,7 @@ export default function Play() {
       <Card testId="player-lobby">
         <p className="text-3xl font-bold">{me?.nickname ? t('play.inGameAs', { name: me.nickname }) : t('play.inGame')}</p>
         <p className="mt-3 text-lg text-muted">{t('play.waitForStart')}</p>
-        <Mascot pose="hello" className="mx-auto mt-4 h-24 w-24" />
+        <Mascot pose="hello" size={120} className="mx-auto mt-4" />
       </Card>,
     );
 

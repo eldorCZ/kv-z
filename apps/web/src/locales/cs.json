@@ -17,7 +17,7 @@
     "tokens": "API tokeny",
     "logout": "Odhlásit",
     "classes": "Třídy",
-    "home": "Úvod",
+    "home": "{{app}}, domů",
     "expand": "Rozbalit navigaci",
     "collapse": "Sbalit navigaci",
     "menu": "Nabídka",
@@ -39,7 +39,7 @@
     "create": "Nový kvíz",
     "uploadJson": "Nahrát JSON",
     "search": "Hledat podle názvu…",
-    "empty": "Zatím tu nejsou žádné kvízy.",
+    "empty": "Zatím tu není žádný kvíz.",
     "emptyHint": "Pošlete soubor svému agentovi na Telegramu, vytvořte kvíz ručně, nebo nahrajte JSON.",
     "questionCount_one": "{{count}} otázka",
     "questionCount_few": "{{count}} otázky",
@@ -385,7 +385,8 @@
     "submit": "Odeslat",
     "inGameAs": "Jste ve hře, {{name}}",
     "youAre": "Hrajete jako {{name}}",
-    "sent": "Odesláno"
+    "sent": "Odesláno",
+    "encourage": "Nevadí, další je tvoje."
   },
   "dash": {
     "test": "Test",
@@ -848,15 +849,27 @@
     "usage": "Využito {{used}} z {{total}} MB, {{count}} z {{max}} obrázků"
   },
   "errorPage": {
-    "notFoundTitle": "Tahle stránka tu není",
+    "notFoundTitle": "Tuhle stránku jsme v knize nenašli.",
     "notFoundText": "Odkaz je možná neúplný nebo stránka zmizela. Zkontrolujte adresu, nebo pokračujte odsud.",
-    "serverTitle": "Něco se pokazilo",
-    "serverText": "Omlouváme se, stránku se nepodařilo zobrazit. Zkuste ji načíst znovu; vaše uložená práce zůstává na serveru.",
-    "offlineTitle": "Jste offline",
-    "offlineText": "Zařízení se nepřipojilo k internetu. Jakmile bude spojení zpět, stránku načtěte znovu.",
+    "serverTitle": "Něco se v knize zaseklo.",
+    "serverText": "Zkus to za chvíli znovu. Uložená práce zůstává na serveru.",
+    "offlineTitle": "Jsi offline.",
+    "offlineText": "Jakmile se připojení vrátí, pokračujeme.",
     "offlineBanner": "Jste offline. Změny se uloží, až se spojení obnoví.",
     "reload": "Načíst znovu",
     "toQuizzes": "Na moje kvízy",
     "toPlay": "Připojit se ke hře"
+  },
+  "brand": {
+    "mascotName": "Lorík",
+    "description": "Kvízy a testy pro třídu."
+  },
+  "titles": {
+    "login": "Přihlášení",
+    "play": "Připojení ke hře",
+    "test": "Test",
+    "host": "Projektor",
+    "code": "Můj kód",
+    "notFound": "Stránka nenalezena"
   }
 }

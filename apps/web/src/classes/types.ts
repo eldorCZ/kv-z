@@ -36,7 +36,7 @@ export function studentName(s: { accountName: string; rosterNo: number | null },
 /** Per-browser preference "Skrýt jména (promítání)" (C8). */
 export function readShowNames(defaultValue: boolean): boolean {
   try {
-    const v = localStorage.getItem('kvizhub-show-names');
+    const v = localStorage.getItem('lore-show-names');
     return v === null ? defaultValue : v === '1';
   } catch {
     return defaultValue;
@@ -44,7 +44,7 @@ export function readShowNames(defaultValue: boolean): boolean {
 }
 export function writeShowNames(v: boolean) {
   try {
-    localStorage.setItem('kvizhub-show-names', v ? '1' : '0');
+    localStorage.setItem('lore-show-names', v ? '1' : '0');
   } catch {
     /* ignore */
   }

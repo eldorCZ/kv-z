@@ -65,7 +65,7 @@ test('teacher picks a look in the editor; the card, the host and the student sho
 
   const phone = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
   await phone.goto(`/play?pin=${pin}`);
-  // before joining: the default Jiskra look
+  // before joining: the default Lore look
   await expect(phone.getByTestId('play-stage')).toHaveAttribute('data-motive', 'mlha');
   await phone.getByLabel('Přezdívka').fill('novak12');
   await phone.getByRole('button', { name: 'Připojit se' }).click();
@@ -112,7 +112,7 @@ test('default look of new quizzes is a teacher setting (V7.3)', async () => {
   await expect(teacher.getByTestId('default-look-name')).toHaveText('Moře');
   const { quizId } = await (await teacher.request.post('/api/v1/quizzes', { headers: auth(), data: quiz })).json();
   expect((await (await teacher.request.get(`/api/v1/quizzes/${quizId}`, { headers: auth() })).json()).theme).toEqual({ motive: 'more' });
-  // back to the Jiskra default
+  // back to the Lore default
   await teacher.getByTestId('default-look').click();
   await teacher.getByTestId('motive-default').click();
   await teacher.getByTestId('theme-save-default').click();

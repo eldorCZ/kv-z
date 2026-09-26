@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { api } from '../api';
 import { useAuth } from '../auth';
-import { Logo, SparkMark } from '../ui/Logo';
+import { Logo } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 import { OfflineBanner } from '../pages/ErrorPages';
 
-const COLLAPSE_KEY = 'jiskra.nav';
+const COLLAPSE_KEY = 'lore.nav';
 
 function readCollapsed() {
   try {
@@ -106,7 +106,7 @@ export default function Layout() {
       >
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           <NavLink to="/quizzes" aria-label={t('nav.home')} className="rounded-md p-1">
-            {collapsed ? <SparkMark className="h-8 w-8" /> : <Logo size="sm" />}
+            {collapsed ? <Logo variant="mark" height={32} decorative /> : <Logo height={28} decorative />}
           </NavLink>
         </div>
         <div className="flex-1">{links(collapsed)}</div>
@@ -134,7 +134,7 @@ export default function Layout() {
               <div className="flex items-center justify-between">
                 <RDialog.Title asChild>
                   <span>
-                    <Logo size="sm" />
+                    <Logo height={26} />
                   </span>
                 </RDialog.Title>
                 <RDialog.Close className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md hover:bg-surface-2" aria-label={t('common.close')}>
@@ -148,7 +148,9 @@ export default function Layout() {
           </RDialog.Portal>
         </RDialog.Root>
         <NavLink to="/quizzes" aria-label={t('nav.home')}>
-          <Logo size="sm" />
+          {/* below 480 px only the mark (L3.6) */}
+          <Logo variant="mark" height={28} decorative className="min-[480px]:hidden" />
+          <Logo height={26} decorative className="hidden min-[480px]:block" />
         </NavLink>
       </header>
 

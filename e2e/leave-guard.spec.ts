@@ -58,7 +58,7 @@ test('leave guard: warning, highlight, lock enforced by the server, unlock and e
   await expect(page.getByTestId('dash-table')).toContainText('🔒');
 
   // the server refuses saving while locked
-  const playerToken = await s.evaluate((p) => localStorage.getItem(`kvizhub-test-${p}`), pin);
+  const playerToken = await s.evaluate((p) => localStorage.getItem(`lore-test-${p}`), pin);
   const blocked = await request.get('/play/test/attempt', { headers: { 'x-player-token': playerToken! } });
   expect(blocked.status()).toBe(423);
 

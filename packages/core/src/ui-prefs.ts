@@ -1,8 +1,8 @@
 /**
  * Appearance preferences (Dodatek 4, V5). Teachers: stored in teachers.ui_prefs_json and localStorage;
- * students and hosts: only localStorage of their device (key "jiskra.ui"), never on the server.
+ * students and hosts: only localStorage of their device (key "lore.ui"), never on the server.
  */
-export const UI_PREFS_KEY = 'jiskra.ui';
+export const UI_PREFS_KEY = 'lore.ui';
 
 // no zod here: this module is part of the student bundle (V11.2)
 const SCHEMES = ['system', 'light', 'dark'] as const;

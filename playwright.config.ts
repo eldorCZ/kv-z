@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const PORT = Number(process.env.E2E_PORT ?? 3210);
-const dbDir = mkdtempSync(join(tmpdir(), 'kvizhub-e2e-'));
+const dbDir = mkdtempSync(join(tmpdir(), 'lore-e2e-'));
 
 export default defineConfig({
   testDir: 'e2e',

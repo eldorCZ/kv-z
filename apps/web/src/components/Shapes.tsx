@@ -3,7 +3,7 @@
  * signal, colour only adds to it. The shapes are our own set: spark, hexagon, drop, half circle, plus.
  */
 export const ANSWER_STYLES = [
-  { name: 'spark', letter: 'A', bg: 'bg-answer-1', fg: 'text-on-answer-1', ring: 'ring-answer-1', label: 'jiskra' },
+  { name: 'spark', letter: 'A', bg: 'bg-answer-1', fg: 'text-on-answer-1', ring: 'ring-answer-1', label: 'hvězda' },
   { name: 'hexagon', letter: 'B', bg: 'bg-answer-2', fg: 'text-on-answer-2', ring: 'ring-answer-2', label: 'šestiúhelník' },
   { name: 'drop', letter: 'C', bg: 'bg-answer-3', fg: 'text-on-answer-3', ring: 'ring-answer-3', label: 'kapka' },
   { name: 'dome', letter: 'D', bg: 'bg-answer-4', fg: 'text-on-answer-4', ring: 'ring-answer-4', label: 'půlkruh' },

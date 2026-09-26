@@ -1,4 +1,5 @@
 import { formatCode, normalizeCode } from '@kvizhub/core/client';
+import { useTitle } from '../ui/useTitle';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -12,6 +13,7 @@ import { SchemeSwitcher } from '../ui/SchemeSwitcher';
  */
 export default function CodePage() {
   const { t } = useTranslation();
+  useTitle(t('titles.code'));
   const [code, setCode] = useState<string | null>(null);
   const [saved, setSaved] = useState<'none' | 'saved' | 'skipped'>('none');
   const [remember, setRemember] = useState(false);
@@ -37,7 +39,7 @@ export default function CodePage() {
     <div className="mx-auto max-w-sm space-y-4 p-6">
       <div className="flex items-center justify-between">
         <h1>
-          <Logo size="sm" />
+          <Logo height={40} />
         </h1>
         <SchemeSwitcher />
       </div>

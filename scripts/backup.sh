@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Online backup of the KvizHub SQLite database (safe while the app is running) and of the uploaded
+# Online backup of the Lore SQLite database (safe while the app is running) and of the uploaded
 # background images (MEDIA_DIR, default /data/media next to the database).
 # Usage:   scripts/backup.sh [target-dir] [keep-days]
 # Cron:    15 2 * * * /opt/kvizhub/scripts/backup.sh /var/backups/kvizhub 30 >> /var/log/kvizhub-backup.log 2>&1

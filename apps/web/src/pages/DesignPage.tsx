@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { AnswerMark, ANSWER_STYLES } from '../components/Shapes';
 import { Badge, Button } from '../components/ui';
-import { Logo, SparkMark } from '../ui/Logo';
+import { Logo } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
-import { Mascot, type MascotPose } from '../ui/Mascot';
+import type { MascotPose } from '../ui/Mascot';
 import { MOTIVE_LIST } from '@kvizhub/core/client';
 import { motiveThumb } from '../components/ThemePicker';
 
@@ -67,7 +67,7 @@ export default function DesignPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6" data-testid="design-page">
       <header className="flex items-center gap-4">
-        <Logo size="lg" />
+        <Logo height={40} />
         <span className="text-muted">/_design</span>
         <SchemeSwitcher className="ml-auto" />
       </header>
@@ -91,25 +91,48 @@ export default function DesignPage() {
         </div>
       </Section>
 
-      <Section title="Logo">
-        <div className="flex flex-wrap items-center gap-6">
-          <Logo size="lg" />
-          <span className="rounded-md bg-fg p-3 text-canvas">
-            <SparkMark className="h-12 w-12" />
-          </span>
-          <span className="text-primary">
-            <SparkMark className="h-12 w-12" mono />
-          </span>
-        </div>
-      </Section>
-
-      <Section title="Jiskřička">
-        <div className="flex flex-wrap gap-4" data-testid="mascots">
-          {(['hello', 'think', 'cheer', 'sad', 'sleep', 'point'] as MascotPose[]).map((p) => (
-            <figure key={p} className="text-center text-sm">
-              <Mascot pose={p} className="h-24 w-24" />
-              <figcaption>{p}</figcaption>
-            </figure>
+      <Section title="Značka">
+        <div className="grid gap-4 lg:grid-cols-2" data-testid="brand-sheet">
+          {(['light', 'dark'] as const).map((sc) => (
+            <div key={sc} data-theme={sc} className="space-y-4 rounded-md border border-line bg-surface p-4 text-fg" data-testid={`brand-${sc}`}>
+              <p className="text-sm font-semibold text-muted">{sc === 'light' ? 'Světlý povrch' : 'Tmavý povrch'}</p>
+              <div className="flex flex-wrap items-end gap-6">
+                <Logo height={56} scheme={sc} />
+                <Logo variant="mark" height={56} scheme={sc} />
+                <Logo variant="wordmark" height={40} scheme={sc} />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="rounded-md bg-primary p-3 text-[#ffffff]">
+                  <Logo height={32} tone="mono" />
+                </span>
+                {/* clear zone: at least the height of the letter "o" around the logo */}
+                <span className="inline-block outline-2 outline-dashed outline-line-strong" style={{ padding: 18 }}>
+                  <Logo height={32} scheme={sc} />
+                </span>
+              </div>
+              <div className="flex flex-wrap items-end gap-4 text-xs text-muted">
+                <span className="flex flex-col items-center gap-1">
+                  <Logo variant="mark" height={16} scheme={sc} />
+                  znak 16 px
+                </span>
+                <span className="flex flex-col items-center gap-1">
+                  <Logo height={24} scheme={sc} />
+                  logo 24 px
+                </span>
+                <span className="flex flex-col items-center gap-1">
+                  <Logo variant="wordmark" height={20} scheme={sc} />
+                  slovní znak 20 px
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(['hello', 'think', 'celebrate', 'encourage', 'sleep', 'error'] as MascotPose[]).map((p) => (
+                  <figure key={p} className="text-center text-xs text-muted">
+                    <img src={`/brand/mascot/lore-${p}.svg`} alt="" width={96} height={103} />
+                    <figcaption>{p}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </Section>

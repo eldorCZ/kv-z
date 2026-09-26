@@ -23,7 +23,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 export function EmptyState({ title, text, action, icon }: { title: string; text?: string; action?: ReactNode; icon?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface px-6 py-10 text-center" data-testid="empty-state">
-      <span className="text-primary">{icon ?? <Mascot pose="hello" className="h-20 w-20" />}</span>
+      <span className="text-primary">{icon ?? <Mascot pose="sleep" size={112} />}</span>
       <p className="font-display text-xl font-bold">{title}</p>
       {text && <p className="max-w-md text-sm text-muted">{text}</p>}
       {action}

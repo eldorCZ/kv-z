@@ -12,7 +12,7 @@ export interface StageTheme {
   scrimHint?: 'normal' | 'strong';
 }
 
-/** Motive id actually shown: unknown or missing ids fall back to the Jiskra default of the mood. */
+/** Motive id actually shown: unknown or missing ids fall back to the Lore default of the mood. */
 export function shownMotive(theme: StageTheme | null | undefined, mood: 'play' | 'focus'): string {
   if (theme?.motive && getMotive(theme.motive)) return theme.motive;
   return mood === 'focus' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE;

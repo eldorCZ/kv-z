@@ -1,7 +1,7 @@
 /**
  * Accent colours (Dodatek 4, V6.2). An accent replaces the primary colour family of the design tokens;
  * every value is checked against the same contrast manifest as the base tokens (pnpm check:contrast).
- * Fialová is the Jiskra default and equals the base tokens.
+ * Fialová is the Lore default and equals the base tokens.
  */
 import type { Scheme } from './motives.js';
 

@@ -129,7 +129,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
   }
 }
 
-const draftKey = (qid: string) => `kvizhub-draft-${qid}`;
+const draftKey = (qid: string) => `lore-draft-${qid}`;
 
 // topics used so far by the teacher, loaded once per page for the suggestions
 let topicsPromise: Promise<string[]> | null = null;

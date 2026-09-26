@@ -6,7 +6,7 @@ void i18n.use(initReactI18next).init({
   resources: { cs: { translation: cs } },
   lng: 'cs',
   fallbackLng: 'cs',
-  interpolation: { escapeValue: false, defaultVariables: { app: 'Jiskra' } }, // React escapes output itself
+  interpolation: { escapeValue: false, defaultVariables: { app: 'Lore' } }, // React escapes output itself
   returnNull: false,
 });
 

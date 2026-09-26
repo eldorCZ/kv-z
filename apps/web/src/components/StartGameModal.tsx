@@ -41,7 +41,7 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
   const [picking, setPicking] = useState(false);
   const look = gameLook === undefined ? quizLook : gameLook;
   const lookMotive = getMotive(look?.motive)?.id ?? (mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE);
-  // "Jiskra default for this game only" still has to override a quiz look: send the default motive explicitly
+  // "Lore default for this game only" still has to override a quiz look: send the default motive explicitly
   const themeSetting = gameLook === undefined ? {} : { theme: gameLook ?? { motive: mode === 'test' ? DEFAULT_TEST_MOTIVE : DEFAULT_LIVE_MOTIVE } };
   const [settings, setSettings] = useState({
     shuffleQuestions: quiz.settings.shuffleQuestions,

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { api, ApiError } from '../api';
@@ -18,6 +19,7 @@ interface Item {
 
 export default function Quizzes() {
   const { t } = useTranslation();
+  useTitle(t('nav.quizzes'));
   const nav = useNavigate();
   const [items, setItems] = useState<Item[] | null>(null);
   const [q, setQ] = useState('');

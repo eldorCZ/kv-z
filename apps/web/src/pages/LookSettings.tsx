@@ -1,4 +1,5 @@
 import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core/client';
+import { useTitle } from '../ui/useTitle';
 import { Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,6 +13,7 @@ import { useToast } from '../ui/Toast';
 /** Teacher settings for the look (V7.3): the default motive of new quizzes. */
 export default function LookSettings() {
   const { t } = useTranslation();
+  useTitle(t('nav.look'));
   const { theme: scheme } = usePrefs();
   const toast = useToast();
   const [look, setLook] = useState<Look | undefined>(undefined);

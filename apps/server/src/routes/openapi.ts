@@ -31,7 +31,7 @@ export function buildOpenApi(publicUrl: string) {
   return {
     openapi: '3.1.0',
     info: {
-      title: 'KvizHub API',
+      title: 'Lore API',
       version: '1.0.0',
       description: 'API pro vkládání kvízů agentem a spouštění her. Autentizace: Authorization: Bearer <token>. Chyby validace vrací 422 {errors:[{path,code,message}]} s českými zprávami.',
     },

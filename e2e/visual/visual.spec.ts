@@ -49,7 +49,7 @@ test.beforeAll(async ({ browser }) => {
   const p = await c.newPage();
   await p.goto('/login');
   await p.getByRole('button', { name: /Zaregistrujte se/ }).click();
-  await p.getByLabel('E-mail').fill('vizual@jiskra.example');
+  await p.getByLabel('E-mail').fill('vizual@lore.example');
   await p.getByLabel('Heslo').fill('vizualni-heslo-123');
   await p.getByRole('button', { name: 'Vytvořit účet' }).click();
   await expect(p.getByRole('heading', { name: 'Moje kvízy' })).toBeVisible();
@@ -66,6 +66,17 @@ test.beforeAll(async ({ browser }) => {
 });
 
 for (const scheme of ['light', 'dark'] as const) {
+  test(`Lore brand sheet: logo variants and Lorík (${scheme})`, async ({ browser }) => {
+    const c = await context(browser, scheme, { width: 1280, height: 900 });
+    const p = await c.newPage();
+    await p.goto('/_design');
+    const sheet = p.getByTestId('brand-sheet');
+    await expect(sheet).toBeVisible();
+    await p.evaluate(() => Promise.all([...document.images].map((i) => (i.complete ? null : new Promise((r) => (i.onload = r))))));
+    await expect(sheet).toHaveScreenshot(`znacka-${scheme}.png`, { animations: 'disabled', maxDiffPixelRatio: 0.002 });
+    await c.close();
+  });
+
   test(`teacher screens (${scheme})`, async ({ browser }) => {
     const c = await context(browser, scheme, { width: 1280, height: 720 }, 'test-results/visual-teacher.json');
     const p = await c.newPage();

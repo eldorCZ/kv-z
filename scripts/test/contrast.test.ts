@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { contrast, deltaE00, over, parseHex, simulate } from '../../packages/core/src/color.js';
-import { checkAccents, checkAnswers, checkContrast, checkMotives, contexts, parseTokens } from '../contrast.js';
+import { checkAccents, checkAnswers, checkBrand, checkContrast, checkMotives, contexts, parseTokens } from '../contrast.js';
 
 const css = readFileSync(join(import.meta.dirname, '../../apps/web/src/theme/tokens.css'), 'utf8');
 
@@ -42,6 +42,11 @@ describe('pnpm check:contrast', () => {
     const ctxs = contexts(css);
     expect(checkAccents(ctxs)).toEqual([]);
     expect(checkMotives(ctxs)).toEqual([]);
+  });
+  it('the Lore logo keeps 3:1 on --surface in both schemes (Dodatek 4B, L7.8)', () => {
+    expect(checkBrand(contexts(css))).toEqual([]);
+    const pale = contexts(css.replace('--surface: #ffffff;', '--surface: #6a55f0;'));
+    expect(checkBrand(pale).some((f) => f.pair.includes('mark'))).toBe(true);
   });
   it('a too transparent surface over a motive is reported', () => {
     const ctxs = contexts(css.replace('--surface-alpha: 0.94;', '--surface-alpha: 0.3;'));

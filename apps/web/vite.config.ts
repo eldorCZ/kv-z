@@ -1,9 +1,13 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // svgr turns the brand SVGs from design/brand into React components at build time (no SVGO: viewBox stays)
+  plugins: [react(), tailwindcss(), svgr({ include: '**/*.svg?react' })],
+  // the brand SVGs live in design/brand (outside this package): resolve React for them from here
+  resolve: { dedupe: ['react', 'react-dom'] },
   server: {
     port: 5173,
     proxy: {

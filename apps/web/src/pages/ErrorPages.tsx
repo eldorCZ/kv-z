@@ -1,19 +1,20 @@
 import { Component, useEffect, useState, type ReactNode } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import i18n from '../i18n';
 import { Logo } from '../ui/Logo';
 import { Mascot, type MascotPose } from '../ui/Mascot';
 
-/** Full page message with Jiskřička (V9.6). */
+/** Full page message with Lorík (V9.6). */
 function ErrorScreen({ pose, title, text, children, testId }: { pose: MascotPose; title: string; text: string; children?: ReactNode; testId: string }) {
   return (
     <div className="flex min-h-dvh flex-col bg-canvas text-fg" data-mood="focus">
       <header className="px-6 py-4">
-        <Logo size="sm" />
+        <Logo height={28} />
       </header>
       <main className="m-auto flex max-w-md flex-col items-center gap-4 p-6 text-center" data-testid={testId}>
-        <Mascot pose={pose} className="h-36 w-36" />
+        <Mascot pose={pose} size={180} />
         <h1 className="text-3xl font-bold">{title}</h1>
         <p className="text-muted">{text}</p>
         <div className="flex flex-wrap justify-center gap-2">{children}</div>
@@ -26,8 +27,9 @@ const btn = 'inline-flex min-h-11 items-center rounded-md px-4 font-semibold';
 
 export function NotFound() {
   const { t } = useTranslation();
+  useTitle(t('titles.notFound'));
   return (
-    <ErrorScreen pose="think" title={t('errorPage.notFoundTitle')} text={t('errorPage.notFoundText')} testId="not-found">
+    <ErrorScreen pose="error" title={t('errorPage.notFoundTitle')} text={t('errorPage.notFoundText')} testId="not-found">
       <Link to="/quizzes" className={`${btn} bg-primary text-on-primary hover:bg-primary-hover`}>
         {t('errorPage.toQuizzes')}
       </Link>
@@ -43,7 +45,7 @@ function Crash({ offline }: { offline: boolean }) {
   const t = i18n.t.bind(i18n);
   return (
     <ErrorScreen
-      pose={offline ? 'sleep' : 'sad'}
+      pose="error"
       title={offline ? t('errorPage.offlineTitle') : t('errorPage.serverTitle')}
       text={offline ? t('errorPage.offlineText') : t('errorPage.serverText')}
       testId={offline ? 'offline-page' : 'error-page'}

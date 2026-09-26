@@ -1,4 +1,5 @@
 import { hashSeed, type PublicQuestion } from '@kvizhub/core/client';
+import { useTitle } from '../ui/useTitle';
 import { Clock, Lock } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,7 @@ import { AnswerMark, answerStyle } from '../components/Shapes';
 import { GuardController, type HeartbeatStatus } from '../leave-guard-client';
 import { useCountdown } from '../socket';
 import { appName } from '../app-config';
+import { Logo } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 import { Stage, type StageTheme } from '../game/Stage';
 
@@ -47,7 +49,7 @@ export class StudentApiError extends Error {
   }
 }
 
-const tokenKey = (pin: string) => `kvizhub-test-${pin}`;
+const tokenKey = (pin: string) => `lore-test-${pin}`;
 export function readTestToken(pin: string): string | null {
   try {
     return localStorage.getItem(tokenKey(pin));
@@ -84,6 +86,7 @@ type SaveState = 'saved' | 'saving' | 'pending' | 'error';
 
 export default function TestPlay() {
   const { t } = useTranslation();
+  useTitle(t('titles.test'));
   const [params] = useSearchParams();
   const [pin, setPin] = useState(params.get('pin')?.replace(/\D/g, '') ?? '');
   const [name, setName] = useState(params.get('name') ?? '');
@@ -319,6 +322,7 @@ export default function TestPlay() {
   const shell = (children: React.ReactNode) => (
     <Stage theme={view?.theme ?? null} seed={hashSeed(pin)} mood="focus" testId="test-stage">
       <header className="flex min-h-12 items-center gap-3 border-b border-line bg-panel px-4 py-2 text-fg">
+        <Logo variant="mark" height={24} />
         <span className="flex-1 truncate font-semibold">{view?.title ?? info?.title ?? appName}</span>
         {view?.status === 'in_progress' && deadline !== null && (
           <span

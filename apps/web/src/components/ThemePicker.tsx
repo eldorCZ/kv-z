@@ -10,7 +10,7 @@ import { Button } from '../ui/Button';
 import { Dialog } from '../ui/Dialog';
 import { AnswerMark, answerStyle } from './Shapes';
 
-/** Look of a quiz or a game as stored on the server (V7.4). null = Jiskra default. */
+/** Look of a quiz or a game as stored on the server (V7.4). null = Lore default. */
 export type Look = { motive?: string; accent?: string; imageId?: string } | null;
 
 const thumbs = new Map<string, string>();

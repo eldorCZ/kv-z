@@ -26,7 +26,7 @@ if (!classesEnabled(cfg)) {
   process.exit(1);
 }
 const { app, services: s } = await buildApp({ ...cfg, logLevel: "warn" });
-const email = process.env.DEMO_EMAIL ?? "demo@kvizhub.local";
+const email = process.env.DEMO_EMAIL ?? "demo@lore.local";
 const password = process.env.DEMO_PASSWORD ?? "demo-heslo-1234";
 let teacher = s.accounts.findTeacherByEmail(email);
 if (!teacher) {

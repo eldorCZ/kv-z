@@ -1,4 +1,4 @@
-# Jiskra (dříve KvizHub) — návod pro učitele
+# Lore — návod pro učitele
 
 
 Kvízy a testy ve třídě na vlastním serveru. Žáci nepotřebují účty, výsledky nikam neodcházejí. Tenhle návod projde první kvíz, hru ve třídě, třídy s evidencí a nakonec agenta, který kvízy vyrábí z vašich materiálů.
@@ -100,7 +100,7 @@ Třída je skupina žáků na jeden školní rok. Zakládá se v menu **Třídy*
 
 ## Agent na serveru — jak si ho zařídit
 
-Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor přes Telegram a on z něj vyrobí kvíz. Sám ho vloží do KvizHubu, vy ho tam jen zkontrolujete a spustíte.
+Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor přes Telegram a on z něj vyrobí kvíz. Sám ho vloží do aplikace Lore, vy ho tam jen zkontrolujete a spustíte.
 
 
 
@@ -115,7 +115,7 @@ Agent je Claude Code běžící na stejném serveru, kterému pošlete soubor p�
 
 ### Zprovoznění (jednorázově)
 
-1.  V KvizHubu jděte do **API tokeny** a vytvořte token pro agenta. **Ukáže se jen jednou.**
+1.  V aplikaci Lore jděte do **API tokeny** a vytvořte token pro agenta. **Ukáže se jen jednou.**
 
 2.  Token uložte na serveru do souboru — **neposílejte ho chatem**:
     
@@ -182,4 +182,4 @@ Co když během hry vypadne internet nebo se zavře stránka?
 
 
 
-Návod k Jiskře (dříve KvizHub) ve verzi z 26. 9. 2026. Zdrojový projekt: [github.com/eldorCZ/kv-z](https://github.com/eldorCZ/kv-z).
+Návod k aplikaci Lore ve verzi z 26. 9. 2026. Zdrojový projekt: [github.com/eldorCZ/kv-z](https://github.com/eldorCZ/kv-z).

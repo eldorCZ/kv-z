@@ -82,7 +82,7 @@ describe('theme contract (Dodatek 4, V7.4)', () => {
     expect((await t.http.get('/api/auth/me').set('cookie', s2.cookie)).body.defaultTheme).toEqual({ motive: 'les', accent: 'zelena' });
     const plain = (await t.http.post('/api/v1/quizzes').set(a2).send(quiz())).body.quizId;
     expect((await t.http.get(`/api/v1/quizzes/${plain}`).set(a2)).body.theme).toEqual({ motive: 'les', accent: 'zelena' });
-    // an explicit theme wins, an explicit null means "Jiskra default"
+    // an explicit theme wins, an explicit null means "Lore default"
     const own = (await t.http.post('/api/v1/quizzes').set(a2).send(quiz({ motive: 'more' }))).body.quizId;
     expect((await t.http.get(`/api/v1/quizzes/${own}`).set(a2)).body.theme).toEqual({ motive: 'more' });
     const none = (await t.http.post('/api/v1/quizzes').set(a2).send(quiz(null))).body.quizId;

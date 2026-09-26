@@ -19,7 +19,7 @@ def test_ten_steps():
 def test_templates_and_rules():
     for snippet in [
         "Zpracovávám optika.pdf",
-        'Kvíz "Optika: lom světla" je v KvizHubu.',
+        'Kvíz "Optika: lom světla" je v aplikaci Lore.',
         "Hra je připravená. PIN:",
         "Nejhůř zvládnuté otázky",
         "You are a careful student taking a quiz.",

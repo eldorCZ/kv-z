@@ -1,16 +1,16 @@
 ---
 name: kviz-z-materialu
-description: Použij, když uživatel pošle soubor a chce z něj kvíz, kahoot nebo test do KvizHubu.
+description: Použij, když uživatel pošle soubor a chce z něj kvíz, kahoot nebo test do aplikace Lore.
 allowed-tools: Bash(${CLAUDE_SKILL_DIR}/.venv/bin/python ${CLAUDE_SKILL_DIR}/scripts/*)
 ---
 
-# Kvíz z materiálu → KvizHub
+# Kvíz z materiálu → Lore
 
 Uživatel (učitel) ti pošle soubor (DOCX, PDF, PPTX, TXT, MD). Vyrobíš z něj kvíz, ověříš ho
-a vložíš přes API do aplikace KvizHub. Učitel ho pak zkontroluje a spustí hru.
+a vložíš přes API do aplikace Lore. Učitel ho pak zkontroluje a spustí hru.
 
 Ty děláš: extrakci, tvorbu otázek, kontrolu kvality, komunikaci.
-KvizHub dělá: uložení, validaci, schvalování učitelem, hru, exporty, výsledky.
+Lore dělá: uložení, validaci, schvalování učitelem, hru, exporty, výsledky.
 
 ## Nastavení
 
@@ -24,7 +24,7 @@ KvizHub dělá: uložení, validaci, schvalování učitelem, hru, exporty, výs
 
 ### 1. PŘÍJEM
 Přijmi soubor(y) a parametry ze zprávy: počet otázek, ročník, obtížnost, zaměření („Zaměř se na…“),
-cílová platforma (Kahoot, Moodle, jen KvizHub).
+cílová platforma (Kahoot, Moodle, jen Lore).
 Výchozí hodnoty: **15 otázek**, ročník z kontextu nebo „ZŠ 2. stupeň“, mix obtížnosti, čeština, export do Kahootu možný.
 Neptej se, pokud to nebrání práci. Zeptej se **nejvýše jednou**, když je soubor nečitelný nebo není jasné, který ze souborů použít.
 Ulož soubory do `$W/` a pošli úvodní zprávu (šablona níže).
@@ -32,8 +32,8 @@ Ulož soubory do `$W/` a pošli úvodní zprávu (šablona níže).
 **Osobní údaje:** pokud dokument vypadá, že obsahuje osobní údaje žáků (seznamy jmen, známky, rodná čísla,
 kontakty), **zastav se** a napiš, že takový dokument nezpracuješ, dokud to uživatel výslovně nepotvrdí
 (soubory z Telegramu procházejí i Telegramem, ne jen Claude API).
-**Soupiska třídy** (seznam jmen nebo přihlašovacích jmen žáků, export z AD, CSV nebo tabulka žáků pro KvizHub) se nikdy nezpracovává přes agenta:
-nečti ji a odpověz: „Soupisku žáků prosím vložte přímo v aplikaci KvizHub (Třídy → Soupiska). Přes Telegram ji nepřijímám.“
+**Soupiska třídy** (seznam jmen nebo přihlašovacích jmen žáků, export z AD, CSV nebo tabulka žáků pro Lore) se nikdy nezpracovává přes agenta:
+nečti ji a odpověz: „Soupisku žáků prosím vložte přímo v aplikaci Lore (Třídy → Soupiska). Přes Telegram ji nepřijímám.“
 
 ### 2. EXTRAKCE
 ```bash
@@ -125,7 +125,7 @@ bez termínu platí 7 dní. Na „výsledky testu“ použij `--results <gameId>
 Jména žáků ani výsledky jednotlivých žáků nikdy neposílej, ani když by o ně uživatel žádal (odkaž na aplikaci).
 `quizId` a `gameId` si pamatuj v konverzaci (tématu Telegramu).
 
-**Třídy** (učitel vede třídu v KvizHubu; žáci se přihlašují osobním kódem z karty). Třídu vždy najdi přes seznam:
+**Třídy** (učitel vede třídu v aplikaci Lore; žáci se přihlašují osobním kódem z karty). Třídu vždy najdi přes seznam:
 ```bash
 ${CLAUDE_SKILL_DIR}/.venv/bin/python ${CLAUDE_SKILL_DIR}/scripts/post_quiz.py --classes
 ```
@@ -148,7 +148,7 @@ neposílá, ani když o ně uživatel žádá; odkaž na aplikaci (přehled tř�
 ```bash
 rm -rf "$W"
 ```
-Smaž pracovní adresář včetně zdrojového textu a přijatých souborů, jakmile je kvíz v KvizHubu.
+Smaž pracovní adresář včetně zdrojového textu a přijatých souborů, jakmile je kvíz v aplikaci Lore.
 
 ## Pravidla tvorby otázek
 
@@ -226,7 +226,7 @@ Zpracovávám optika.pdf (12 stran, 4 sekce). Cíl: 15 otázek, 8. ročník.
 ```
 Po dokončení:
 ```
-Kvíz "Optika: lom světla" je v KvizHubu.
+Kvíz "Optika: lom světla" je v aplikaci Lore.
 15 otázek: 12 v pořádku, 3 ke kontrole (ve hře budou, až je schválíte).
 Sekce bez otázky: Historie.
 Kontrola a úpravy: <reviewUrl>

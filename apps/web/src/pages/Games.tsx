@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { api, ApiError } from '../api';
@@ -15,6 +16,7 @@ interface GameItem {
 
 export default function Games() {
   const { t } = useTranslation();
+  useTitle(t('nav.games'));
   const [games, setGames] = useState<GameItem[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { ACCENTS, getMotive } from '@kvizhub/core/client';
 import { usePrefs } from '../theme/prefs';
-import { SparkMark } from '../ui/Logo';
+import { Logo } from '../ui/Logo';
 import { motiveThumb } from './ThemePicker';
 
 /**
@@ -33,7 +33,7 @@ export function QuizThumb({ seed, theme, className = '' }: { seed: string; theme
       aria-hidden="true"
       style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 62%), hsl(${(hue + 50) % 360} 75% 52%))` }}
     >
-      <SparkMark className="h-12 w-12 text-surface opacity-80" mono />
+      <Logo variant="mark" tone="mono" height={48} decorative className="text-[#ffffff]" />
     </div>
   );
 }

@@ -334,7 +334,7 @@ def test_class_summary_small_group(mock, capsys):
 def test_class_summary_errors(mock, capsys, status):
     mock.queue.append((status, {"error": "Třída nenalezena." if status == 404 else "API token nemá oprávnění classes:read."}, {}))
     code, _, err = run(capsys, "--class-summary", "c1")
-    assert code == 1 and "KvizHub vrátil" in err
+    assert code == 1 and "Aplikace Lore vrátila" in err
 
 
 def test_class_summary_retries_429_and_500(mock, capsys):
