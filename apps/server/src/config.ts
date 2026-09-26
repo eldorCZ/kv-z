@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export interface Config {
   publicUrl: string;
@@ -40,6 +40,9 @@ export interface Config {
   authProvider: 'local' | 'oidc';
   allowRegistration: boolean;
   seedSampleQuiz: boolean;
+  /** custom background images (Dodatek 4, V8); default next to the database */
+  mediaDir: string;
+  themeUploads: boolean;
 }
 
 const repoRoot = join(import.meta.dirname, '../../..');
@@ -87,8 +90,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     authProvider: env.AUTH_PROVIDER === 'oidc' ? 'oidc' : 'local',
     allowRegistration: (env.ALLOW_REGISTRATION ?? '1') !== '0',
     seedSampleQuiz: (env.SEED_SAMPLE_QUIZ ?? '1') !== '0',
+    mediaDir: env.MEDIA_DIR ?? '',
+    themeUploads: (env.THEME_UPLOADS ?? '1') !== '0',
     ...overrides,
   };
+  cfg.mediaDir ||= join(dirname(cfg.dbPath), 'media');
   return cfg;
 }
 

@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { sendError, type Services } from '../app.js';
 import { APPROVE_SCOPE } from '../repo/accounts.js';
 import type { StoredQuestion, StoredQuiz } from '../repo/quizzes.js';
+import { ownImageOnly } from '../theme.js';
 import { canonicalJson, sha256 } from '../util.js';
 
 type QuizParams = { Params: { id: string } };
@@ -81,7 +82,8 @@ export const quizRoutes =
       if (!result.ok) return unprocessable(reply, result.errors);
       const stats = quizStats(result.data.questions);
       // the look never blocks an upload: unknown ids are dropped with a warning (V7.4)
-      const { theme, warnings } = normalizeTheme(result.data.theme, ['theme'], req.auth!.kind === 'session');
+      const own = (id: string) => s.themeImages.owns(req.auth!.teacherId, id);
+      const { theme, warnings } = ownImageOnly(normalizeTheme(result.data.theme, ['theme'], req.auth!.kind === 'session'), own);
       const extra = warnings.length ? { warnings } : {};
       const dryRun = req.query.dry_run === '1' || req.query.dry_run === 'true';
       if (dryRun) return reply.code(200).send({ valid: true, stats, ...extra });
@@ -183,7 +185,8 @@ export const quizRoutes =
       const r = validateWith(quizMetaPatchSchema, req.body);
       if (!r.ok) return unprocessable(reply, r.errors);
       const { theme: rawTheme, ...meta } = r.data;
-      const look = rawTheme === undefined ? undefined : normalizeTheme(rawTheme, ['theme'], req.auth!.kind === 'session');
+      const own = (imageId: string) => s.themeImages.owns(req.auth!.teacherId, imageId);
+      const look = rawTheme === undefined ? undefined : ownImageOnly(normalizeTheme(rawTheme, ['theme'], req.auth!.kind === 'session'), own);
       s.quizzes.updateMeta(quiz.id, { ...meta, settings: meta.settings ? { ...quiz.settings, ...meta.settings } : undefined, theme: look?.theme });
       const updated = quizResponse(s.quizzes.get(quiz.id)!);
       return look?.warnings.length ? { ...updated, warnings: look.warnings } : updated;

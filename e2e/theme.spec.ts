@@ -146,3 +146,23 @@ test('keyboard only: a student joins and answers without a mouse (V11.1)', async
   await p.context().close();
   await host.close();
 });
+
+// 32x18 blue PNG
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAACAAAAASCAIAAAC1qksFAAAAH0lEQVR4nGPQqDhBU8QwasGoBaMWjFowasGoBfSwAAB6mSouDcYAfgAAAABJRU5ErkJggg==', 'base64');
+
+test('a teacher uploads an own background; the projector shows it (V8)', async () => {
+  const { quizId } = await (await teacher.request.post('/api/v1/quizzes', { headers: auth(), data: quiz })).json();
+  await teacher.goto(`/quizzes/${quizId}`);
+  await teacher.getByTestId('quiz-look').click();
+  await teacher.getByTestId('theme-image-input').setInputFiles({ name: 'tabule.png', mimeType: 'image/png', buffer: PNG });
+  await expect(teacher.getByTestId('image-0')).toHaveAttribute('aria-checked', 'true');
+  await expect(teacher.getByTestId('theme-preview').locator('img').first()).toHaveAttribute('src', /\/media\/theme\/[0-9a-f]{32}\/640\.webp/);
+  await teacher.getByTestId('theme-save-quiz').click();
+  await expect(teacher.getByTestId('theme-picker')).toBeHidden();
+  const game = await (await teacher.request.post(`/api/v1/quizzes/${quizId}/games`, { headers: auth(), data: { mode: 'live' } })).json();
+  const host = await teacher.context().newPage();
+  await host.goto(new URL(game.hostUrl).pathname + new URL(game.hostUrl).hash);
+  await expect(host.getByTestId('host-stage').locator('img').first()).toHaveAttribute('src', /\/media\/theme\/[0-9a-f]{32}\/1280\.webp/);
+  await expect.poll(() => host.getByTestId('host-stage').locator('img').first().evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
+  await host.close();
+});

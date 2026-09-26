@@ -1,6 +1,8 @@
 import { ACCENTS, DEFAULT_ACCENT, MOTIVE_CATEGORIES, MOTIVE_LIST, accentVars, getMotive, hashSeed, motiveDataUrl, type MotiveCategory } from '@kvizhub/core';
-import { Check, Leaf, Monitor, Moon, Shuffle, Smartphone, Sun } from 'lucide-react';
-import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { Check, ImagePlus, Leaf, Monitor, Moon, Shuffle, Smartphone, Sun, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { api, apiUpload, ApiError } from '../api';
+import { themeUploads } from '../app-config';
 import { useTranslation } from 'react-i18next';
 import { MotiveLayers } from '../game/Stage';
 import { usePrefs } from '../theme/prefs';
@@ -64,6 +66,7 @@ export function ThemePicker({
   const { theme } = usePrefs();
   const [motive, setMotive] = useState<string | undefined>(value?.motive);
   const [accent, setAccent] = useState<string | undefined>(value?.accent);
+  const [imageId, setImageId] = useState<string | undefined>(value?.imageId);
   const [filter, setFilter] = useState<Filter>(testMode ? 'calm' : 'all');
   const [screen, setScreen] = useState<Screen>(testMode ? 'test' : 'lobby');
   const [device, setDevice] = useState<'phone' | 'projector'>('projector');
@@ -71,7 +74,8 @@ export function ThemePicker({
   const [busy, setBusy] = useState('');
 
   const list = useMemo(() => MOTIVE_LIST.filter((m) => filter === 'all' || (filter === 'calm' ? m.calm : m.category === filter)), [filter]);
-  const look: Look = motive || accent ? { ...(motive ? { motive } : {}), ...(accent && accent !== DEFAULT_ACCENT ? { accent } : {}), ...(value?.imageId && motive === value.motive ? { imageId: value.imageId } : {}) } : null;
+  const look: Look =
+    motive || accent || imageId ? { ...(motive ? { motive } : {}), ...(accent && accent !== DEFAULT_ACCENT ? { accent } : {}), ...(imageId ? { imageId } : {}) } : null;
   const random = () => {
     const pool = list.filter((m) => m.id !== motive);
     if (pool.length) setMotive(pool[Math.floor(Math.random() * pool.length)]!.id);
@@ -103,6 +107,7 @@ export function ThemePicker({
               </Tile>
             ))}
           </div>
+          {themeUploads && <ImageSection selected={imageId} onSelect={setImageId} />}
           <div>
             <p className="mb-2 text-sm font-semibold" id="accent-label">
               {t('theme.accent')}
@@ -201,7 +206,7 @@ export function LookPreview({ look, screen, device, scheme }: { look: Look; scre
       style={accentVars(look?.accent, scheme) as CSSProperties}
       className={`relative isolate overflow-hidden border-4 border-fg/80 bg-canvas text-fg ${phone ? 'mx-auto aspect-[9/17] w-full max-w-[220px] rounded-[26px]' : 'aspect-video w-full rounded-md'}`}
     >
-      <MotiveLayers theme={{ motive: look?.motive, accent: look?.accent, scrimHint: test ? 'strong' : 'normal' }} seed={hashSeed('482913')} scheme={scheme} mood={test ? 'focus' : 'play'} position="absolute" />
+      <MotiveLayers theme={{ motive: look?.motive, accent: look?.accent, imageUrl: look?.imageId ? `/media/theme/${look.imageId}/640.webp` : null, scrimHint: test ? 'strong' : 'normal' }} seed={hashSeed('482913')} scheme={scheme} mood={test ? 'focus' : 'play'} position="absolute" />
       <div className={`flex h-full flex-col gap-2 ${phone ? 'p-3' : 'p-4'}`}>
         {screen === 'lobby' && (
           <>
@@ -309,5 +314,105 @@ function Tile({ on, onClick, label, hint, calm, calmLabel, testId, children }: {
         {on && <Check aria-hidden="true" className="h-4 w-4 shrink-0 text-primary" strokeWidth={3} />}
       </span>
     </button>
+  );
+}
+
+interface ImageDto {
+  id: string;
+  url: string;
+  bytes: number;
+}
+
+/** Own background photos (V8): upload, choose, delete. Only in the app session, never through the API. */
+function ImageSection({ selected, onSelect }: { selected?: string; onSelect: (id: string | undefined) => void }) {
+  const { t } = useTranslation();
+  const [images, setImages] = useState<ImageDto[]>([]);
+  const [usage, setUsage] = useState<{ bytes: number; images: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const input = useRef<HTMLInputElement>(null);
+  const load = () =>
+    api<{ images: ImageDto[]; usage: { bytes: number; images: number } }>('GET', '/api/theme-images')
+      .then((r) => {
+        setImages(r.images);
+        setUsage(r.usage);
+      })
+      .catch(() => undefined);
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const upload = async (file: File) => {
+    setBusy(true);
+    setError('');
+    try {
+      const img = await apiUpload<ImageDto>('/api/theme-images', file);
+      await load();
+      onSelect(img.id);
+    } catch (e) {
+      setError((e as ApiError).message);
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = '';
+    }
+  };
+
+  return (
+    <section className="space-y-2" aria-labelledby="images-label" data-testid="theme-images">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="mr-auto text-sm font-semibold" id="images-label">
+          {t('theme.images')}
+        </p>
+        <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" id="theme-image-input" aria-label={t('theme.upload')} tabIndex={-1} data-testid="theme-image-input" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
+        <Button size="sm" icon={<ImagePlus aria-hidden="true" className="h-4 w-4" />} loading={busy} onClick={() => input.current?.click()}>
+          {busy ? t('theme.uploading') : t('theme.upload')}
+        </Button>
+      </div>
+      <p className="text-xs text-muted">{t('theme.imagesHint')}</p>
+      {error && (
+        <p role="alert" className="rounded-md bg-danger-soft px-2 py-1 text-sm text-danger">
+          {error}
+        </p>
+      )}
+      {images.length > 0 && (
+        <div role="radiogroup" aria-labelledby="images-label" className="flex flex-wrap gap-2">
+          <button type="button" role="radio" aria-checked={!selected} onClick={() => onSelect(undefined)} className={`h-14 rounded-md border-2 px-3 text-sm ${!selected ? 'border-primary ring-2 ring-primary' : 'border-line'}`}>
+            {t('theme.noImage')}
+          </button>
+          {images.map((img, i) => (
+            <span key={img.id} className="relative">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={selected === img.id}
+                aria-label={t('theme.imageAlt', { n: i + 1 })}
+                onClick={() => onSelect(img.id)}
+                data-testid={`image-${i}`}
+                className={`block h-14 w-24 overflow-hidden rounded-md border-2 ${selected === img.id ? 'border-primary ring-2 ring-primary' : 'border-line'}`}
+              >
+                <img src={img.url} alt="" className="h-full w-full object-cover" />
+              </button>
+              <button
+                type="button"
+                aria-label={t('theme.deleteImage')}
+                title={t('theme.deleteImage')}
+                className="absolute -top-2 -right-2 inline-flex h-7 w-7 items-center justify-center rounded-pill border border-line bg-surface text-muted hover:text-danger"
+                onClick={async () => {
+                  if (!confirm(t('theme.confirmDeleteImage'))) return;
+                  await api('DELETE', `/api/theme-images/${img.id}`);
+                  if (selected === img.id) onSelect(undefined);
+                  await load();
+                }}
+              >
+                <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {usage && (
+        <p className="text-xs text-muted">{t('theme.usage', { used: (usage.bytes / 1048576).toFixed(1), total: 50, count: usage.images, max: 30 })}</p>
+      )}
+    </section>
   );
 }

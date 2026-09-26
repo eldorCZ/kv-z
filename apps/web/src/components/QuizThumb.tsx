@@ -7,8 +7,14 @@ import { motiveThumb } from './ThemePicker';
  * Thumbnail of a quiz on its card (V7.2): the quiz's motive, drawn by the same function as the background.
  * Quizzes with the default look get a calm gradient derived from the id, so cards stay easy to tell apart.
  */
-export function QuizThumb({ seed, theme, className = '' }: { seed: string; theme?: { motive?: string; accent?: string } | null; className?: string }) {
+export function QuizThumb({ seed, theme, className = '' }: { seed: string; theme?: { motive?: string; accent?: string; imageId?: string } | null; className?: string }) {
   const { theme: scheme } = usePrefs();
+  if (theme?.imageId)
+    return (
+      <div className={`relative overflow-hidden ${className}`} aria-hidden="true" data-image="true">
+        <img src={`/media/theme/${theme.imageId}/640.webp`} alt="" loading="lazy" className="h-full w-full object-cover" />
+      </div>
+    );
   const motive = getMotive(theme?.motive);
   const accent = ACCENTS.find((a) => a.id === theme?.accent);
   if (motive)

@@ -836,6 +836,15 @@
       ],
       "waiting": "Čekáme na hráče…",
       "test": "Test: Optika"
-    }
+    },
+    "images": "Vlastní obrázek",
+    "imagesHint": "JPEG, PNG nebo WebP do 15 MB. Obrázek zmenšíme, otočíme podle fotoaparátu a odstraníme z něj údaje o místě a přístroji. Nahrávejte jen fotky, ke kterým máte práva, a bez tváří žáků.",
+    "upload": "Nahrát obrázek",
+    "uploading": "Nahrávám…",
+    "imageAlt": "Vlastní obrázek {{n}}",
+    "deleteImage": "Smazat obrázek",
+    "confirmDeleteImage": "Smazat obrázek? Kvízy, které ho používají, se vrátí k motivu.",
+    "noImage": "Bez obrázku",
+    "usage": "Využito {{used}} z {{total}} MB, {{count}} z {{max}} obrázků"
   }
 }

@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { normalizeTheme, sanitizeUiPrefs } from '@kvizhub/core';
+import { ownImageOnly } from '../theme.js';
 import { csrfToken, sendError, type Services } from '../app.js';
 import { RegistrationError } from '../auth/provider.js';
 import { SESSION_COOKIE } from '../game/socket.js';
@@ -36,6 +37,7 @@ export const authRoutes =
       classesEnabled: classesEnabled(s.cfg),
       appName: s.cfg.appName,
       designPage: s.cfg.designPage,
+      themeUploads: s.cfg.themeUploads,
     }));
 
     app.post('/register', { config: { public: true } }, async (req, reply) => {
@@ -96,7 +98,7 @@ export const authRoutes =
 
     /** Look of the teacher's new quizzes (V7.3); unknown ids are dropped with a warning, null resets. */
     app.put('/default-theme', { config: { sessionOnly: true } }, async (req) => {
-      const { theme, warnings } = normalizeTheme((req.body as { theme?: unknown } | undefined)?.theme ?? null, ['theme'], true);
+      const { theme, warnings } = ownImageOnly(normalizeTheme((req.body as { theme?: unknown } | undefined)?.theme ?? null, ['theme'], true), (id) => s.themeImages.owns(req.auth!.teacherId, id));
       s.accounts.setDefaultTheme(req.auth!.teacherId, theme);
       return { defaultTheme: theme, ...(warnings.length ? { warnings } : {}) };
     });

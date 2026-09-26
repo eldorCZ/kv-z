@@ -278,6 +278,18 @@ export const MIGRATIONS: string[] = [
   ALTER TABLE quizzes ADD COLUMN theme_json TEXT;
   ALTER TABLE games ADD COLUMN theme_json TEXT;
   `,
+  // 7: Dodatek 4, V8 – custom background images of teachers (files in MEDIA_DIR, metadata here)
+  `
+  CREATE TABLE theme_images (
+    id TEXT PRIMARY KEY,
+    teacher_id TEXT NOT NULL REFERENCES teachers(id) ON DELETE CASCADE,
+    bytes INTEGER NOT NULL,
+    width INTEGER NOT NULL,
+    height INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  );
+  CREATE INDEX theme_images_teacher ON theme_images(teacher_id);
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {

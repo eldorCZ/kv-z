@@ -1,4 +1,5 @@
 import { createGameSchema, normalizeTheme, validateWith } from '@kvizhub/core';
+import { ownImageOnly } from '../theme.js';
 import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import { sendError, type Services } from '../app.js';
 import type { GameRow } from '../repo/games.js';
@@ -23,7 +24,11 @@ export const gameRoutes =
       const input = validateWith(createGameSchema, req.body ?? {});
       if (!input.ok) return reply.code(422).send({ errors: input.errors });
       // look of this game only (V7.2); unknown ids are ignored with a warning, a custom image only from the app
-      const look = normalizeTheme(input.data.settings.theme, ['settings', 'theme'], req.auth!.kind === 'session');
+      const look = ownImageOnly(
+        normalizeTheme(input.data.settings.theme, ['settings', 'theme'], req.auth!.kind === 'session'),
+        (id) => s.themeImages.owns(req.auth!.teacherId, id),
+        'settings.theme',
+      );
       input.data.settings.theme = look.theme ?? undefined;
       let classInfo = null;
       if (input.data.settings.classId) {

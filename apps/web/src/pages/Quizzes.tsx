@@ -13,7 +13,7 @@ interface Item {
   questionCount: number;
   flaggedCount: number;
   updatedAt: number;
-  theme?: { motive?: string; accent?: string } | null;
+  theme?: { motive?: string; accent?: string; imageId?: string } | null;
 }
 
 export default function Quizzes() {

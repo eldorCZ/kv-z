@@ -39,13 +39,16 @@ export function MotiveLayers({
 }) {
   const motive = shownMotive(theme, mood);
   const moving = animate && mood === 'play';
-  const src = useMemo(() => theme?.imageUrl || motiveDataUrl(motive, { seed, scheme, animate: moving }), [theme?.imageUrl, motive, seed, scheme, moving]);
+  // a deleted custom image falls back to the motive
+  const [broken, setBroken] = useState<string | null>(null);
+  const image = theme?.imageUrl && theme.imageUrl !== broken ? theme.imageUrl : null;
+  const src = useMemo(() => image || motiveDataUrl(motive, { seed, scheme, animate: moving }), [image, motive, seed, scheme, moving]);
   // tests and custom photos always get the stronger scrim
-  const strong = theme?.imageUrl || theme?.scrimHint === 'strong';
+  const strong = image || theme?.scrimHint === 'strong';
   const scrim = strong ? Math.max(0.6, scrimAlpha(motive, scheme, 'focus')) : scrimAlpha(motive, scheme, mood);
   return (
     <>
-      <img src={src} alt="" aria-hidden="true" draggable={false} className={`pointer-events-none ${position} inset-0 -z-20 h-full w-full object-cover select-none`} />
+      <img src={src} alt="" aria-hidden="true" draggable={false} onError={() => image && setBroken(image)} className={`pointer-events-none ${position} inset-0 -z-20 h-full w-full object-cover select-none`} />
       <div aria-hidden="true" className={`pointer-events-none ${position} inset-0 -z-10 bg-scrim`} style={{ opacity: scrim }} />
     </>
   );
