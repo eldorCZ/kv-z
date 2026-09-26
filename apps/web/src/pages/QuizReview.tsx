@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { EmptyState } from '../ui/Feedback';
 import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
@@ -274,7 +275,7 @@ export default function QuizReview() {
           );
         })}
       </ol>
-      {questions.length === 0 && <p className="text-muted">{t('review.noneFlagged')}</p>}
+      {questions.length === 0 && <EmptyState title={t('review.noneFlagged')} />}
 
       {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} onQuizTheme={(theme) => setQuiz({ ...quiz, theme })} />}
       {modal === 'look' && (

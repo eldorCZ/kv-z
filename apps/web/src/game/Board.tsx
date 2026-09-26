@@ -3,6 +3,7 @@ import { Crown, Maximize, Minimize } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog } from '../ui/Dialog';
+import { Mascot } from '../ui/Mascot';
 import { Confetti } from './Confetti';
 
 /** Giant PIN with tabular digits, split 3 + rest for reading aloud (V9.3). */
@@ -84,7 +85,10 @@ export function Podium({ podium, title }: { podium: RankEntry[]; title: string }
   return (
     <div className="flex flex-1 flex-col items-center justify-end gap-8">
       <Confetti />
-      <h2 className="text-6xl font-bold">{title}</h2>
+      <div className="flex items-center gap-4">
+        <Mascot pose="celebrate" size={120} />
+        <h2 className="text-6xl font-bold">{title}</h2>
+      </div>
       <div className="flex items-end gap-6" data-testid="podium">
         {[1, 0, 2].map((i) => {
           const p = podium[i];

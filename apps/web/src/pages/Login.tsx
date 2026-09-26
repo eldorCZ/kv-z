@@ -6,6 +6,7 @@ import { api, type ApiError } from '../api';
 import { useAuth } from '../auth';
 import { Button, ErrorBox, Field, inputCls } from '../components/ui';
 import { Logo } from '../ui/Logo';
+import { Mascot } from '../ui/Mascot';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 export default function Login() {
@@ -47,6 +48,7 @@ export default function Login() {
     <div className="relative flex min-h-screen items-center justify-center p-4">
       <SchemeSwitcher className="absolute right-4 top-4" />
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg bg-surface p-6 shadow">
+        <Mascot pose="hello" size={96} className="mx-auto -mb-2" />
         <h1 className="flex justify-center py-2">
           <Logo height={48} />
         </h1>

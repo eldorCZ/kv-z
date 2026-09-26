@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { EmptyState } from '../ui/Feedback';
 import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
@@ -89,7 +90,7 @@ export default function ClassesPage() {
         </form>
       )}
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{active.map(card)}</ul>
-      {list?.length === 0 && <p className="text-muted">{t('classes.none')}</p>}
+      {list?.length === 0 && <EmptyState title={t('classes.none')} />}
       {archived.length > 0 && (
         <>
           <h2 className="pt-4 text-lg font-semibold">

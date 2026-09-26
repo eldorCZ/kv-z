@@ -8,7 +8,7 @@ export type MascotPose = 'hello' | 'think' | 'celebrate' | 'encourage' | 'sleep'
 
 const RATIO = 225 / 210;
 
-export function Mascot({ pose, size = 160, className = '' }: { pose: MascotPose; size?: number; className?: string }) {
+export function Mascot({ pose, size = 160, className = '', still = false }: { pose: MascotPose; size?: number; className?: string; still?: boolean }) {
   const w = Math.min(320, Math.max(96, size));
   return (
     <img
@@ -21,7 +21,7 @@ export function Mascot({ pose, size = 160, className = '' }: { pose: MascotPose;
       draggable={false}
       data-testid="mascot"
       data-pose={pose}
-      className={`mascot-breathe select-none ${className}`}
+      className={`${still ? '' : 'mascot-breathe'} select-none ${className}`}
     />
   );
 }

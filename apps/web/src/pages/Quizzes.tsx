@@ -117,7 +117,8 @@ export default function Quizzes() {
       </div>
       <ErrorBox error={error} onClose={() => setError(null)} />
       {items === null && !error && <SkeletonList rows={3} />}
-      {items && items.length === 0 && (
+      {items && items.length === 0 && q.trim() !== '' && <EmptyState pose="think" title={t('quizzes.noMatch')} />}
+      {items && items.length === 0 && q.trim() === '' && (
         <EmptyState
           title={t('quizzes.empty')}
           text={t('quizzes.emptyHint')}

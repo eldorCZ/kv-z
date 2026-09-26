@@ -43,6 +43,8 @@ test('leave guard: warning, highlight, lock enforced by the server, unlock and e
   // 1st leave (tab switch, 1.5 s) -> warning that must be confirmed
   await leaveWindow(s, 'hidden', 1500);
   await expect(s.getByTestId('guard-warning')).toContainText('Opustil jsi okno testu (1×). Zbývá varování: 0.');
+  // no Lorík on guard screens (Dodatek 4B, L4.3, L7.5)
+  await expect(s.locator('img[src*="/brand/mascot/"]')).toHaveCount(0);
   await s.getByRole('button', { name: 'Rozumím' }).click();
   await expect(page.getByTestId('dash-left')).toContainText('1×');
 
@@ -54,6 +56,7 @@ test('leave guard: warning, highlight, lock enforced by the server, unlock and e
   // 2nd counted leave (focus loss) -> locked
   await leaveWindow(s, 'blur', 1500);
   await expect(s.getByTestId('test-locked')).toContainText('Test je zamčený');
+  await expect(s.locator('img[src*="/brand/mascot/"]')).toHaveCount(0);
   await expect(page.locator('[data-testid="dash-row"][data-flagged="true"]')).toHaveCount(1);
   await expect(page.getByTestId('dash-table')).toContainText('🔒');
 

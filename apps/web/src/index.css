@@ -248,3 +248,7 @@ body {
 .timer-ring circle.progress { transition: stroke-dashoffset .25s linear; }
 /* answer tiles sink into their own darker edge instead of the primary shadow */
 [data-mood='play'] .shadow-tile { box-shadow: 0 5px 0 rgb(0 0 0 / 0.22); }
+
+/* Lorík breathes gently only in the playful mood with motion allowed (Dodatek 4B, L4.4): 4 px, 4 s, transform only */
+@keyframes mascot-breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+[data-motion='full'] [data-mood='play'] .mascot-breathe { animation: mascot-breathe 4s ease-in-out infinite; }

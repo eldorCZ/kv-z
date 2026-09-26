@@ -11,6 +11,7 @@ import { Stage, type StageTheme } from '../game/Stage';
 import { TimerRing } from '../game/TimerRing';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
 import { Logo } from '../ui/Logo';
+import { Mascot } from '../ui/Mascot';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 const keyStorage = (gameId: string) => `lore-host-${gameId}`;
@@ -132,6 +133,7 @@ export default function Host() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
         <div className="max-w-xl text-center">
+          <Mascot pose="error" size={160} className="mx-auto mb-4" />
           <p className="text-2xl font-semibold" role="alert">
             {error}
           </p>

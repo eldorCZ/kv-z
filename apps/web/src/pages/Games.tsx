@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { EmptyState } from '../ui/Feedback';
 import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
@@ -28,7 +29,7 @@ export default function Games() {
     <div>
       <h1 className="mb-4 text-2xl font-bold">{t('games.title')}</h1>
       <ErrorBox error={error} />
-      {games?.length === 0 && <p className="text-muted">{t('games.none')}</p>}
+      {games?.length === 0 && <EmptyState title={t('games.none')} />}
       <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         {games?.map((g) => (
           <li key={g.id} className="flex flex-wrap items-center gap-3 p-4">

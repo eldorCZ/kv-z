@@ -80,8 +80,11 @@ test('tests stay calm: static motive, strong scrim, no confetti, podium, points 
   const game = await (await teacher.request.post(`/api/v1/quizzes/${quizId}/games`, { headers: auth(), data: { mode: 'test', settings: { test: { timeLimitMin: 10, showResultsToStudent: 'none' } } } })).json();
   const s = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
   await s.goto(`/test?pin=${game.pin}`);
+  await expect(s.locator('img[src*="/brand/mascot/"]')).toHaveCount(0);
   await s.getByTestId('test-name').fill('Žák Test');
   await s.getByRole('button', { name: 'Pokračovat' }).click();
+  await expect(s.getByTestId('test-intro')).toBeVisible();
+  await expect(s.locator('img[src*="/brand/mascot/"]')).toHaveCount(0);
   await s.getByTestId('test-start').click();
   await expect(s.getByTestId('test-prompt')).toBeVisible();
   const stage = s.getByTestId('test-stage');
@@ -91,12 +94,16 @@ test('tests stay calm: static motive, strong scrim, no confetti, podium, points 
   expect(decodeURIComponent(src!)).not.toMatch(/@keyframes|<animate/);
   const scrim = await stage.evaluate((el) => Number(getComputedStyle(el.children[1] as HTMLElement).opacity));
   expect(scrim).toBeGreaterThanOrEqual(0.6);
+  const noMascot = () => expect(s.locator('img[src*="/brand/mascot/"]')).toHaveCount(0);
+  await noMascot();
   await s.getByTestId('test-option-1').click();
   await s.getByTestId('test-next').click();
   await s.getByTestId('test-option-0').click();
   await s.getByTestId('test-submit').click();
+  await noMascot();
   await s.getByTestId('test-confirm-submit').click();
   await expect(s.getByTestId('test-done')).toBeVisible();
+  await noMascot();
   for (const id of ['confetti', 'podium', 'leaderboard', 'timer', 'player-reveal']) await expect(s.getByTestId(id)).toHaveCount(0);
   await expect(s.locator('body')).not.toContainText(/bodů|Správně!|Špatně|pořadí|série/i);
   const running = await s.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
@@ -164,5 +171,45 @@ test('a teacher uploads an own background; the projector shows it (V8)', async (
   await host.goto(new URL(game.hostUrl).pathname + new URL(game.hostUrl).hash);
   await expect(host.getByTestId('host-stage').locator('img').first()).toHaveAttribute('src', /\/media\/theme\/[0-9a-f]{32}\/1280\.webp/);
   await expect.poll(() => host.getByTestId('host-stage').locator('img').first().evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
+  await host.close();
+});
+
+test('Lorík: where he belongs in a live game, still under reduced motion, breathing otherwise (L4, L7.5)', async ({ browser }) => {
+  const { quizId } = await (await teacher.request.post('/api/v1/quizzes', { headers: auth(), data: quiz })).json();
+  const game = await (await teacher.request.post(`/api/v1/quizzes/${quizId}/games`, { headers: auth(), data: { mode: 'live' } })).json();
+  const host = await teacher.context().newPage();
+  await host.goto(new URL(game.hostUrl).pathname + new URL(game.hostUrl).hash);
+  await expect(host.getByTestId('host-pin')).toBeVisible();
+  const running = (p: import('@playwright/test').Page) =>
+    p.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running' && (a.effect as KeyframeEffect | null)?.target instanceof HTMLImageElement && ((a.effect as KeyframeEffect).target as HTMLImageElement).dataset.testid === 'mascot').length);
+  const phones = [];
+  for (const [nick, motion] of [['mala4', 'reduce'], ['erben7', 'no-preference']] as const) {
+    const p = await (await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: motion })).newPage();
+    await p.goto(`/play?pin=${game.pin}`);
+    // PIN screen: hello, a single figure
+    await expect(p.getByTestId('mascot')).toHaveCount(1);
+    await expect(p.getByTestId('mascot')).toHaveAttribute('data-pose', 'hello');
+    await expect(p.getByTestId('mascot')).toHaveAttribute('alt', '');
+    await p.getByLabel('Přezdívka').fill(nick);
+    await p.getByRole('button', { name: 'Připojit se' }).click();
+    await expect(p.getByTestId('player-lobby').getByTestId('mascot')).toHaveAttribute('data-pose', 'hello');
+    await p.getByTestId('mascot').evaluate((i: HTMLImageElement) => i.decode());
+    phones.push(p);
+  }
+  expect(await running(phones[0]!)).toBe(0);
+  expect(await running(phones[1]!)).toBe(1);
+  await host.keyboard.press('Space');
+  await expect(phones[0]!.getByTestId('player-prompt')).toBeVisible();
+  // a wrong answer: encouragement, small and still
+  await phones[0]!.getByTestId('option-0').click();
+  await phones[1]!.getByTestId('option-1').click();
+  await expect(phones[0]!.getByTestId('encourage')).toContainText('Nevadí, další je tvoje.');
+  await expect(phones[0]!.getByTestId('mascot')).toHaveAttribute('data-pose', 'encourage');
+  await expect(phones[1]!.getByTestId('encourage')).toHaveCount(0);
+  host.once('dialog', (d) => void d.accept());
+  await host.getByRole('button', { name: 'Ukončit' }).click();
+  await expect(host.getByTestId('podium').locator('..').getByTestId('mascot')).toHaveAttribute('data-pose', 'celebrate');
+  await expect(phones[1]!.getByTestId('player-over').getByTestId('mascot')).toHaveAttribute('data-pose', 'celebrate');
+  for (const p of phones) await p.context().close();
   await host.close();
 });

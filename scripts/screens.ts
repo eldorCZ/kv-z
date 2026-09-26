@@ -67,9 +67,22 @@ const teacherShots: Shot[] = [
   { name: 'ucitel-api-tokeny', go: async (p, c) => void (await p.goto(`${c.url}/settings/tokens`), await p.getByRole('heading', { name: 'API tokeny' }).waitFor()) },
 ];
 
+const brandShots: Shot[] = [
+  {
+    name: 'znacka-lore',
+    viewport: { width: 1280, height: 820 },
+    go: async (p, c) => {
+      await p.goto(`${c.url}/_design`);
+      const sheet = p.getByTestId('brand-sheet');
+      await sheet.scrollIntoViewIfNeeded();
+      await p.evaluate('Promise.all([...document.images].map((i) => i.decode().catch(() => null)))');
+    },
+  },
+];
+
 const studentShots: Shot[] = [{ name: 'zak-zadani-pinu', viewport: { width: 390, height: 844 }, go: async (p, c) => void (await p.goto(`${c.url}/play`), await p.getByLabel('PIN hry').waitFor()) }];
 
-export const SHOTS = { teacherShots, studentShots };
+export const SHOTS = { teacherShots, studentShots, brandShots };
 
 const PROJECTOR = { width: 1280, height: 720 };
 const PHONE = { width: 390, height: 844 };
@@ -164,6 +177,7 @@ async function main() {
     apiRateLimit: 100_000,
     joinRateLimit: 100_000,
     seedSampleQuiz: true,
+    designPage: true,
     codePepper: 'screens-pepper-0123456789abcdef0123456789abcdef',
   });
   const { app, services } = await buildApp(cfg);
@@ -186,7 +200,7 @@ async function main() {
     await page.getByLabel('Heslo').fill(PASSWORD);
     await page.getByRole('button', { name: 'Přihlásit se' }).click();
     await page.getByRole('heading', { name: 'Moje kvízy' }).waitFor();
-    for (const shot of [...teacherShots, ...studentShots]) {
+    for (const shot of [...teacherShots, ...studentShots, ...brandShots]) {
       await page.setViewportSize(shot.viewport ?? { width: 1280, height: 800 });
       await shot.go(page, ctx);
       await page.waitForTimeout(250);

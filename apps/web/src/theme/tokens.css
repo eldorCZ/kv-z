@@ -7,7 +7,8 @@
  * the first paint; data-mood="play|focus" is set on the root of a screen.
  */
 
-:root {
+:root,
+[data-theme='light'] {
   color-scheme: light;
   /* surfaces */
   --canvas: #f7f5ff;
@@ -124,6 +125,13 @@
 [data-theme='dark'][data-mood='play'] {
   --canvas: #150e3d;
   --surface-2: #1f1752;
+}
+
+/* a light preview inside a dark page (theme picker, "Očima žáka") keeps the light playful surfaces */
+[data-theme='dark'] [data-theme='light'][data-mood='play'],
+[data-theme='dark'] [data-theme='light'] [data-mood='play'] {
+  --canvas: #ece5ff;
+  --surface-2: #e7e0ff;
 }
 
 /* calm mood (test, results, classes, editor): flat cards, no decorative motion */

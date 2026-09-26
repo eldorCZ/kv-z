@@ -54,7 +54,8 @@
     "invalidJson": "Soubor není platný JSON. Nahrajte export z aplikace {{app}} nebo soubor ve formátu kontraktu (schemaVersion 1).",
     "newTitle": "Nový kvíz",
     "newQuestion": "Upravte tuto otázku",
-    "actions": "Akce pro kvíz {{title}}"
+    "actions": "Akce pro kvíz {{title}}",
+    "noMatch": "Hledání nic nenašlo."
   },
   "review": {
     "back": "Zpět na kvízy",

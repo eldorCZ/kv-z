@@ -230,6 +230,7 @@ export default function Play() {
   if (view === 'join')
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-5 rounded-lg bg-panel p-6 text-fg shadow-pop">
+        <Mascot pose="hello" size={96} className="mx-auto -mb-2" />
         <h1 className="flex justify-center py-1">
           <Logo height={52} />
         </h1>
@@ -284,7 +285,7 @@ export default function Play() {
   if (view === 'answered')
     return shell(
       <Card testId="player-answered">
-        <Check aria-hidden="true" className="mx-auto mb-2 h-12 w-12 text-primary" strokeWidth={3} />
+        <Mascot pose="think" size={104} className="mx-auto mb-2" />
         <p className="text-3xl font-bold">{t('play.answerSent')}</p>
         <p className="mt-3 text-lg text-muted">{t('play.waitForReveal')}</p>
         {error && <p className="mt-3 rounded-md bg-danger p-2 text-on-danger">{error}</p>}
@@ -335,6 +336,13 @@ export default function Play() {
           </p>
         )}
         {reveal.explanation && <p className="mt-3 rounded-lg bg-panel p-3 text-base text-muted">{reveal.explanation}</p>}
+        {/* live game only, small and still: never in a test (D7) */}
+        {(kind === 'wrong' || kind === 'none') && (
+          <div className="mt-4 flex items-center justify-center gap-3 rounded-lg bg-panel p-2" data-testid="encourage">
+            <Mascot pose="encourage" size={96} still />
+            <p className="text-lg font-semibold">{t('play.encourage')}</p>
+          </div>
+        )}
       </div>,
     );
   }
@@ -351,6 +359,7 @@ export default function Play() {
   if (view === 'over' && over)
     return shell(
       <Card testId="player-over">
+        <Mascot pose="celebrate" size={112} className="mx-auto mb-2" />
         <p className="text-2xl">{t('play.gameOver')}</p>
         <p className="mt-2 font-display text-7xl font-bold text-primary tabular">{over.you?.rank}.</p>
         <p className="mt-2 text-xl">{t('play.score', { score: over.you?.score ?? 0 })}</p>
