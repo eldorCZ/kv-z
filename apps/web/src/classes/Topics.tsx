@@ -13,9 +13,9 @@ interface TopicsDto {
 
 export function Bar({ percent }: { percent: number | null }) {
   if (percent === null) return null;
-  const tone = percent < 50 ? 'bg-amber-500' : percent < 75 ? 'bg-hra-400' : 'bg-emerald-500';
+  const tone = percent < 50 ? 'bg-accent' : percent < 75 ? 'bg-primary/60' : 'bg-success-strong';
   return (
-    <div className="h-2 w-full min-w-24 rounded bg-slate-100" aria-hidden>
+    <div className="h-2 w-full min-w-24 rounded bg-surface-2" aria-hidden>
       <div className={`h-2 rounded ${tone}`} style={{ width: `${percent}%` }} />
     </div>
   );
@@ -64,13 +64,13 @@ export default function Topics({ cls }: { cls: ClassDto }) {
       <PrintWarning />
       <ErrorBox error={error} onClose={() => setError(null)} />
       <PeriodFilter value={period} onChange={setPeriod} kind={kind} setKind={setKind} />
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.topicsTitle')}</h2>
         {data.topics.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('overview.noTopics')}</p>
+          <p className="text-sm text-muted">{t('overview.noTopics')}</p>
         ) : (
           <table className="w-full text-sm" data-testid="topics">
-            <thead className="text-left text-xs text-slate-500">
+            <thead className="text-left text-xs text-muted">
               <tr>
                 <th className="p-1">{t('overview.topic')}</th>
                 <th className="p-1">{t('overview.mastery')}</th>
@@ -81,13 +81,13 @@ export default function Topics({ cls }: { cls: ClassDto }) {
             </thead>
             <tbody>
               {data.topics.map((x) => (
-                <tr key={x.topic} className="border-t border-slate-100">
+                <tr key={x.topic} className="border-t border-line">
                   <td className="p-1 font-medium">{x.topic}</td>
-                  <td className="p-1 tabular-nums">{x.percent === null ? <span className="text-slate-500">{t('overview.littleData')}</span> : `${x.percent} %`}</td>
+                  <td className="p-1 tabular-nums">{x.percent === null ? <span className="text-muted">{t('overview.littleData')}</span> : `${x.percent} %`}</td>
                   <td className="p-1">
                     <Bar percent={x.percent} />
                   </td>
-                  <td className="p-1 text-xs text-slate-500">
+                  <td className="p-1 text-xs text-muted">
                     {x.items} / {x.students}
                   </td>
                   {canEdit && (
@@ -102,11 +102,11 @@ export default function Topics({ cls }: { cls: ClassDto }) {
             </tbody>
           </table>
         )}
-        <p className="mt-2 text-xs text-slate-500">{t('overview.topicRule', { min: data.minItems, items: 3 * data.minItems })}</p>
+        <p className="mt-2 text-xs text-muted">{t('overview.topicRule', { min: data.minItems, items: 3 * data.minItems })}</p>
       </section>
 
       {rename && (
-        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-hra-200 bg-hra-50 p-3">
+        <section className="no-print flex flex-wrap items-end gap-2 rounded-lg border border-primary-soft bg-primary-soft p-3">
           <p className="w-full text-sm">{t('overview.renameHint', { from: rename.from })}</p>
           <Field label={t('overview.newTopic')}>
             <input className={inputCls} list="topic-names" value={rename.to} maxLength={60} onChange={(e) => setRename({ ...rename, to: e.target.value })} />
@@ -125,16 +125,16 @@ export default function Topics({ cls }: { cls: ClassDto }) {
         </section>
       )}
 
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.weakQuestions')}</h2>
         {data.weakQuestions.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('overview.noWeak', { min: data.minItems })}</p>
+          <p className="text-sm text-muted">{t('overview.noWeak', { min: data.minItems })}</p>
         ) : (
           <ol className="list-decimal space-y-1 pl-5 text-sm">
             {data.weakQuestions.map((q, i) => (
               <li key={i}>
                 <span className="font-medium">{q.successRate} %</span> – {q.prompt}
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-muted">
                   {' '}
                   ({q.topic ?? t('overview.noTopic')}, {t('overview.answers', { count: q.answers })})
                 </span>

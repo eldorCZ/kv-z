@@ -140,7 +140,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
   const ErrList = ({ path }: { path: string }) => (
     <>
       {errFor(path).map((e, i) => (
-        <p key={i} className="mt-1 text-xs text-red-700">
+        <p key={i} className="mt-1 text-xs text-danger">
           {e.message}
         </p>
       ))}
@@ -180,7 +180,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
   }[state];
 
   return (
-    <div className="mt-4 space-y-4 border-t border-slate-200 pt-4" data-testid="editor">
+    <div className="mt-4 space-y-4 border-t border-line pt-4" data-testid="editor">
       <div className="flex flex-wrap gap-3">
         <Field label={t('editor.type')}>
           <select className={inputCls} value={draft.type} onChange={(e) => setDraft((d) => changeType(d, e.target.value as QuestionType))}>
@@ -209,7 +209,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
             ))}
           </select>
         </Field>
-        <p className={`ml-auto self-end text-sm ${state === 'error' || errors.length ? 'text-red-700' : 'text-slate-500'}`} aria-live="polite" data-testid="save-state">
+        <p className={`ml-auto self-end text-sm ${state === 'error' || errors.length ? 'text-danger' : 'text-muted'}`} aria-live="polite" data-testid="save-state">
           {status}
         </p>
       </div>
@@ -221,7 +221,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
 
       {(choice || draft.type === 'order') && (
         <fieldset>
-          <legend className="mb-1 text-sm font-medium text-slate-700">{draft.type === 'order' ? t('editor.orderItems') : t('editor.options')}</legend>
+          <legend className="mb-1 text-sm font-medium text-fg">{draft.type === 'order' ? t('editor.orderItems') : t('editor.options')}</legend>
           <ul className="space-y-2">
             {draft.options.map((o, i) => (
               <li key={i} className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
                     aria-label={t('editor.markCorrect', { n: i + 1 })}
                   />
                 )}
-                {draft.type === 'order' && <span className="w-6 text-right text-sm text-slate-500">{i + 1}.</span>}
+                {draft.type === 'order' && <span className="w-6 text-right text-sm text-muted">{i + 1}.</span>}
                 <input
                   className={inputCls}
                   value={o}
@@ -255,7 +255,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
                   </>
                 )}
                 {draft.type !== 'truefalse' && draft.options.length > minOptions && (
-                  <Button type="button" variant="ghost" className="text-red-700" onClick={() => removeOption(i)} aria-label={t('editor.removeOption', { n: i + 1 })}>
+                  <Button type="button" variant="ghost" className="text-danger" onClick={() => removeOption(i)} aria-label={t('editor.removeOption', { n: i + 1 })}>
                     ✕
                   </Button>
                 )}
@@ -267,7 +267,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
               + {t('editor.addOption')}
             </Button>
           )}
-          <p className="mt-1 text-xs text-slate-500">{draft.type === 'order' ? t('editor.orderHint') : draft.type === 'multi' ? t('editor.multiHint') : t('editor.singleHint')}</p>
+          <p className="mt-1 text-xs text-muted">{draft.type === 'order' ? t('editor.orderHint') : draft.type === 'multi' ? t('editor.multiHint') : t('editor.singleHint')}</p>
           <ErrList path="options" />
           <ErrList path="correctIndices" />
         </fieldset>
@@ -275,7 +275,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
 
       {draft.type === 'short' && (
         <fieldset>
-          <legend className="mb-1 text-sm font-medium text-slate-700">{t('editor.acceptedAnswers')}</legend>
+          <legend className="mb-1 text-sm font-medium text-fg">{t('editor.acceptedAnswers')}</legend>
           <ul className="space-y-2">
             {draft.acceptedAnswers.map((a, i) => (
               <li key={i} className="flex gap-2">
@@ -287,7 +287,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
                   aria-label={t('editor.acceptedN', { n: i + 1 })}
                 />
                 {draft.acceptedAnswers.length > 1 && (
-                  <Button type="button" variant="ghost" className="text-red-700" onClick={() => set('acceptedAnswers', draft.acceptedAnswers.filter((_, j) => j !== i))}>
+                  <Button type="button" variant="ghost" className="text-danger" onClick={() => set('acceptedAnswers', draft.acceptedAnswers.filter((_, j) => j !== i))}>
                     ✕
                   </Button>
                 )}
@@ -299,7 +299,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
               + {t('editor.addAccepted')}
             </Button>
           )}
-          <p className="mt-1 text-xs text-slate-500">{t('editor.shortHint')}</p>
+          <p className="mt-1 text-xs text-muted">{t('editor.shortHint')}</p>
           <ErrList path="acceptedAnswers" />
         </fieldset>
       )}
@@ -331,7 +331,7 @@ export default function QuestionEditor({ quizId, question, onSaved }: { quizId: 
         <ErrList path="topic" />
       </Field>
       {errors.filter((e) => !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(e.path)).map((e, i) => (
-        <p key={i} className="text-xs text-red-700">
+        <p key={i} className="text-xs text-danger">
           {e.path}: {e.message}
         </p>
       ))}

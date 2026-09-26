@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
+import { sanitizeUiPrefs } from '@kvizhub/core';
 import { csrfToken, sendError, type Services } from '../app.js';
 import { RegistrationError } from '../auth/provider.js';
 import { SESSION_COOKIE } from '../game/socket.js';
@@ -33,6 +34,8 @@ export const authRoutes =
       provider: s.auth.name,
       allowRegistration: s.cfg.allowRegistration && s.auth.supportsPassword,
       classesEnabled: classesEnabled(s.cfg),
+      appName: s.cfg.appName,
+      designPage: s.cfg.designPage,
     }));
 
     app.post('/register', { config: { public: true } }, async (req, reply) => {
@@ -46,7 +49,7 @@ export const authRoutes =
         if (s.cfg.seedSampleQuiz) seedSampleQuiz(s.quizzes, t.id);
         const sid = startSession(t.id);
         reply.setCookie(SESSION_COOKIE, sid, cookieOpts);
-        return { teacher: t, csrfToken: csrfToken(s.cfg, sid) };
+        return { teacher: t, csrfToken: csrfToken(s.cfg, sid), uiPrefs: s.accounts.uiPrefs(t.id) };
       } catch (e) {
         if (e instanceof RegistrationError) return sendError(reply, 400, e.message, 'invalid');
         throw e;
@@ -62,7 +65,7 @@ export const authRoutes =
       if (!t) return sendError(reply, 401, 'Nesprávný e-mail nebo heslo.', 'invalid_credentials');
       const sid = startSession(t.id);
       reply.setCookie(SESSION_COOKIE, sid, cookieOpts);
-      return { teacher: t, csrfToken: csrfToken(s.cfg, sid) };
+      return { teacher: t, csrfToken: csrfToken(s.cfg, sid), uiPrefs: s.accounts.uiPrefs(t.id) };
     });
 
     app.post('/logout', { config: { public: true } }, async (req, reply) => {
@@ -76,6 +79,13 @@ export const authRoutes =
       if (req.auth?.kind !== 'session') return sendError(reply, 401, 'Nejste přihlášeni.', 'unauthorized');
       const t = s.accounts.getTeacher(req.auth.teacherId);
       if (!t) return sendError(reply, 401, 'Nejste přihlášeni.', 'unauthorized');
-      return { teacher: { id: t.id, email: t.email }, csrfToken: csrfToken(s.cfg, req.auth.sessionId!) };
+      return { teacher: { id: t.id, email: t.email }, csrfToken: csrfToken(s.cfg, req.auth.sessionId!), uiPrefs: s.accounts.uiPrefs(t.id) };
+    });
+
+    /** Appearance preferences of the teacher (V5.3); unknown values are replaced by defaults. */
+    app.put('/prefs', { config: { sessionOnly: true } }, async (req) => {
+      const prefs = sanitizeUiPrefs(req.body);
+      s.accounts.setUiPrefs(req.auth!.teacherId, prefs);
+      return { uiPrefs: prefs };
     });
   };

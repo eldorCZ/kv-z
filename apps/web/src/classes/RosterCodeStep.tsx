@@ -52,14 +52,14 @@ export default function RosterCodeStep({
     }
   };
 
-  const box = `w-full max-w-sm space-y-4 rounded-xl p-6 shadow-lg ${dark ? 'bg-white text-slate-900' : 'bg-white'}`;
+  const box = `w-full max-w-sm space-y-4 rounded-xl p-6 shadow-lg ${dark ? 'bg-surface text-fg' : 'bg-surface'}`;
 
   if (who)
     return (
       <div className={box} data-testid="roster-confirm">
         <p className="text-center text-2xl font-bold">{t('rosterLogin.isItYou', { name: who.accountName })}</p>
         <button
-          className="w-full rounded-md bg-hra-600 py-3 text-lg font-bold text-white"
+          className="w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary"
           disabled={busy}
           onClick={async () => {
             setBusy(true);
@@ -70,7 +70,7 @@ export default function RosterCodeStep({
         >
           {t('rosterLogin.yes')}
         </button>
-        <button className="w-full rounded-md border border-slate-300 py-3" onClick={() => (setWho(null), setCode(''))}>
+        <button className="w-full rounded-md border border-line-strong py-3" onClick={() => (setWho(null), setCode(''))}>
           {t('rosterLogin.no')}
         </button>
       </div>
@@ -78,11 +78,11 @@ export default function RosterCodeStep({
 
   return (
     <form onSubmit={identify} className={box} data-testid="roster-code-step">
-      <h1 className="text-xl font-bold text-hra-700">{t('rosterLogin.title')}</h1>
+      <h1 className="text-xl font-bold text-primary">{t('rosterLogin.title')}</h1>
       <label className="block">
         <span className="mb-1 block text-sm font-medium">{t('rosterLogin.code')}</span>
         <input
-          className="w-full rounded-md border border-slate-300 px-3 py-3 text-center font-mono text-2xl uppercase tracking-widest"
+          className="w-full rounded-md border border-line-strong px-3 py-3 text-center font-mono text-2xl uppercase tracking-widest"
           autoCapitalize="off"
           autoComplete="off"
           spellCheck={false}
@@ -92,24 +92,24 @@ export default function RosterCodeStep({
           onChange={(e) => setCode(e.target.value)}
           data-testid="roster-code"
         />
-        <span className="mt-1 block text-xs text-slate-500">{t('rosterLogin.hint')}</span>
+        <span className="mt-1 block text-xs text-muted">{t('rosterLogin.hint')}</span>
       </label>
       {error && (
-        <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-800">
+        <p role="alert" className="rounded bg-danger-soft p-2 text-sm text-danger">
           {error}
         </p>
       )}
-      <button type="submit" disabled={busy || !code.trim()} className="w-full rounded-md bg-hra-600 py-3 text-lg font-bold text-white disabled:bg-hra-500" data-testid="roster-continue">
+      <button type="submit" disabled={busy || !code.trim()} className="w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary disabled:bg-primary" data-testid="roster-continue">
         {t('rosterLogin.continue')}
       </button>
-      <button type="button" className="w-full text-sm text-hra-700 underline" onClick={() => (allowGuests ? onGuest() : setNoCode(true))}>
+      <button type="button" className="w-full text-sm text-primary underline" onClick={() => (allowGuests ? onGuest() : setNoCode(true))}>
         {t('rosterLogin.noCode')}
       </button>
       {noCode && <p className="text-center text-sm">{t('rosterLogin.askTeacher')}</p>}
       {hasSaved && (
         <button
           type="button"
-          className="w-full text-xs text-slate-500 underline"
+          className="w-full text-xs text-muted underline"
           onClick={() => {
             forgetDeviceCode();
             setHasSaved(false);

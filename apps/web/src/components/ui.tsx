@@ -5,11 +5,11 @@ import type { ApiError } from '../api';
 type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'success';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-hra-600 text-white hover:bg-hra-700 disabled:bg-hra-500',
-  secondary: 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-100 disabled:text-slate-400',
-  danger: 'bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300',
-  success: 'bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300',
-  ghost: 'text-slate-700 hover:bg-slate-100',
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover disabled:opacity-50',
+  secondary: 'border border-line-strong bg-surface text-fg hover:bg-surface-2 disabled:opacity-50',
+  danger: 'bg-danger text-on-danger hover:brightness-95 disabled:opacity-50',
+  success: 'bg-success-strong text-on-success hover:brightness-95 disabled:opacity-50',
+  ghost: 'text-fg hover:bg-surface-2',
 };
 
 export function Button({ variant = 'secondary', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant }) {
@@ -18,10 +18,10 @@ export function Button({ variant = 'secondary', className = '', ...props }: Butt
 
 export function Badge({ tone, children }: { tone: 'ok' | 'flagged' | 'approved' | 'neutral'; children: ReactNode }) {
   const cls = {
-    ok: 'bg-emerald-100 text-emerald-800 border-emerald-300',
-    approved: 'bg-sky-100 text-sky-800 border-sky-300',
-    flagged: 'bg-amber-100 text-amber-900 border-amber-400',
-    neutral: 'bg-slate-100 text-slate-700 border-slate-300',
+    ok: 'bg-success-soft text-success border-success',
+    approved: 'bg-info-soft text-info border-info',
+    flagged: 'bg-warning-soft text-warning border-warning-line',
+    neutral: 'bg-surface-2 text-fg border-line-strong',
   }[tone];
   return <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold ${cls}`}>{children}</span>;
 }
@@ -32,11 +32,11 @@ export function ErrorBox({ error, onClose }: { error: ApiError | Error | string 
   const msg = typeof error === 'string' ? error : error.message;
   const details = typeof error === 'object' && 'errors' in error ? error.errors : [];
   return (
-    <div role="alert" className="my-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+    <div role="alert" className="my-3 rounded-md border border-danger bg-danger-soft p-3 text-sm text-danger">
       <div className="flex items-start gap-2">
         <p className="flex-1 font-medium">{msg}</p>
         {onClose && (
-          <button className="text-red-700 hover:underline" onClick={onClose}>
+          <button className="text-danger hover:underline" onClick={onClose}>
             {t('common.close')}
           </button>
         )}
@@ -63,11 +63,11 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="mt-10 w-full max-w-2xl rounded-lg bg-white p-5 shadow-xl outline-none">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="mt-10 w-full max-w-2xl rounded-lg bg-surface p-5 shadow-xl outline-none">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button className="rounded px-2 text-2xl leading-none text-slate-500 hover:bg-slate-100" onClick={onClose} aria-label="Zavřít">
+          <button className="rounded px-2 text-2xl leading-none text-muted hover:bg-surface-2" onClick={onClose} aria-label="Zavřít">
             ×
           </button>
         </div>
@@ -80,14 +80,14 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
 export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
   return (
     <label className="block text-sm">
-      <span className="mb-1 block font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block font-medium text-fg">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-slate-500">{hint}</span>}
+      {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
     </label>
   );
 }
 
-export const inputCls = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-hra-500 focus:outline-none focus:ring-2 focus:ring-hra-200';
+export const inputCls = 'w-full rounded-md border border-line-strong px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-soft';
 
 export function formatDate(ms: number | null | undefined) {
   if (!ms) return '–';

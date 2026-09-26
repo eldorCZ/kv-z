@@ -12,13 +12,15 @@
     "start": "node apps/server/dist/index.js",
     "typecheck": "tsc -p packages/core && tsc -p packages/export && tsc -p apps/server && tsc -p apps/web && tsc -p scripts",
     "lint": "eslint .",
+    "check:contrast": "tsx scripts/contrast.ts",
+    "check:fonts": "python3 scripts/check-fonts.py 'Baloo 2=apps/web/public/fonts/baloo2-latin.woff2,apps/web/public/fonts/baloo2-latin-ext.woff2' 'Nunito=apps/web/public/fonts/nunito-latin.woff2,apps/web/public/fonts/nunito-latin-ext.woff2' 'Atkinson Hyperlegible 400=apps/web/public/fonts/atkinson-latin-400.woff2,apps/web/public/fonts/atkinson-latin-ext-400.woff2' 'Atkinson Hyperlegible 700=apps/web/public/fonts/atkinson-latin-700.woff2,apps/web/public/fonts/atkinson-latin-ext-700.woff2'",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:skill": "cd agent-skill/kviz-z-materialu && (test -x .venv/bin/python && .venv/bin/python -m pytest -q || python3 -m pytest -q)",
     "loadtest": "tsx scripts/loadtest.ts",
     "demo": "tsx scripts/demo.ts",
     "seed:demo-class": "tsx scripts/seed-demo-class.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm check:contrast && pnpm test"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

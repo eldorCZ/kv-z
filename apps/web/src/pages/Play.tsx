@@ -3,8 +3,10 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import RosterCodeStep from '../classes/RosterCodeStep';
-import { ANSWER_STYLES, Shape } from '../components/Shapes';
+import { AnswerMark, answerStyle } from '../components/Shapes';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
+import { Logo } from '../ui/Logo';
+import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 const TOKEN_KEY = 'kvizhub-player';
 
@@ -167,18 +169,21 @@ export default function Play() {
     else setError('');
   };
 
-  const shell = (children: React.ReactNode, tone = 'bg-hra-700') => (
-    <div className={`flex min-h-screen flex-col ${tone} text-white`}>
+  const shell = (children: React.ReactNode, tone = 'bg-canvas text-fg') => (
+    <div className={`flex min-h-screen flex-col ${tone}`} data-mood="play">
       <header className="flex items-center justify-between px-4 py-2 text-sm">
-        <span className="font-semibold">{me?.nickname ?? 'KvizHub'}</span>
-        {question && view !== 'join' && view !== 'lobby' && view !== 'over' && (
-          <span>
-            {question.index + 1}/{question.total}
-          </span>
-        )}
+        {me?.nickname ? <span className="font-semibold">{me.nickname}</span> : <Logo size="sm" />}
+        <span className="flex items-center gap-3">
+          {question && view !== 'join' && view !== 'lobby' && view !== 'over' && (
+            <span className="tabular">
+              {question.index + 1}/{question.total}
+            </span>
+          )}
+          <SchemeSwitcher />
+        </span>
       </header>
       {(!connected || paused) && (
-        <div role="status" className="bg-amber-400 px-4 py-2 text-center text-sm font-semibold text-slate-900">
+        <div role="status" className="bg-accent px-4 py-2 text-center text-sm font-semibold text-on-accent">
           {!connected ? t('play.reconnecting') : t('play.paused')}
         </div>
       )}
@@ -195,12 +200,14 @@ export default function Play() {
 
   if (view === 'join')
     return shell(
-      <form onSubmit={join} className="m-auto w-full max-w-sm space-y-4 rounded-xl bg-white p-6 text-slate-900 shadow-lg">
-        <h1 className="text-center text-2xl font-bold text-hra-700">KvizHub</h1>
+      <form onSubmit={join} className="m-auto w-full max-w-sm space-y-4 rounded-xl bg-surface p-6 text-fg shadow-lg">
+        <h1 className="flex justify-center">
+          <Logo />
+        </h1>
         <label className="block">
           <span className="mb-1 block text-sm font-medium">{t('play.pin')}</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-3 text-center text-3xl tracking-widest"
+            className="w-full rounded-md border border-line-strong px-3 py-3 text-center text-3xl tracking-widest"
             inputMode="numeric"
             autoComplete="off"
             maxLength={8}
@@ -213,28 +220,28 @@ export default function Play() {
         <label className="block">
           <span className="mb-1 block text-sm font-medium">{t('play.nickname')}</span>
           <input
-            className="w-full rounded-md border border-slate-300 px-3 py-3 text-xl"
+            className="w-full rounded-md border border-line-strong px-3 py-3 text-xl"
             autoComplete="off"
             maxLength={20}
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             aria-label={t('play.nickname')}
           />
-          <span className="mt-1 block text-xs text-slate-500">{t('play.nicknameHint')}</span>
+          <span className="mt-1 block text-xs text-muted">{t('play.nicknameHint')}</span>
         </label>
         {error && (
-          <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-800">
+          <p role="alert" className="rounded bg-danger-soft p-2 text-sm text-danger">
             {error}
           </p>
         )}
-        <button type="submit" disabled={busy} className="w-full rounded-md bg-hra-600 py-3 text-xl font-bold text-white hover:bg-hra-700 disabled:bg-hra-500">
+        <button type="submit" disabled={busy} className="w-full rounded-md bg-primary py-3 text-xl font-bold text-on-primary hover:bg-primary-hover disabled:opacity-50">
           {t('play.join')}
         </button>
-        <p className="text-center text-xs text-slate-500">{t('play.privacy')}</p>
+        <p className="text-center text-xs text-muted">{t('play.privacy')}</p>
       </form>,
     );
 
-  if (view === 'kicked') return shell(<p className="m-auto text-center text-2xl">{t('play.kicked')}</p>, 'bg-hra-700/70');
+  if (view === 'kicked') return shell(<p className="m-auto text-center text-2xl">{t('play.kicked')}</p>, 'bg-surface-2 text-fg');
 
   if (view === 'lobby')
     return shell(
@@ -249,7 +256,7 @@ export default function Play() {
       <div className="m-auto text-center" data-testid="player-answered">
         <p className="text-3xl font-bold">{t('play.answerSent')}</p>
         <p className="mt-3 text-lg">{t('play.waitForReveal')}</p>
-        {error && <p className="mt-3 rounded bg-red-600 p-2">{error}</p>}
+        {error && <p className="mt-3 rounded bg-danger p-2 text-on-danger">{error}</p>}
       </div>,
     );
 
@@ -260,13 +267,13 @@ export default function Play() {
           <p className="flex-1 text-xl font-semibold" data-testid="player-prompt">
             {question.prompt}
           </p>
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-xl font-bold text-hra-700" aria-label={t('host.remaining')}>
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-surface text-xl font-bold text-primary" aria-label={t('host.remaining')}>
             {remaining}
           </span>
         </div>
         <AnswerInput q={question} onAnswer={answer} disabled={paused || remaining === 0} />
         {error && (
-          <p role="alert" className="rounded bg-red-600 p-2 text-sm">
+          <p role="alert" className="rounded bg-danger p-2 text-sm text-on-danger">
             {error}
           </p>
         )}
@@ -286,13 +293,13 @@ export default function Play() {
         {you && you.streak > 1 && <p className="mt-1">{t('play.streak', { count: you.streak })}</p>}
         {you && <p className="mt-1 text-lg">{t('play.rank', { rank: you.rank })}</p>}
         {!you?.correct && reveal.correctText.length > 0 && (
-          <p className="mt-4 rounded-lg bg-white/15 p-3 text-lg">
+          <p className="mt-4 rounded-lg bg-surface p-3 text-lg">
             {t('play.correctWas')}: <strong>{reveal.correctText.join(question?.type === 'order' ? ' → ' : ' / ')}</strong>
           </p>
         )}
         {reveal.explanation && <p className="mt-3 text-base opacity-90">{reveal.explanation}</p>}
       </div>,
-      you?.correct ? 'bg-emerald-700' : partial ? 'bg-amber-600' : 'bg-rose-700',
+      you?.correct ? 'bg-success-strong text-on-success' : partial ? 'bg-accent text-on-accent' : 'bg-danger text-on-danger',
     );
   }
 
@@ -313,7 +320,7 @@ export default function Play() {
         <p className="mt-2 text-xl">{t('play.score', { score: over.you?.score ?? 0 })}</p>
         <ol className="mt-6 space-y-1 text-left">
           {over.podium.map((p, i) => (
-            <li key={i} className="rounded bg-white/10 px-3 py-2">
+            <li key={i} className="rounded bg-surface px-3 py-2">
               {['🥇', '🥈', '🥉'][i]} {p.nickname} – {p.score}
             </li>
           ))}
@@ -343,7 +350,7 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
         {multi && <p className="text-sm">{t('play.multiHint')}</p>}
         <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
           {q.options.map((o, i) => {
-            const st = ANSWER_STYLES[i % ANSWER_STYLES.length]!;
+            const st = answerStyle(i);
             const on = selected.includes(i);
             return (
               <button
@@ -351,11 +358,11 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
                 disabled={disabled}
                 data-testid={`option-${i}`}
                 aria-pressed={multi ? on : undefined}
-                aria-label={`${st.label}: ${o}`}
+                aria-label={`${st.letter}, ${st.label}: ${o}`}
                 onClick={() => (multi ? setSelected(on ? selected.filter((x) => x !== i) : [...selected, i]) : onAnswer({ indices: [i] }))}
-                className={`flex min-h-20 items-center gap-3 rounded-xl p-4 text-left text-xl font-semibold ${st.bg} ${on ? `ring-4 ${st.ring}` : ''} disabled:opacity-60`}
+                className={`flex min-h-20 items-center gap-3 rounded-xl p-4 text-left text-xl font-semibold ${st.bg} ${st.fg} ${on ? 'ring-4 ring-fg ring-offset-2 ring-offset-canvas' : ''} disabled:opacity-60`}
               >
-                <Shape index={i} className="h-9 w-9 shrink-0" />
+                <AnswerMark index={i} />
                 <span className="flex-1">{o}</span>
                 {multi && <span aria-hidden="true">{on ? '☑' : '☐'}</span>}
               </button>
@@ -363,7 +370,7 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
           })}
         </div>
         {multi && (
-          <button disabled={disabled || selected.length === 0} onClick={() => onAnswer({ indices: selected })} className="rounded-xl bg-white py-4 text-xl font-bold text-hra-700 disabled:opacity-50" data-testid="submit-answer">
+          <button disabled={disabled || selected.length === 0} onClick={() => onAnswer({ indices: selected })} className="rounded-xl bg-surface py-4 text-xl font-bold text-primary disabled:opacity-50" data-testid="submit-answer">
             {t('play.submit')}
           </button>
         )}
@@ -379,8 +386,8 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
         <ol className="space-y-2">
           {order.map((i, pos) => (
             <li key={i}>
-              <button className="w-full rounded-lg bg-white p-3 text-left text-lg font-semibold text-hra-800" onClick={() => setOrder(order.filter((x) => x !== i))}>
-                {pos + 1}. {q.options[i]} <span className="float-right text-sm text-slate-400">✕</span>
+              <button className="w-full rounded-lg bg-surface p-3 text-left text-lg font-semibold text-primary" onClick={() => setOrder(order.filter((x) => x !== i))}>
+                {pos + 1}. {q.options[i]} <span className="float-right text-sm text-muted">✕</span>
               </button>
             </li>
           ))}
@@ -388,13 +395,13 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
         <ul className="space-y-2">
           {rest.map((i) => (
             <li key={i}>
-              <button className="w-full rounded-lg bg-white/15 p-3 text-left text-lg" onClick={() => setOrder([...order, i])} data-testid={`order-${i}`}>
+              <button className="w-full rounded-lg bg-surface p-3 text-left text-lg" onClick={() => setOrder([...order, i])} data-testid={`order-${i}`}>
                 {q.options[i]}
               </button>
             </li>
           ))}
         </ul>
-        <button disabled={disabled || rest.length > 0} onClick={() => onAnswer({ order })} className="mt-auto rounded-xl bg-white py-4 text-xl font-bold text-hra-700 disabled:opacity-50" data-testid="submit-answer">
+        <button disabled={disabled || rest.length > 0} onClick={() => onAnswer({ order })} className="mt-auto rounded-xl bg-surface py-4 text-xl font-bold text-primary disabled:opacity-50" data-testid="submit-answer">
           {t('play.submit')}
         </button>
       </div>
@@ -410,7 +417,7 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
       }}
     >
       <input
-        className="w-full rounded-lg px-4 py-4 text-2xl text-slate-900"
+        className="w-full rounded-lg px-4 py-4 text-2xl text-fg"
         inputMode={q.type === 'numeric' ? 'decimal' : 'text'}
         autoComplete="off"
         autoFocus
@@ -422,7 +429,7 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
         disabled={disabled}
       />
       {q.type === 'numeric' && <p className="text-sm">{t('play.numericHint')}</p>}
-      <button type="submit" disabled={disabled || !text.trim()} className="rounded-xl bg-white py-4 text-xl font-bold text-hra-700 disabled:opacity-50" data-testid="submit-answer">
+      <button type="submit" disabled={disabled || !text.trim()} className="rounded-xl bg-surface py-4 text-xl font-bold text-primary disabled:opacity-50" data-testid="submit-answer">
         {t('play.submit')}
       </button>
     </form>

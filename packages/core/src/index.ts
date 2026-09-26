@@ -10,3 +10,4 @@ export * from './test-mode.js';
 export * from './leave-guard.js';
 export * from './classes.js';
 export * from './class-metrics.js';
+export * from './ui-prefs.js';

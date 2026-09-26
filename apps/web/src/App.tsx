@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { RequireAuth } from './auth';
 import Layout from './components/Layout';
@@ -16,6 +17,8 @@ import QuizReview from './pages/QuizReview';
 import Quizzes from './pages/Quizzes';
 import Tokens from './pages/Tokens';
 
+const DesignPage = lazy(() => import('./pages/DesignPage'));
+
 export default function App() {
   return (
     <Routes>
@@ -23,6 +26,14 @@ export default function App() {
       <Route path="/play" element={<Play />} />
       <Route path="/test" element={<TestPlay />} />
       <Route path="/kod" element={<CodePage />} />
+      <Route
+        path="/_design"
+        element={
+          <Suspense fallback={null}>
+            <DesignPage />
+          </Suspense>
+        }
+      />
       <Route path="/host/:gameId" element={<Host />} />
       <Route
         element={

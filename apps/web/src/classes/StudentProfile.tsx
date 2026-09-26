@@ -11,7 +11,7 @@ import { gameLink, pct, readShowNames, shortDate, TREND_ARROW, type CreatedCode,
 /** Own small SVG line chart: the student's percent and the class median (dashed); a table follows as an alternative (C8.3). */
 export function LineChart({ points, title }: { points: SeriesPoint[]; title: string }) {
   const { t } = useTranslation();
-  if (points.length === 0) return <p className="text-sm text-slate-500">{t('overview.noData')}</p>;
+  if (points.length === 0) return <p className="text-sm text-muted">{t('overview.noData')}</p>;
   const W = 600;
   const H = 200;
   const pad = { l: 34, r: 26, t: 10, b: 24 };
@@ -57,13 +57,13 @@ export function LineChart({ points, title }: { points: SeriesPoint[]; title: str
           ),
         )}
       </svg>
-      <figcaption className="text-xs text-slate-500">
-        <span className="text-hra-700">━</span> {t('overview.chartStudent')} · <span className="text-slate-400">╌</span> {t('overview.chartMedian')}
+      <figcaption className="text-xs text-muted">
+        <span className="text-primary">━</span> {t('overview.chartStudent')} · <span className="text-muted">╌</span> {t('overview.chartMedian')}
       </figcaption>
       <details className="mt-1 text-sm">
-        <summary className="cursor-pointer text-xs text-slate-600">{t('overview.asTable')}</summary>
+        <summary className="cursor-pointer text-xs text-muted">{t('overview.asTable')}</summary>
         <table className="mt-1 text-sm">
-          <thead className="text-left text-xs text-slate-500">
+          <thead className="text-left text-xs text-muted">
             <tr>
               <th className="pr-3">{t('overview.activity')}</th>
               <th className="pr-3">{t('overview.date')}</th>
@@ -89,32 +89,32 @@ export function LineChart({ points, title }: { points: SeriesPoint[]; title: str
 
 function SummaryBox({ s }: { s: Summary }) {
   const { t } = useTranslation();
-  const box = 'rounded-lg border border-slate-200 bg-white p-3';
+  const box = 'rounded-lg border border-line bg-surface p-3';
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <div className={box}>
-        <p className="text-xs text-slate-500">{t('overview.testAvg')}</p>
+        <p className="text-xs text-muted">{t('overview.testAvg')}</p>
         <p className="text-2xl font-bold" data-testid="profile-test-avg">
           {pct(s.testAvg)}
         </p>
-        <p className="text-xs text-slate-500">{t('overview.countOf', { count: s.testCount })}</p>
+        <p className="text-xs text-muted">{t('overview.countOf', { count: s.testCount })}</p>
       </div>
       <div className={box}>
-        <p className="text-xs text-slate-500">{t('overview.quizAvg')}</p>
+        <p className="text-xs text-muted">{t('overview.quizAvg')}</p>
         <p className="text-2xl font-bold">{pct(s.quizAvg)}</p>
-        <p className="text-xs text-slate-500">{t('overview.countOf', { count: s.quizCount })}</p>
+        <p className="text-xs text-muted">{t('overview.countOf', { count: s.quizCount })}</p>
       </div>
       <div className={box}>
-        <p className="text-xs text-slate-500">{t('overview.trend')}</p>
+        <p className="text-xs text-muted">{t('overview.trend')}</p>
         <p className="text-lg font-semibold">
           {TREND_ARROW[s.testTrend.label]} {t(`overview.trends.${s.testTrend.label}`)}
         </p>
-        {s.testTrend.delta !== null && <p className="text-xs text-slate-500">{t('overview.trendDelta', { delta: s.testTrend.delta })}</p>}
+        {s.testTrend.delta !== null && <p className="text-xs text-muted">{t('overview.trendDelta', { delta: s.testTrend.delta })}</p>}
       </div>
       <div className={box}>
-        <p className="text-xs text-slate-500">{t('overview.participation')}</p>
+        <p className="text-xs text-muted">{t('overview.participation')}</p>
         <p className="text-2xl font-bold">{pct(s.participation)}</p>
-        <p className="text-xs text-slate-500">{t('overview.eligible', { count: s.eligibleCount })}</p>
+        <p className="text-xs text-muted">{t('overview.eligible', { count: s.eligibleCount })}</p>
       </div>
     </div>
   );
@@ -172,7 +172,7 @@ export default function StudentProfile() {
     <div className="space-y-4">
       <PrintWarning />
       <p className="no-print text-sm">
-        <Link to={`/classes/${id}`} className="text-hra-700 hover:underline">
+        <Link to={`/classes/${id}`} className="text-primary hover:underline">
           ← {t('overview.backToClass')}
         </Link>
       </p>
@@ -180,13 +180,13 @@ export default function StudentProfile() {
         <h1 className="text-2xl font-bold" data-testid="profile-name">
           {showNames ? s.accountName : `Žák ${s.rosterNo ?? ''}`.trim()}
         </h1>
-        <span className="text-slate-600">
+        <span className="text-muted">
           {s.rosterNo ? `č. ${s.rosterNo} · ` : ''}
           {p.class.name}
         </span>
         {s.active ? <Badge tone="ok">{t('roster.active')}</Badge> : <Badge tone="neutral">{t('roster.left', { date: s.leftAt })}</Badge>}
         <div className="no-print ml-auto flex gap-2">
-          <a className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm hover:bg-slate-100" href={`/api/v1/classes/${id}/students/${sid}/export.csv?sep=%3B`} download>
+          <a className="rounded-md border border-line-strong bg-surface px-3 py-1.5 text-sm hover:bg-surface-2" href={`/api/v1/classes/${id}/students/${sid}/export.csv?sep=%3B`} download>
             {t('overview.csvExcel')}
           </a>
           <Button onClick={() => printOverview(id)}>{t('overview.print')}</Button>
@@ -220,7 +220,7 @@ export default function StudentProfile() {
       )}
       <SummaryBox s={p.summary} />
       {p.summary.flags.length > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="rounded-lg border border-warning-line bg-warning-soft p-3 text-sm text-warning">
           <p className="font-semibold">{t('overview.watch')}</p>
           <ul className="list-disc pl-5">
             {p.summary.flags.map((f) => (
@@ -230,55 +230,55 @@ export default function StudentProfile() {
           <p className="mt-1 text-xs">{t('overview.flagNote')}</p>
         </div>
       )}
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.testsChart')}</h2>
         <LineChart points={p.tests} title={t('overview.testsChart')} />
       </section>
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.quizzesChart')}</h2>
         <LineChart points={p.quizzes} title={t('overview.quizzesChart')} />
       </section>
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.topicsTitle')}</h2>
         {p.topics.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('overview.noTopics')}</p>
+          <p className="text-sm text-muted">{t('overview.noTopics')}</p>
         ) : (
           <table className="w-full text-sm">
             <tbody>
               {p.topics.map((x) => (
-                <tr key={x.topic} className="border-t border-slate-100">
+                <tr key={x.topic} className="border-t border-line">
                   <td className="p-1 font-medium">{x.topic}</td>
-                  <td className="p-1 tabular-nums">{x.percent === null ? <span className="text-slate-500">{t('overview.littleData')}</span> : `${x.percent} %`}</td>
+                  <td className="p-1 tabular-nums">{x.percent === null ? <span className="text-muted">{t('overview.littleData')}</span> : `${x.percent} %`}</td>
                   <td className="w-1/2 p-1">
                     <Bar percent={x.percent} />
                   </td>
-                  <td className="p-1 text-xs text-slate-500">{t('overview.answers', { count: x.items })}</td>
+                  <td className="p-1 text-xs text-muted">{t('overview.answers', { count: x.items })}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-        <p className="mt-1 text-xs text-slate-500">{t('overview.topicMin', { min: p.minItems })}</p>
+        <p className="mt-1 text-xs text-muted">{t('overview.topicMin', { min: p.minItems })}</p>
       </section>
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.mistakes')}</h2>
         {p.mistakes.length === 0 ? (
-          <p className="text-sm text-slate-500">{t('overview.noMistakes')}</p>
+          <p className="text-sm text-muted">{t('overview.noMistakes')}</p>
         ) : (
           <ul className="space-y-1 text-sm">
             {p.mistakes.map((m, i) => (
               <li key={i}>
-                <span className="font-semibold">{m.count}×</span> {m.prompt} {m.topic && <span className="text-xs text-slate-500">({m.topic})</span>}
+                <span className="font-semibold">{m.count}×</span> {m.prompt} {m.topic && <span className="text-xs text-muted">({m.topic})</span>}
               </li>
             ))}
           </ul>
         )}
       </section>
-      <section className="rounded-lg border border-slate-200 bg-white p-3">
+      <section className="rounded-lg border border-line bg-surface p-3">
         <h2 className="mb-2 font-semibold">{t('overview.results')}</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm" data-testid="profile-results">
-            <thead className="text-left text-xs text-slate-500">
+            <thead className="text-left text-xs text-muted">
               <tr>
                 <th className="p-1">{t('overview.date')}</th>
                 <th className="p-1">{t('overview.activity')}</th>
@@ -289,17 +289,17 @@ export default function StudentProfile() {
             </thead>
             <tbody>
               {p.results.map((r) => (
-                <tr key={r.resultId} className={`border-t border-slate-100 ${r.excluded ? 'text-slate-400' : ''}`}>
+                <tr key={r.resultId} className={`border-t border-line ${r.excluded ? 'text-muted line-through' : ''}`}>
                   <td className="p-1 whitespace-nowrap">{shortDate(r.playedAt)}</td>
                   <td className="p-1">
                     {r.gameId ? (
-                      <Link to={gameLink(r.kind, r.gameId)} className="text-hra-700 hover:underline">
+                      <Link to={gameLink(r.kind, r.gameId)} className="text-primary hover:underline">
                         {r.label}
                       </Link>
                     ) : (
                       r.label
                     )}{' '}
-                    <span className="text-xs text-slate-500">{t(`overview.kinds.${r.kind}`)}</span>
+                    <span className="text-xs text-muted">{t(`overview.kinds.${r.kind}`)}</span>
                   </td>
                   <td className={`p-1 tabular-nums ${r.excluded ? 'line-through' : ''}`}>{r.percent}</td>
                   <td className="p-1 text-xs">

@@ -21,7 +21,7 @@ function Distribution({ d }: { d: number[] }) {
   return (
     <div className="flex h-10 items-end gap-0.5" role="img" aria-label={d.map((n, i) => `${labels[i]} %: ${n}`).join(', ')}>
       {d.map((n, i) => (
-        <div key={i} className="w-4 bg-hra-400" style={{ height: `${Math.max(2, (100 * n) / max)}%` }} title={`${labels[i]} %: ${n}`} />
+        <div key={i} className="w-4 bg-primary/60" style={{ height: `${Math.max(2, (100 * n) / max)}%` }} title={`${labels[i]} %: ${n}`} />
       ))}
     </div>
   );
@@ -61,30 +61,30 @@ export default function Activities({ cls }: { cls: ClassDto }) {
     <div className="space-y-3">
       <ErrorBox error={error} onClose={() => setError(null)} />
       {makeup && (
-        <div className="rounded-lg border border-hra-500 bg-hra-50 p-4 text-sm" data-testid="makeup-info">
+        <div className="rounded-lg border border-primary bg-primary-soft p-4 text-sm" data-testid="makeup-info">
           <p className="font-semibold">{makeup.reused ? t('overview.makeupReused') : t('overview.makeupCreated', { count: makeup.audienceSize })}</p>
           <p className="mt-1">
             PIN <strong className="font-mono text-lg">{makeup.pin}</strong> · {makeup.joinUrl}
           </p>
           <div className="mt-2 flex gap-2">
-            <Link to={`/tests/${makeup.gameId}`} className="text-hra-700 underline">
+            <Link to={`/tests/${makeup.gameId}`} className="text-primary underline">
               {t('overview.openDashboard')}
             </Link>
-            <button className="ml-auto text-slate-600" onClick={() => setMakeup(null)}>
+            <button className="ml-auto text-muted" onClick={() => setMakeup(null)}>
               ✕
             </button>
           </div>
         </div>
       )}
-      {list.length === 0 && <p className="text-slate-500">{t('overview.noActivities')}</p>}
+      {list.length === 0 && <p className="text-muted">{t('overview.noActivities')}</p>}
       <ul className="space-y-2">
         {list.map((a) => (
-          <li key={a.id} className="rounded-lg border border-slate-200 bg-white p-3" data-testid="activity">
+          <li key={a.id} className="rounded-lg border border-line bg-surface p-3" data-testid="activity">
             <div className="flex flex-wrap items-start gap-3">
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">
                   {a.gameId ? (
-                    <Link to={gameLink(a.kind, a.gameId)} className="text-hra-700 hover:underline">
+                    <Link to={gameLink(a.kind, a.gameId)} className="text-primary hover:underline">
                       {a.label}
                     </Link>
                   ) : (
@@ -92,7 +92,7 @@ export default function Activities({ cls }: { cls: ClassDto }) {
                   )}{' '}
                   <Badge tone={a.kind === 'test' ? 'approved' : 'neutral'}>{t(`overview.kinds.${a.kind}`)}</Badge> {!a.countInStats && <Badge tone="flagged">{t('overview.notCounted')}</Badge>}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted">
                   {formatDate(a.playedAt)} · {a.quizTitle}
                   {a.makeups.length > 0 && ` · ${t('overview.makeups', { count: a.makeups.length })}`}
                 </p>
@@ -100,7 +100,7 @@ export default function Activities({ cls }: { cls: ClassDto }) {
                   {a.stats.n === 0
                     ? t('overview.notHeld')
                     : t('overview.activityStats', { n: a.stats.n, part: pct(a.stats.participationRate), avg: pct(a.stats.avg), median: pct(a.stats.median) })}
-                  {a.missing !== null && a.missing > 0 && <span className="ml-2 font-medium text-red-700">{t('overview.missingCount', { count: a.missing })}</span>}
+                  {a.missing !== null && a.missing > 0 && <span className="ml-2 font-medium text-danger">{t('overview.missingCount', { count: a.missing })}</span>}
                 </p>
               </div>
               {a.stats.n > 0 && <Distribution d={a.stats.distribution} />}

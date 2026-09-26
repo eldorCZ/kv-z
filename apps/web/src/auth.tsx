@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { api, setCsrf } from './api';
+import { usePrefs } from './theme/prefs';
 
 interface Teacher {
   id: string;
@@ -20,34 +21,40 @@ const Ctx = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [loading, setLoading] = useState(true);
+  const { adopt, setOnSave } = usePrefs();
+
+  // the teacher's saved appearance wins after login; later changes are saved back (V5.3)
+  const signedIn = useCallback(
+    (r: { teacher: Teacher; csrfToken: string; uiPrefs?: unknown }) => {
+      setCsrf(r.csrfToken);
+      setTeacher(r.teacher);
+      if (r.uiPrefs) adopt(r.uiPrefs);
+      setOnSave((p) => void api('PUT', '/api/auth/prefs', p).catch(() => undefined));
+    },
+    [adopt, setOnSave],
+  );
 
   useEffect(() => {
-    api<{ teacher: Teacher; csrfToken: string }>('GET', '/api/auth/me')
-      .then((r) => {
-        setCsrf(r.csrfToken);
-        setTeacher(r.teacher);
-      })
+    api<{ teacher: Teacher; csrfToken: string; uiPrefs?: unknown }>('GET', '/api/auth/me')
+      .then(signedIn)
       .catch(() => setTeacher(null))
       .finally(() => setLoading(false));
-  }, []);
+  }, [signedIn]);
 
   const login = useCallback(async (email: string, password: string) => {
-    const r = await api<{ teacher: Teacher; csrfToken: string }>('POST', '/api/auth/login', { email, password });
-    setCsrf(r.csrfToken);
-    setTeacher(r.teacher);
-  }, []);
+    signedIn(await api<{ teacher: Teacher; csrfToken: string; uiPrefs?: unknown }>('POST', '/api/auth/login', { email, password }));
+  }, [signedIn]);
 
   const register = useCallback(async (email: string, password: string) => {
-    const r = await api<{ teacher: Teacher; csrfToken: string }>('POST', '/api/auth/register', { email, password });
-    setCsrf(r.csrfToken);
-    setTeacher(r.teacher);
-  }, []);
+    signedIn(await api<{ teacher: Teacher; csrfToken: string; uiPrefs?: unknown }>('POST', '/api/auth/register', { email, password }));
+  }, [signedIn]);
 
   const logout = useCallback(async () => {
     await api('POST', '/api/auth/logout').catch(() => undefined);
     setCsrf('');
     setTeacher(null);
-  }, []);
+    setOnSave(null);
+  }, [setOnSave]);
 
   return <Ctx.Provider value={{ teacher, loading, login, register, logout }}>{children}</Ctx.Provider>;
 }

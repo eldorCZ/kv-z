@@ -106,20 +106,20 @@ export default function Quizzes() {
       <input className={`${inputCls} mb-4 max-w-md`} type="search" placeholder={t('quizzes.search')} aria-label={t('quizzes.search')} value={q} onChange={(e) => setQ(e.target.value)} />
       <ErrorBox error={error} onClose={() => setError(null)} />
       {items && items.length === 0 && (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-slate-600">
+        <div className="rounded-lg border border-dashed border-line-strong bg-surface p-8 text-center text-muted">
           <p className="mb-2 font-medium">{t('quizzes.empty')}</p>
           <p className="text-sm">{t('quizzes.emptyHint')}</p>
         </div>
       )}
       {items && items.length > 0 && (
-        <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
           {items.map((it) => (
             <li key={it.id} className="flex flex-wrap items-center gap-3 p-4">
               <div className="min-w-0 flex-1">
-                <Link to={`/quizzes/${it.id}`} className="font-semibold text-hra-700 hover:underline">
+                <Link to={`/quizzes/${it.id}`} className="font-semibold text-primary hover:underline">
                   {it.title}
                 </Link>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                   <span>{t('quizzes.questionCount', { count: it.questionCount })}</span>
                   {it.flaggedCount > 0 && <Badge tone="flagged">{t('quizzes.toReview', { count: it.flaggedCount })}</Badge>}
                   <span>{t('quizzes.updated', { date: formatDate(it.updatedAt) })}</span>
@@ -128,7 +128,7 @@ export default function Quizzes() {
               <Button variant="ghost" onClick={() => clone(it.id)}>
                 {t('quizzes.clone')}
               </Button>
-              <Button variant="ghost" className="text-red-700" onClick={() => remove(it)}>
+              <Button variant="ghost" className="text-danger" onClick={() => remove(it)}>
                 {t('common.delete')}
               </Button>
             </li>

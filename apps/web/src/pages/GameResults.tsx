@@ -43,24 +43,24 @@ export default function GameResults() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-bold">{t('results.title')}</h1>
-        <Link to={`/quizzes/${res.quizId}`} className="text-sm text-hra-700 hover:underline">
+        <Link to={`/quizzes/${res.quizId}`} className="text-sm text-primary hover:underline">
           {t('results.toQuiz')}
         </Link>
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => setError(e as ApiError))}>{t('results.csv')}</Button>
       </div>
       <ErrorBox error={error} />
       <GuestsPanel gameId={id!} />
-      <p className="text-sm text-slate-600">{t('results.summary', { count: res.playerCount, status: t(`games.status.${res.status}`) })}</p>
+      <p className="text-sm text-muted">{t('results.summary', { count: res.playerCount, status: t(`games.status.${res.status}`) })}</p>
       {res.perQuestion.length > 0 && res.playerCount > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
+        <div className="rounded-lg border border-warning-line bg-warning-soft p-3 text-sm">
           <strong>{t('results.hardest')}:</strong> {hardest.map((q) => `${q.number} (${Math.round(q.successRate * 100)} %)`).join(', ')}
         </div>
       )}
       <section>
         <h2 className="mb-2 text-lg font-semibold">{t('results.ranking')}</h2>
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+        <div className="overflow-x-auto rounded-lg border border-line bg-surface">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+            <thead className="bg-surface-2 text-xs uppercase text-muted">
               <tr>
                 <th className="p-3">#</th>
                 <th className="p-3">{t('results.nickname')}</th>
@@ -69,7 +69,7 @@ export default function GameResults() {
             </thead>
             <tbody>
               {res.ranking.map((r, i) => (
-                <tr key={i} className="border-t border-slate-100">
+                <tr key={i} className="border-t border-line">
                   <td className="p-3">{r.rank}.</td>
                   <td className="p-3">{r.nickname}</td>
                   <td className="p-3 text-right font-mono">{r.score}</td>
@@ -85,16 +85,16 @@ export default function GameResults() {
           {res.perQuestion.map((q) => {
             const pct = Math.round(q.successRate * 100);
             return (
-              <li key={q.questionId} className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+              <li key={q.questionId} className="rounded-lg border border-line bg-surface p-3 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-bold">{q.number}.</span>
                   <span className="flex-1">{q.prompt}</span>
-                  <span className={`font-semibold ${pct < 50 ? 'text-red-700' : 'text-emerald-700'}`}>{pct} %</span>
+                  <span className={`font-semibold ${pct < 50 ? 'text-danger' : 'text-success'}`}>{pct} %</span>
                 </div>
-                <div className="mt-2 h-2 overflow-hidden rounded bg-slate-100" aria-hidden="true">
-                  <div className={`h-full ${pct < 50 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                <div className="mt-2 h-2 overflow-hidden rounded bg-surface-2" aria-hidden="true">
+                  <div className={`h-full ${pct < 50 ? 'bg-danger' : 'bg-success-strong'}`} style={{ width: `${pct}%` }} />
                 </div>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-muted">
                   {t('results.answered', { answered: q.answered, correct: q.correct })}
                   {q.avgTimeMs !== null && ` · ${t('results.avgTime', { s: (q.avgTimeMs / 1000).toFixed(1) })}`}
                 </p>
@@ -115,25 +115,25 @@ function TestResultsView({ res, id, error, onError }: { res: TestResults; id: st
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-bold">{t('results.testTitle')}</h1>
-        <Link to={`/tests/${id}`} className="text-sm text-hra-700 hover:underline">
+        <Link to={`/tests/${id}`} className="text-sm text-primary hover:underline">
           {t('results.toDashboard')}
         </Link>
         <Button onClick={() => download(`/api/v1/games/${id}/results.csv`).catch((e) => onError(e as ApiError))}>{t('results.csv')}</Button>
       </div>
       <ErrorBox error={error} />
       <GuestsPanel gameId={id} />
-      <p className="text-sm text-slate-600" data-testid="test-summary">
+      <p className="text-sm text-muted" data-testid="test-summary">
         {t('results.testSummary', { submitted: res.summary.submitted, students: res.summary.students, avg: res.summary.avgPercent ?? '–', median: res.summary.medianPercent ?? '–' })}
         {res.summary.leaveFlagged ? ` · ${t('results.leaveFlagged', { count: res.summary.leaveFlagged })}` : ''}
       </p>
       {res.summary.submitted > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm">
+        <div className="rounded-lg border border-warning-line bg-warning-soft p-3 text-sm">
           <strong>{t('results.hardest')}:</strong> {hardest.map((q) => `${q.number} (${Math.round(q.successRate * 100)} %)`).join(', ')}
         </div>
       )}
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto rounded-lg border border-line bg-surface">
         <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+          <thead className="bg-surface-2 text-xs uppercase text-muted">
             <tr>
               <th className="p-3">{t('dash.student')}</th>
               <th className="p-3">{t('dash.status')}</th>
@@ -143,7 +143,7 @@ function TestResultsView({ res, id, error, onError }: { res: TestResults; id: st
           </thead>
           <tbody>
             {[...res.students].sort((a, b) => a.student.localeCompare(b.student, 'cs')).map((s) => (
-              <tr key={s.attemptId} className="border-t border-slate-100">
+              <tr key={s.attemptId} className="border-t border-line">
                 <td className="p-3">{s.student}</td>
                 <td className="p-3">{t(`dash.st.${s.status}`)}</td>
                 <td className="p-3 text-right font-mono">{s.percent !== null ? `${s.percent} %` : '–'}</td>
@@ -164,11 +164,11 @@ function TestResultsView({ res, id, error, onError }: { res: TestResults; id: st
           {res.perQuestion.map((q) => {
             const pct = Math.round(q.successRate * 100);
             return (
-              <li key={q.questionId} className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
+              <li key={q.questionId} className="rounded-lg border border-line bg-surface p-3 text-sm">
                 <div className="flex gap-2">
                   <span className="font-bold">{q.number}.</span>
                   <span className="flex-1">{q.prompt}</span>
-                  <span className={`font-semibold ${pct < 50 ? 'text-red-700' : 'text-emerald-700'}`}>{pct} %</span>
+                  <span className={`font-semibold ${pct < 50 ? 'text-danger' : 'text-success'}`}>{pct} %</span>
                 </div>
               </li>
             );

@@ -1,7 +1,6 @@
 @import 'tailwindcss';
+@import './theme/tokens.css';
 
-/* Hravé, ale dobře čitelné písmo. Baloo 2 na nadpisy a čísla, Nunito na text.
-   Soubory jsou uložené u nás, aplikace nikam ven nevolá. */
 /* Hravé, ale dobře čitelné písmo. Baloo 2 na nadpisy a čísla, Nunito na text.
    Soubory jsou uložené u nás, aplikace nikam ven nevolá.
    Řez latin-ext je povinný: bez něj se česká diakritika kreslí systémovým písmem. */
@@ -10,20 +9,54 @@
 @font-face{font-family:'Nunito';src:url('/fonts/nunito-latin-ext.woff2') format('woff2');font-weight:400 800;font-style:normal;font-display:swap;unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
 @font-face{font-family:'Nunito';src:url('/fonts/nunito-latin.woff2') format('woff2');font-weight:400 800;font-style:normal;font-display:swap;unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 
-@theme {
+/* Tailwind names for the design tokens (V3.1): bg-surface, text-muted, border-line, bg-answer-1 … */
+@theme inline {
   --font-sans: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-display: 'Baloo 2', 'Nunito', system-ui, sans-serif;
-
-  /* hravá paleta: sytá fialová pozadí pro hru, čtyři barvy odpovědí */
-  --color-hra-50:  #f4f0ff;
-  --color-hra-500: #7c3aed;
-  --color-hra-600: #6d28d9;
-  --color-hra-700: #5b21b6;
-  --color-hra-900: #2b1064;
-  --color-odpoved-1: #e0384a;
-  --color-odpoved-2: #1f7ae0;
-  --color-odpoved-3: #f0a500;
-  --color-odpoved-4: #1aa35a;
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-primary: var(--on-primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary-soft: var(--on-primary-soft);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-strong: var(--success-strong);
+  --color-on-success: var(--on-success);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-line: var(--warning-line);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-on-danger: var(--on-danger);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-focus: var(--focus);
+  --color-answer-1: var(--answer-1);
+  --color-answer-2: var(--answer-2);
+  --color-answer-3: var(--answer-3);
+  --color-answer-4: var(--answer-4);
+  --color-answer-5: var(--answer-5);
+  --color-on-answer-1: var(--on-answer-1);
+  --color-on-answer-2: var(--on-answer-2);
+  --color-on-answer-3: var(--on-answer-3);
+  --color-on-answer-4: var(--on-answer-4);
+  --color-on-answer-5: var(--on-answer-5);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+  --shadow-soft: var(--shadow-soft);
+  --shadow-pop: var(--shadow-pop);
 }
 
 h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: .01em; }
@@ -34,10 +67,47 @@ body,
   min-height: 100%;
 }
 
-/* visible keyboard focus everywhere */
+html {
+  background: var(--canvas);
+  color: var(--fg);
+}
+body {
+  background: var(--canvas);
+  color: var(--fg);
+  transition: background-color 150ms, color 150ms;
+}
+[data-motion='reduced'] body {
+  transition: none;
+}
+
+/* visible keyboard focus everywhere (V11.1) */
 :focus-visible {
-  outline: 3px solid #f59e0b;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* readable font preference (V4.3): loaded only when switched on */
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/fonts/atkinson-latin-400.woff2') format('woff2');font-weight:400;font-display:swap;unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/fonts/atkinson-latin-ext-400.woff2') format('woff2');font-weight:400;font-display:swap;unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/fonts/atkinson-latin-700.woff2') format('woff2');font-weight:700 800;font-display:swap;unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:'Atkinson Hyperlegible';src:url('/fonts/atkinson-latin-ext-700.woff2') format('woff2');font-weight:700 800;font-display:swap;unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;}
+[data-font='readable'] {
+  --font-sans: 'Atkinson Hyperlegible', 'Nunito', system-ui, sans-serif;
+  --font-display: 'Atkinson Hyperlegible', 'Nunito', system-ui, sans-serif;
+  font-family: var(--font-sans);
+  line-height: 1.65;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}
+[data-font='readable'] h1,
+[data-font='readable'] h2,
+[data-font='readable'] h3 {
+  font-family: var(--font-display);
+}
+
+/* PIN, codes and timers: tabular figures */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- printing (Dodatek 3, C4.5 and C8.4) ---------- */

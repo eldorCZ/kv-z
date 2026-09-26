@@ -3,8 +3,9 @@ import QRCode from 'qrcode';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
-import { ANSWER_STYLES, Shape } from '../components/Shapes';
+import { AnswerMark, answerStyle } from '../components/Shapes';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
+import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 const keyStorage = (gameId: string) => `kvizhub-host-${gameId}`;
 
@@ -105,16 +106,16 @@ export default function Host() {
 
   if (error && !state)
     return (
-      <div className="flex min-h-screen items-center justify-center bg-hra-900 p-6 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-canvas p-6 text-fg">
         <div className="max-w-xl text-center">
           <p className="text-2xl font-semibold" role="alert">
             {error}
           </p>
-          <p className="mt-3 text-slate-300">{t('host.errorHint')}</p>
+          <p className="mt-3 text-muted">{t('host.errorHint')}</p>
         </div>
       </div>
     );
-  if (!state || !lobby) return <div className="min-h-screen bg-hra-900" />;
+  if (!state || !lobby) return <div className="min-h-screen bg-canvas" />;
 
   const phase = state.phase;
   const controls = (
@@ -150,7 +151,7 @@ export default function Host() {
         </HostButton>
       )}
       {phase === 'finished' && (
-        <Link to={`/games/${gameId}`} className="rounded-lg bg-white px-5 py-3 text-lg font-semibold text-slate-900">
+        <Link to={`/games/${gameId}`} className="rounded-lg bg-surface px-5 py-3 text-lg font-semibold text-fg">
           {t('host.results')}
         </Link>
       )}
@@ -158,8 +159,8 @@ export default function Host() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col bg-hra-900 text-white">
-      <header className="flex flex-wrap items-center gap-4 bg-hra-700 px-6 py-3">
+    <div className="flex min-h-screen flex-col bg-canvas text-fg">
+      <header className="flex flex-wrap items-center gap-4 border-b border-line bg-surface px-6 py-3">
         <h1 className="mr-auto truncate text-xl font-semibold">{title}</h1>
         {phase !== 'lobby' && phase !== 'finished' && (
           <span className="text-lg">
@@ -167,9 +168,10 @@ export default function Host() {
           </span>
         )}
         {controls}
+        <SchemeSwitcher hotkey />
       </header>
       {(paused || error || actionError) && (
-        <div role="alert" className="bg-amber-400 px-6 py-2 text-lg font-semibold text-slate-900">
+        <div role="alert" className="bg-accent px-6 py-2 text-lg font-semibold text-on-accent">
           {paused ? t('host.paused') : error || actionError}
         </div>
       )}
@@ -179,7 +181,7 @@ export default function Host() {
           <div className="grid flex-1 items-center gap-8 md:grid-cols-[1fr_auto]">
             <div>
               <p className="text-3xl">{t('host.joinAt')}</p>
-              <p className="mt-2 break-all text-4xl font-bold text-amber-300">{joinUrl.replace(/^https?:\/\//, '')}</p>
+              <p className="mt-2 break-all text-4xl font-bold text-primary">{joinUrl.replace(/^https?:\/\//, '')}</p>
               <p className="mt-6 text-3xl">{t('host.pinLabel')}</p>
               <p className="text-8xl font-extrabold tracking-widest" data-testid="host-pin">
                 {lobby.pin.replace(/(\d{3})(\d+)/, '$1 $2')}
@@ -188,7 +190,7 @@ export default function Host() {
                 {t('host.players', { count: lobby.players.length })} {lobby.locked && `· 🔒 ${t('host.locked')}`}
               </p>
               {state.codeAlert && (
-                <p role="alert" className="mt-3 rounded bg-amber-400 px-3 py-2 text-lg font-semibold text-slate-900">
+                <p role="alert" className="mt-3 rounded bg-accent px-3 py-2 text-lg font-semibold text-on-accent">
                   ⚠ {t('host.codeAlert')}
                 </p>
               )}
@@ -196,7 +198,7 @@ export default function Host() {
                 {lobby.players.map((p) => (
                   <li key={p.id} className="flex items-center gap-1">
                     <button
-                      className="rounded-full bg-white/10 px-4 py-2 text-xl hover:bg-red-600"
+                      className="rounded-full bg-surface px-4 py-2 text-xl hover:bg-danger"
                       title={t('host.kick')}
                       onClick={() => {
                         if (confirm(t('host.confirmKick', { nickname: p.nickname }))) void cmd('kick_player', { playerId: p.id });
@@ -206,7 +208,7 @@ export default function Host() {
                       {p.guest ? ` (${t('host.guest')})` : ''}
                     </button>
                     {state.classGame && !p.guest && (
-                      <button className="rounded-full bg-white/10 px-2 py-2 text-lg hover:bg-white/25" title={t('host.allowReturn')} aria-label={t('host.allowReturn')} onClick={() => void cmd('allow_return', { playerId: p.id })}>
+                      <button className="rounded-full bg-surface px-2 py-2 text-lg hover:bg-surface-2" title={t('host.allowReturn')} aria-label={t('host.allowReturn')} onClick={() => void cmd('allow_return', { playerId: p.id })}>
                         ↺
                       </button>
                     )}
@@ -214,13 +216,13 @@ export default function Host() {
                 ))}
               </ul>
               {state.notJoined && state.notJoined.length > 0 && (
-                <div className="mt-4 text-lg text-slate-300" data-testid="host-not-joined">
+                <div className="mt-4 text-lg text-muted" data-testid="host-not-joined">
                   <p>{t('host.notJoined', { count: state.notJoined.length })}</p>
                   <p className="text-base">{state.notJoined.map((x) => x.name).join(', ')}</p>
                 </div>
               )}
             </div>
-            {qr && <img src={qr} alt={t('game.qrAlt')} className="h-80 w-80 rounded-lg bg-white p-2" />}
+            {qr && <img src={qr} alt={t('game.qrAlt')} className="h-80 w-80 rounded-lg bg-surface p-2" />}
           </div>
         )}
 
@@ -232,7 +234,7 @@ export default function Host() {
               </p>
               {phase === 'question' && (
                 <div className="flex flex-col items-center">
-                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-hra-600 text-5xl font-bold" aria-label={t('host.remaining')}>
+                  <span className="flex h-24 w-24 items-center justify-center rounded-full bg-primary text-5xl font-bold text-on-primary tabular" aria-label={t('host.remaining')}>
                     {remaining}
                   </span>
                   <span className="mt-2 text-xl">{t('host.answered', { answered, total: state.playerCount })}</span>
@@ -243,10 +245,10 @@ export default function Host() {
               <ul className="grid flex-1 grid-cols-2 gap-4">
                 {question.options.map((o, i) => {
                   const correct = reveal?.correctDisplayed.includes(i);
-                  const style = ANSWER_STYLES[i % ANSWER_STYLES.length]!;
+                  const style = answerStyle(i);
                   return (
-                    <li key={i} className={`flex items-center gap-4 rounded-xl p-5 text-3xl font-semibold ${style.bg} ${reveal && !correct ? 'opacity-35' : ''}`}>
-                      <Shape index={i} className="h-12 w-12 shrink-0" />
+                    <li key={i} className={`flex items-center gap-4 rounded-xl p-5 text-3xl font-semibold ${style.bg} ${style.fg} ${reveal && !correct ? 'opacity-35' : ''}`}>
+                      <AnswerMark index={i} size="lg" />
                       <span className="flex-1">{o}</span>
                       {reveal && (
                         <span className="text-2xl">
@@ -262,21 +264,21 @@ export default function Host() {
             {question.type === 'order' && (
               <ol className="grid gap-3 text-3xl">
                 {(reveal ? reveal.correctText : question.options).map((o, i) => (
-                  <li key={i} className="rounded-xl bg-white/10 p-4">
+                  <li key={i} className="rounded-xl bg-surface p-4">
                     {reveal ? `${i + 1}. ` : '• '}
                     {o}
                   </li>
                 ))}
               </ol>
             )}
-            {(question.type === 'short' || question.type === 'numeric') && !reveal && <p className="text-3xl text-slate-300">{t(`host.typeHint.${question.type}`)}</p>}
+            {(question.type === 'short' || question.type === 'numeric') && !reveal && <p className="text-3xl text-muted">{t(`host.typeHint.${question.type}`)}</p>}
             {reveal && (
-              <div className="rounded-xl bg-white/10 p-5 text-2xl" data-testid="host-reveal-box">
+              <div className="rounded-xl bg-surface p-5 text-2xl" data-testid="host-reveal-box">
                 {(question.type === 'short' || question.type === 'numeric') && (
-                  <p className="mb-2 text-4xl font-bold text-emerald-300">✓ {reveal.correctText.join(' / ')}</p>
+                  <p className="mb-2 text-4xl font-bold text-success">✓ {reveal.correctText.join(' / ')}</p>
                 )}
                 <p>{t('host.revealStats', { correct: reveal.stats.correct, total: reveal.stats.playerCount })}</p>
-                {reveal.explanation && <p className="mt-2 text-slate-200">{reveal.explanation}</p>}
+                {reveal.explanation && <p className="mt-2 text-muted">{reveal.explanation}</p>}
               </div>
             )}
           </div>
@@ -297,7 +299,7 @@ export default function Host() {
                   <div key={i} className="flex w-56 flex-col items-center">
                     <span className="mb-2 text-center text-3xl font-bold break-all">{p.nickname}</span>
                     <span className="mb-2 text-2xl">{p.score}</span>
-                    <div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-hra-600 pt-4 text-6xl`}>{medal}</div>
+                    <div className={`${h} flex w-full items-start justify-center rounded-t-xl bg-primary pt-4 text-6xl text-on-primary`}>{medal}</div>
                   </div>
                 );
               })}
@@ -315,7 +317,7 @@ function Ranking({ title, entries }: { title: string; entries: { nickname: strin
       <h2 className="mb-6 text-center text-5xl font-extrabold">{title}</h2>
       <ol className="space-y-3">
         {entries.map((e, i) => (
-          <li key={i} className="flex items-center gap-4 rounded-xl bg-white/10 px-6 py-4 text-3xl">
+          <li key={i} className="flex items-center gap-4 rounded-xl bg-surface px-6 py-4 text-3xl">
             <span className="w-12 font-bold">{e.rank}.</span>
             <span className="flex-1 truncate">{e.nickname}</span>
             <span className="font-mono">{e.score}</span>
@@ -331,7 +333,7 @@ function HostButton({ children, onClick, primary, testId }: { children: React.Re
     <button
       onClick={onClick}
       data-testid={testId}
-      className={`rounded-lg px-5 py-3 text-lg font-semibold ${primary ? 'bg-amber-400 text-slate-900 hover:bg-amber-300' : 'bg-white/15 text-white hover:bg-white/25'}`}
+      className={`rounded-lg px-5 py-3 text-lg font-semibold ${primary ? 'bg-accent text-on-accent hover:brightness-95' : 'bg-surface text-on-accent hover:bg-surface-2'}`}
     >
       {children}
     </button>

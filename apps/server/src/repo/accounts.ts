@@ -1,4 +1,5 @@
 import { and, desc, eq, lt } from 'drizzle-orm';
+import { sanitizeUiPrefs, type UiPrefs } from '@kvizhub/core';
 import type { Db } from '../db/index.js';
 import { apiTokens, auditLog, sessions, teachers } from '../db/schema.js';
 import { newId, sha256 } from '../util.js';
@@ -19,6 +20,15 @@ export class AccountRepo {
 
   findTeacherByEmail(email: string) {
     return this.db.select().from(teachers).where(eq(teachers.email, email.toLowerCase())).get();
+  }
+
+  uiPrefs(teacherId: string): UiPrefs {
+    const r = this.db.$client.prepare('SELECT ui_prefs_json FROM teachers WHERE id = ?').get(teacherId) as { ui_prefs_json: string | null } | undefined;
+    return sanitizeUiPrefs(r?.ui_prefs_json ? JSON.parse(r.ui_prefs_json) : {});
+  }
+
+  setUiPrefs(teacherId: string, prefs: UiPrefs) {
+    this.db.$client.prepare('UPDATE teachers SET ui_prefs_json = ? WHERE id = ?').run(JSON.stringify(prefs), teacherId);
   }
 
   getTeacher(id: string) {

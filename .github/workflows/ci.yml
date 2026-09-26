@@ -32,3 +32,5 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pip install -r agent-skill/kviz-z-materialu/requirements-dev.txt
       - run: cd agent-skill/kviz-z-materialu && python -m pytest -q
+      - name: Czech glyphs in self-hosted fonts (Dodatek 4, V4.1)
+        run: pip install fonttools brotli && pnpm check:fonts

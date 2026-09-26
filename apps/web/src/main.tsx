@@ -3,15 +3,21 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import App from './App';
 import { AuthProvider } from './auth';
+import { PrefsProvider } from './theme/prefs';
+import { loadAppConfig } from './app-config';
 import './i18n';
 import './index.css';
+
+void loadAppConfig();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+      <PrefsProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </PrefsProvider>
     </BrowserRouter>
   </StrictMode>,
 );

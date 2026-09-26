@@ -118,16 +118,16 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
         <div className="space-y-3">
           <div className="flex gap-2" role="radiogroup" aria-label={t('game.modeLabel')}>
             {(['live', 'test'] as const).map((m) => (
-              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-hra-600 bg-hra-50' : 'border-slate-300'}`}>
+              <label key={m} className={`flex-1 cursor-pointer rounded-md border p-3 text-sm ${mode === m ? 'border-primary bg-primary-soft' : 'border-line-strong'}`}>
                 <input type="radio" className="sr-only" name="mode" checked={mode === m} onChange={() => setMode(m)} data-testid={`mode-${m}`} />
                 <span className="block font-semibold">{t(`game.modes.${m}`)}</span>
-                <span className="text-slate-600">{t(`game.modesHint.${m}`)}</span>
+                <span className="text-muted">{t(`game.modesHint.${m}`)}</span>
               </label>
             ))}
           </div>
-          {quiz.stats.flagged > 0 && <p className="rounded bg-amber-50 p-2 text-sm text-amber-900">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
+          {quiz.stats.flagged > 0 && <p className="rounded bg-warning-soft p-2 text-sm text-warning">{t('game.flaggedSkipped', { count: quiz.stats.flagged })}</p>}
           {classes.length > 0 && (
-            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="class-settings">
+            <fieldset className="space-y-2 rounded-md border border-line p-3" data-testid="class-settings">
               <Field label={t('game.class.label')}>
                 <select className={inputCls} value={cls.classId} onChange={(e) => setCls({ ...cls, classId: e.target.value })} data-testid="game-class">
                   <option value="">{t('game.class.none')}</option>
@@ -140,7 +140,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
               </Field>
               {cls.classId && (
                 <>
-                  <p className="rounded bg-sky-50 p-2 text-sm text-sky-900">{t('game.class.notice', { name: className })}</p>
+                  <p className="rounded bg-info-soft p-2 text-sm text-info">{t('game.class.notice', { name: className })}</p>
                   <Field label={t('game.class.recordLabel')}>
                     <input className={inputCls} maxLength={60} value={cls.label} onChange={(e) => setCls({ ...cls, label: e.target.value })} data-testid="game-label" />
                   </Field>
@@ -211,9 +211,9 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             </div>
           )}
           {mode === 'test' && (
-            <fieldset className="space-y-2 rounded-md border border-slate-200 p-3" data-testid="guard-settings">
+            <fieldset className="space-y-2 rounded-md border border-line p-3" data-testid="guard-settings">
               <legend className="px-1 text-sm font-semibold">{t('guard.settings.title')}</legend>
-              <p className="text-xs text-slate-600">{t('guard.settings.limits')}</p>
+              <p className="text-xs text-muted">{t('guard.settings.limits')}</p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <Field label={t('guard.settings.mode')}>
                   <select className={inputCls} value={guard.mode} onChange={(e) => setGuard({ ...guard, mode: e.target.value as typeof guard.mode })} data-testid="guard-mode">
@@ -259,7 +259,7 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
         </div>
       ) : (
         <div className="space-y-3 text-center">
-          <p className="text-sm text-slate-600">{t(created.mode === 'test' ? 'game.testReady' : 'game.ready', { count: created.questionCount })}</p>
+          <p className="text-sm text-muted">{t(created.mode === 'test' ? 'game.testReady' : 'game.ready', { count: created.questionCount })}</p>
           <p className="text-5xl font-extrabold tracking-widest" data-testid="pin">
             {created.pin.replace(/(\d{3})(\d+)/, '$1 $2')}
           </p>
@@ -268,18 +268,18 @@ export default function StartGameModal({ quiz, onClose }: { quiz: QuizDto; onClo
             {t('game.joinAt')} <strong>{created.joinUrl}</strong>
           </p>
           {created.mode === 'test' ? (
-            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-dashboard">
+            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-dashboard">
               {t('game.openDashboard')}
             </Link>
           ) : (
             <>
               <div className="flex flex-wrap justify-center gap-2">
-                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-hra-600 px-4 py-2 font-medium text-white hover:bg-hra-700" data-testid="open-host">
+                <a href={created.hostUrl} target="_blank" rel="noreferrer" className="rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-host">
                   {t('game.openHost')}
                 </a>
                 <Button onClick={() => navigator.clipboard?.writeText(created.hostUrl ?? '')}>{t('game.copyHost')}</Button>
               </div>
-              <p className="text-xs text-slate-500">{t('game.hostHint')}</p>
+              <p className="text-xs text-muted">{t('game.hostHint')}</p>
             </>
           )}
         </div>

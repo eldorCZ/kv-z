@@ -71,7 +71,7 @@ export default function QuizReview() {
     }, 700);
   };
 
-  if (!quiz) return error ? <ErrorBox error={error} /> : <p className="text-slate-500">{t('common.loading')}</p>;
+  if (!quiz) return error ? <ErrorBox error={error} /> : <p className="text-muted">{t('common.loading')}</p>;
 
   const questions = onlyFlagged ? quiz.questions.filter((q) => q.qa.status === 'flagged') : quiz.questions;
 
@@ -111,7 +111,7 @@ export default function QuizReview() {
   return (
     <div>
       <p className="mb-2 text-sm">
-        <Link to="/quizzes" className="text-hra-700 hover:underline">
+        <Link to="/quizzes" className="text-primary hover:underline">
           ← {t('review.back')}
         </Link>
       </p>
@@ -121,7 +121,7 @@ export default function QuizReview() {
             {t('review.quizTitle')}
           </label>
           <input id="quiz-title" className={`${inputCls} text-xl font-bold`} value={title} maxLength={120} onChange={(e) => saveTitle(e.target.value)} />
-          <p className="mt-1 text-xs text-slate-500" aria-live="polite">
+          <p className="mt-1 text-xs text-muted" aria-live="polite">
             {titleState === 'saving' ? t('editor.saving') : titleState === 'saved' ? t('editor.saved') : ''}
             {quiz.gradeLevel && ` ${quiz.gradeLevel}`}
             {quiz.sourceFiles.length > 0 && ` · ${t('review.sources')}: ${quiz.sourceFiles.map((f) => f.name).join(', ')}`}
@@ -133,7 +133,7 @@ export default function QuizReview() {
         <Button onClick={() => setModal('export')}>{t('review.export')}</Button>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-surface p-3 text-sm">
         <span>{t('review.stats', { total: quiz.stats.total, ok: quiz.stats.ok })}</span>
         {quiz.stats.flagged > 0 ? <Badge tone="flagged">⚠ {t('review.flaggedCount', { count: quiz.stats.flagged })}</Badge> : <Badge tone="ok">✓ {t('review.allOk')}</Badge>}
         <label className="ml-auto flex items-center gap-2">
@@ -145,7 +145,7 @@ export default function QuizReview() {
           + {t('review.addQuestion')}
         </Button>
       </div>
-      {quiz.stats.flagged > 0 && <p className="mb-3 text-sm text-amber-900">{t('review.flaggedInfo')}</p>}
+      {quiz.stats.flagged > 0 && <p className="mb-3 text-sm text-warning">{t('review.flaggedInfo')}</p>}
 
       <ErrorBox error={error} onClose={() => setError(null)} />
 
@@ -165,25 +165,25 @@ export default function QuizReview() {
                 setDragId(null);
               }}
               onDragEnd={() => setDragId(null)}
-              className={`rounded-lg border bg-white p-4 shadow-sm ${q.qa.status === 'flagged' ? 'border-amber-400' : 'border-slate-200'} ${dragId === q.id ? 'opacity-60' : ''}`}
+              className={`rounded-lg border bg-surface p-4 shadow-sm ${q.qa.status === 'flagged' ? 'border-warning-line' : 'border-line'} ${dragId === q.id ? 'opacity-60' : ''}`}
             >
               <div className="flex flex-wrap items-start gap-3">
                 {!onlyFlagged && (
-                  <div className="flex flex-col items-center text-slate-400">
-                    <button className="px-1 hover:text-slate-700" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
+                  <div className="flex flex-col items-center text-muted">
+                    <button className="px-1 hover:text-fg" aria-label={t('review.moveUp')} onClick={() => shift(q.id, -1)}>
                       ▲
                     </button>
                     <span className="cursor-grab select-none" title={t('review.dragHint')} aria-hidden="true">
                       ⠿
                     </span>
-                    <button className="px-1 hover:text-slate-700" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
+                    <button className="px-1 hover:text-fg" aria-label={t('review.moveDown')} onClick={() => shift(q.id, 1)}>
                       ▼
                     </button>
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                    <span className="font-bold text-slate-700">{index + 1}.</span>
+                  <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-muted">
+                    <span className="font-bold text-fg">{index + 1}.</span>
                     <span>{typeLabel(q.type)}</span>
                     <span>· {q.timeLimitSec} s</span>
                     {q.points !== 'standard' && <span>· {t(`points.${q.points}`)}</span>}
@@ -199,21 +199,21 @@ export default function QuizReview() {
                   </div>
                   <p className="font-medium">{q.prompt}</p>
                   {q.qa.status === 'flagged' && q.qa.notes && (
-                    <p className="mt-1 rounded bg-amber-50 px-2 py-1 text-sm text-amber-900">
+                    <p className="mt-1 rounded bg-warning-soft px-2 py-1 text-sm text-warning">
                       <strong>{t('review.qaNote')}:</strong> {q.qa.notes}
                     </p>
                   )}
                   {!isEditing && <AnswerPreview q={q} />}
                   {(q.sourceRef || q.explanation) && !isEditing && (
                     <details className="mt-2 text-sm">
-                      <summary className="cursor-pointer text-hra-700">{t('review.sourceAndExplanation')}</summary>
+                      <summary className="cursor-pointer text-primary">{t('review.sourceAndExplanation')}</summary>
                       {q.sourceRef && (
-                        <div className="mt-2 rounded bg-slate-50 p-2">
-                          <p className="text-xs text-slate-500">
+                        <div className="mt-2 rounded bg-surface-2 p-2">
+                          <p className="text-xs text-muted">
                             {t('review.source')}: {q.sourceRef.file}
                             {q.sourceRef.locator && `, ${q.sourceRef.locator}`}
                           </p>
-                          {q.sourceRef.quote && <blockquote className="mt-1 border-l-4 border-slate-300 pl-2 italic">„{q.sourceRef.quote}“</blockquote>}
+                          {q.sourceRef.quote && <blockquote className="mt-1 border-l-4 border-line-strong pl-2 italic">„{q.sourceRef.quote}“</blockquote>}
                         </div>
                       )}
                       {q.explanation && (
@@ -236,7 +236,7 @@ export default function QuizReview() {
                   </Button>
                   <Button
                     variant="ghost"
-                    className="text-red-700"
+                    className="text-danger"
                     onClick={() => {
                       if (quiz.questions.length <= 1) return setError(new Error(t('review.lastQuestion')));
                       if (confirm(t('review.confirmDelete'))) void run(() => api('DELETE', `/api/v1/quizzes/${id}/questions/${q.id}`));
@@ -257,7 +257,7 @@ export default function QuizReview() {
           );
         })}
       </ol>
-      {questions.length === 0 && <p className="text-slate-500">{t('review.noneFlagged')}</p>}
+      {questions.length === 0 && <p className="text-muted">{t('review.noneFlagged')}</p>}
 
       {modal === 'game' && <StartGameModal quiz={quiz} onClose={() => setModal(null)} />}
       {modal === 'export' && <ExportModal quiz={quiz} onClose={() => setModal(null)} />}
@@ -267,10 +267,10 @@ export default function QuizReview() {
 
 function AnswerPreview({ q }: { q: EditableQuestion }) {
   const { t } = useTranslation();
-  if (q.type === 'short') return <p className="mt-1 text-sm text-emerald-800">✓ {q.acceptedAnswers.join(' / ')}</p>;
+  if (q.type === 'short') return <p className="mt-1 text-sm text-success">✓ {q.acceptedAnswers.join(' / ')}</p>;
   if (q.type === 'numeric')
     return (
-      <p className="mt-1 text-sm text-emerald-800">
+      <p className="mt-1 text-sm text-success">
         ✓ {q.numericAnswer} {q.numericTolerance ? `± ${q.numericTolerance}` : ''}
       </p>
     );
@@ -287,7 +287,7 @@ function AnswerPreview({ q }: { q: EditableQuestion }) {
       {q.options.map((o, i) => {
         const ok = q.correctIndices.includes(i);
         return (
-          <li key={i} className={`rounded px-2 py-1 ${ok ? 'bg-emerald-50 font-medium text-emerald-900' : 'bg-slate-50'}`}>
+          <li key={i} className={`rounded px-2 py-1 ${ok ? 'bg-success-soft font-medium text-success' : 'bg-surface-2'}`}>
             {ok ? '✓ ' : '✗ '}
             {o}
             {ok && <span className="sr-only"> ({t('editor.correct')})</span>}

@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import { NavLink, Outlet, useNavigate } from 'react-router';
 import { useAuth } from '../auth';
+import { Logo } from '../ui/Logo';
+import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 export default function Layout() {
   const { t } = useTranslation();
@@ -15,13 +17,13 @@ export default function Layout() {
       .catch(() => undefined);
   }, []);
   const link = ({ isActive }: { isActive: boolean }) =>
-    `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-hra-100 text-hra-800' : 'text-slate-700 hover:bg-slate-100'}`;
+    `rounded-md px-3 py-2 text-sm font-medium ${isActive ? 'bg-primary-soft text-primary' : 'text-fg hover:bg-surface-2'}`;
   return (
     <div className="min-h-screen">
-      <header className="no-print border-b border-slate-200 bg-white">
+      <header className="no-print border-b border-line bg-surface">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 py-3">
-          <NavLink to="/quizzes" className="mr-4 text-xl font-bold text-hra-700">
-            KvizHub
+          <NavLink to="/quizzes" className="mr-4" aria-label={t('nav.home')}>
+            <Logo size="sm" />
           </NavLink>
           <nav className="flex flex-wrap gap-1" aria-label={t('nav.main')}>
             <NavLink to="/quizzes" className={link}>
@@ -39,10 +41,11 @@ export default function Layout() {
               {t('nav.tokens')}
             </NavLink>
           </nav>
-          <div className="ml-auto flex items-center gap-3 text-sm text-slate-600">
+          <div className="ml-auto flex items-center gap-3 text-sm text-muted">
+            <SchemeSwitcher />
             <span className="hidden sm:inline">{teacher?.email}</span>
             <button
-              className="rounded-md border border-slate-300 px-3 py-1.5 hover:bg-slate-100"
+              className="rounded-md border border-line-strong px-3 py-1.5 hover:bg-surface-2"
               onClick={async () => {
                 await logout();
                 nav('/login');

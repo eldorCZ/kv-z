@@ -13,6 +13,10 @@ export interface Config {
   /** leave guard: missing heartbeats longer than this are stored as unconfirmed gaps (G4.4) */
   heartbeatGapSec: number;
   // Dodatek 3 (C9.4): classes are enabled only with a CODE_PEPPER of >= 32 characters
+  /** product name shown in the UI (Dodatek 4, V2.1) */
+  appName: string;
+  /** development page /_design with tokens, components and motives (off in production) */
+  designPage: boolean;
   codePepper: string;
   classRetentionMonths: number;
   accessLogRetentionMonths: number;
@@ -60,6 +64,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     retentionDays: int(env.RETENTION_DAYS, 365),
     testNameRetentionDays: int(env.TEST_NAME_RETENTION_DAYS, 30),
     heartbeatGapSec: int(env.HEARTBEAT_GAP_SEC, 25),
+    appName: (env.APP_NAME ?? 'Jiskra').trim().slice(0, 40) || 'Jiskra',
+    designPage: env.DESIGN_PAGE === '1' || env.NODE_ENV === 'development',
     codePepper: env.CODE_PEPPER ?? '',
     classRetentionMonths: int(env.CLASS_RETENTION_MONTHS, 12),
     accessLogRetentionMonths: int(env.ACCESS_LOG_RETENTION_MONTHS, 24),

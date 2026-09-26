@@ -16,7 +16,8 @@
     "games": "Hry a výsledky",
     "tokens": "API tokeny",
     "logout": "Odhlásit",
-    "classes": "Třídy"
+    "classes": "Třídy",
+    "home": "Úvod"
   },
   "login": {
     "introLogin": "Přihlaste se ke svému účtu učitele.",
@@ -46,7 +47,7 @@
     "clone": "Klonovat",
     "confirmDelete": "Opravdu smazat kvíz „{{title}}“? Smažou se i výsledky jeho her.",
     "tooLarge": "Soubor je větší než 2 MB.",
-    "invalidJson": "Soubor není platný JSON. Nahrajte export z KvizHubu nebo soubor ve formátu kontraktu (schemaVersion 1).",
+    "invalidJson": "Soubor není platný JSON. Nahrajte export z aplikace {{app}} nebo soubor ve formátu kontraktu (schemaVersion 1).",
     "newTitle": "Nový kvíz",
     "newQuestion": "Upravte tuto otázku"
   },
@@ -203,7 +204,7 @@
     "formats": {
       "kahoot": "Kahoot (xlsx)",
       "gift": "Moodle GIFT",
-      "json": "JSON (KvizHub)"
+      "json": "JSON ({{app}})"
     },
     "includeFlagged": "Zahrnout i otázky ke kontrole",
     "jsonInfo": "JSON obsahuje všechny otázky včetně vysvětlení, zdrojů a stavu kontroly. Lze ho znovu nahrát.",
@@ -735,5 +736,26 @@
     "hint": "Výsledek hosta se do evidence zapíše, až ho přiřadíte žákovi. Nepřiřazení hosté zůstanou jen ve výsledcích hry.",
     "choose": "— vyberte žáka —",
     "assign": "Přiřadit"
+  },
+  "appearance": {
+    "button": "Vzhled: {{value}}",
+    "title": "Vzhled",
+    "schemeLabel": "Barevný režim",
+    "scheme": {
+      "system": "podle zařízení",
+      "light": "světlý",
+      "dark": "tmavý"
+    },
+    "motionLabel": "Omezit animace",
+    "motion": {
+      "system": "podle zařízení",
+      "reduce": "zapnuto",
+      "full": "vypnuto"
+    },
+    "fontLabel": "Čitelné písmo",
+    "font": {
+      "default": "vypnuto",
+      "readable": "zapnuto"
+    }
   }
 }
