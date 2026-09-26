@@ -58,7 +58,7 @@ export function TimerRing({ remaining, total, size = 'lg' }: { remaining: number
 export function TimeBar({ remaining, total }: { remaining: number; total: number }) {
   const frac = total > 0 ? Math.min(1, Math.max(0, remaining / total)) : 0;
   return (
-    <div className="h-2 w-full overflow-hidden rounded-pill bg-panel-2" aria-hidden="true">
+    <div className="h-2 w-full overflow-hidden rounded-pill bg-panel-2" aria-hidden="true" data-testid="time-bar">
       <div className={`h-full origin-left rounded-pill transition-transform duration-300 ease-linear ${remaining <= 5 ? 'bg-danger' : 'bg-primary'}`} style={{ transform: `scaleX(${frac})` }} />
     </div>
   );

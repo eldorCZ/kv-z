@@ -1,4 +1,4 @@
-import { accentVars, hashSeed, type QuestionType } from '@kvizhub/core';
+import { accentVars, hashSeed, type QuestionType } from '@kvizhub/core/client';
 import { Monitor, Moon, Smartphone, Sun } from 'lucide-react';
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import { MotiveLayers } from '../game/Stage';

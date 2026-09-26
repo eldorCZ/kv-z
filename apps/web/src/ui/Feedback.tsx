@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { SparkMark } from './Logo';
+import { Mascot } from './Mascot';
 
 /** Placeholder while loading, instead of a spinner (V9.6). */
 export function Skeleton({ className = 'h-4 w-full' }: { className?: string }) {
@@ -23,7 +23,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 export function EmptyState({ title, text, action, icon }: { title: string; text?: string; action?: ReactNode; icon?: ReactNode }) {
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-line-strong bg-surface px-6 py-10 text-center" data-testid="empty-state">
-      <span className="text-primary">{icon ?? <SparkMark className="h-12 w-12" />}</span>
+      <span className="text-primary">{icon ?? <Mascot pose="hello" className="h-20 w-20" />}</span>
       <p className="font-display text-xl font-bold">{title}</p>
       {text && <p className="max-w-md text-sm text-muted">{text}</p>}
       {action}
@@ -37,6 +37,17 @@ export function ProgressBar({ value, max = 100, label, tone = 'primary' }: { val
   return (
     <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={max} aria-valuenow={value} className="h-2.5 w-full overflow-hidden rounded-pill bg-surface-2">
       <div className={`h-full rounded-pill ${bar} transition-[width] duration-[var(--motion-base)]`} ref={(el) => el?.style.setProperty('width', `${pct}%`)} />
+    </div>
+  );
+}
+
+/** Placeholder while a lazily loaded page arrives (V9.6). */
+export function PageSkeleton() {
+  return (
+    <div className="mx-auto w-full max-w-5xl space-y-4 p-6" aria-busy="true" data-testid="page-skeleton">
+      <Skeleton className="h-8 w-64" />
+      <Skeleton className="h-4 w-96 max-w-full" />
+      <SkeletonList rows={3} />
     </div>
   );
 }

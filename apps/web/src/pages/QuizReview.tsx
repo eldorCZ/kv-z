@@ -6,7 +6,7 @@ import ExportModal from '../components/ExportModal';
 import QuestionEditor, { type EditableQuestion } from '../components/QuestionEditor';
 import StartGameModal from '../components/StartGameModal';
 import { lookName, motiveThumb, ThemePicker, type Look } from '../components/ThemePicker';
-import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core';
+import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core/client';
 import { usePrefs } from '../theme/prefs';
 import { useToast } from '../ui/Toast';
 import { Check, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';

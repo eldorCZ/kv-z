@@ -1,4 +1,4 @@
-import { studentNumberLabel } from '@kvizhub/core';
+import { studentNumberLabel } from '@kvizhub/core/client';
 export interface ClassDto {
   id: string;
   name: string;

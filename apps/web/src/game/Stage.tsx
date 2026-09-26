@@ -1,4 +1,4 @@
-import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, accentVars, getMotive, motiveDataUrl, scrimAlpha } from '@kvizhub/core';
+import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, accentVars, getMotive, motiveDataUrl, scrimAlpha } from '@kvizhub/core/client';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { usePrefs } from '../theme/prefs';
 

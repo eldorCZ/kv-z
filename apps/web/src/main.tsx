@@ -5,7 +5,6 @@ import App from './App';
 import { AuthProvider } from './auth';
 import { PrefsProvider } from './theme/prefs';
 import { ToastProvider } from './ui/Toast';
-import { TooltipProvider } from './ui/Tooltip';
 import { loadAppConfig } from './app-config';
 import './i18n';
 import './index.css';
@@ -17,11 +16,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <PrefsProvider>
         <AuthProvider>
-          <TooltipProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </TooltipProvider>
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </AuthProvider>
       </PrefsProvider>
     </BrowserRouter>

@@ -1,23 +1,25 @@
-import { z } from 'zod';
-
 /**
  * Appearance preferences (Dodatek 4, V5). Teachers: stored in teachers.ui_prefs_json and localStorage;
  * students and hosts: only localStorage of their device (key "jiskra.ui"), never on the server.
  */
 export const UI_PREFS_KEY = 'jiskra.ui';
 
-export const uiPrefsSchema = z.object({
-  scheme: z.enum(['system', 'light', 'dark']).catch('system'),
-  motion: z.enum(['system', 'reduce', 'full']).catch('system'),
-  font: z.enum(['default', 'readable']).catch('default'),
-});
-export type UiPrefs = z.output<typeof uiPrefsSchema>;
+// no zod here: this module is part of the student bundle (V11.2)
+const SCHEMES = ['system', 'light', 'dark'] as const;
+const MOTIONS = ['system', 'reduce', 'full'] as const;
+const FONTS = ['default', 'readable'] as const;
+export interface UiPrefs {
+  scheme: (typeof SCHEMES)[number];
+  motion: (typeof MOTIONS)[number];
+  font: (typeof FONTS)[number];
+}
 export const DEFAULT_UI_PREFS: UiPrefs = { scheme: 'system', motion: 'system', font: 'default' };
 
 /** Unknown or malformed values fall back to the defaults, unknown keys are dropped. */
 export function sanitizeUiPrefs(raw: unknown): UiPrefs {
   const obj = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
-  return uiPrefsSchema.parse({ scheme: obj.scheme, motion: obj.motion, font: obj.font });
+  const pick = <T extends string>(list: readonly T[], v: unknown, d: T): T => (list.includes(v as T) ? (v as T) : d);
+  return { scheme: pick(SCHEMES, obj.scheme, 'system'), motion: pick(MOTIONS, obj.motion, 'system'), font: pick(FONTS, obj.font, 'default') };
 }
 
 /** The user's choice wins over the system; "system" follows prefers-color-scheme. */

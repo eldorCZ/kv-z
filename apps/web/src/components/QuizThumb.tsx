@@ -1,4 +1,4 @@
-import { ACCENTS, getMotive } from '@kvizhub/core';
+import { ACCENTS, getMotive } from '@kvizhub/core/client';
 import { usePrefs } from '../theme/prefs';
 import { SparkMark } from '../ui/Logo';
 import { motiveThumb } from './ThemePicker';

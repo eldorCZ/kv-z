@@ -846,5 +846,17 @@
     "confirmDeleteImage": "Smazat obrázek? Kvízy, které ho používají, se vrátí k motivu.",
     "noImage": "Bez obrázku",
     "usage": "Využito {{used}} z {{total}} MB, {{count}} z {{max}} obrázků"
+  },
+  "errorPage": {
+    "notFoundTitle": "Tahle stránka tu není",
+    "notFoundText": "Odkaz je možná neúplný nebo stránka zmizela. Zkontrolujte adresu, nebo pokračujte odsud.",
+    "serverTitle": "Něco se pokazilo",
+    "serverText": "Omlouváme se, stránku se nepodařilo zobrazit. Zkuste ji načíst znovu; vaše uložená práce zůstává na serveru.",
+    "offlineTitle": "Jste offline",
+    "offlineText": "Zařízení se nepřipojilo k internetu. Jakmile bude spojení zpět, stránku načtěte znovu.",
+    "offlineBanner": "Jste offline. Změny se uloží, až se spojení obnoví.",
+    "reload": "Načíst znovu",
+    "toQuizzes": "Na moje kvízy",
+    "toPlay": "Připojit se ke hře"
   }
 }

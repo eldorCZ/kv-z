@@ -1,4 +1,4 @@
-import { LeaveTracker, type LeaveEvent, type PageSignals } from '@kvizhub/core';
+import { LeaveTracker, type LeaveEvent, type PageSignals } from '@kvizhub/core/client';
 
 /**
  * Browser side of the leave guard (Dodatek 2, G3). Knows only events of THIS page (visibility, focus,

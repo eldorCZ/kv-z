@@ -1,4 +1,4 @@
-import { hashSeed, type PublicQuestion } from '@kvizhub/core';
+import { hashSeed, type PublicQuestion } from '@kvizhub/core/client';
 import { Clock, Lock } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';

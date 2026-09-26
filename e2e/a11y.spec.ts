@@ -72,6 +72,9 @@ for (const scheme of ['light', 'dark'] as const) {
     await audit(page, 'play-join');
     await page.goto('/kod#c=K7MQ2XRT');
     await audit(page, 'kod');
+    await page.goto('/neexistuje');
+    await expect(page.getByTestId('not-found')).toBeVisible();
+    await audit(page, '404');
   });
 }
 

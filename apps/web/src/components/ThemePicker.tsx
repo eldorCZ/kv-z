@@ -1,4 +1,4 @@
-import { ACCENTS, DEFAULT_ACCENT, MOTIVE_CATEGORIES, MOTIVE_LIST, accentVars, getMotive, hashSeed, motiveDataUrl, type MotiveCategory } from '@kvizhub/core';
+import { ACCENTS, DEFAULT_ACCENT, MOTIVE_CATEGORIES, MOTIVE_LIST, accentVars, getMotive, hashSeed, motiveDataUrl, type MotiveCategory } from '@kvizhub/core/client';
 import { Check, ImagePlus, Leaf, Monitor, Moon, Shuffle, Smartphone, Sun, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { api, apiUpload, ApiError } from '../api';

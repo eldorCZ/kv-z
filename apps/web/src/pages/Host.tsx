@@ -1,4 +1,4 @@
-import { hashSeed, type GameOverEvent, type HostState, type LeaderboardEvent, type LobbyUpdate, type PublicQuestion, type RevealEvent } from '@kvizhub/core';
+import { hashSeed, type GameOverEvent, type HostState, type LeaderboardEvent, type LobbyUpdate, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
 import { Check, Keyboard, Lock, LockOpen, Play, RotateCcw, SkipForward, Square, TriangleAlert } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';

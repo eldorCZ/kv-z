@@ -8,6 +8,9 @@ const dbDir = mkdtempSync(join(tmpdir(), 'kvizhub-e2e-'));
 
 export default defineConfig({
   testDir: 'e2e',
+  // visual regression runs on its own: pnpm test:visual (-u to accept changes)
+  testIgnore: process.env.VISUAL ? [] : ['visual/**'],
+  snapshotPathTemplate: '{testDir}/visual/__screens__/{arg}{ext}',
   timeout: 90_000,
   fullyParallel: false,
   workers: 1,

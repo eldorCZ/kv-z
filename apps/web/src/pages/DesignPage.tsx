@@ -4,6 +4,9 @@ import { AnswerMark, ANSWER_STYLES } from '../components/Shapes';
 import { Badge, Button } from '../components/ui';
 import { Logo, SparkMark } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
+import { Mascot, type MascotPose } from '../ui/Mascot';
+import { MOTIVE_LIST } from '@kvizhub/core/client';
+import { motiveThumb } from '../components/ThemePicker';
 
 const COLORS = [
   'canvas', 'surface', 'surface-2', 'fg', 'muted', 'line', 'line-strong',
@@ -100,6 +103,28 @@ export default function DesignPage() {
         </div>
       </Section>
 
+      <Section title="Jiskřička">
+        <div className="flex flex-wrap gap-4" data-testid="mascots">
+          {(['hello', 'think', 'cheer', 'sad', 'sleep', 'point'] as MascotPose[]).map((p) => (
+            <figure key={p} className="text-center text-sm">
+              <Mascot pose={p} className="h-24 w-24" />
+              <figcaption>{p}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
+      <Section title="Motivy">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          {MOTIVE_LIST.map((m) => (
+            <figure key={m.id} className="text-sm">
+              <img src={motiveThumb(m.id, document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')} alt="" className="aspect-video w-full rounded-sm border border-line object-cover" />
+              <figcaption>
+                {m.name} {m.calm ? '· klidný' : ''} {m.animated ? '· pohyb' : ''}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </Section>
       <Section title="Tlačítka a odznaky">
         <div className="flex flex-wrap gap-2">
           <Button variant="primary">Primární</Button>

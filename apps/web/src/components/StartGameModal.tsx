@@ -6,7 +6,7 @@ import { api, ApiError } from '../api';
 import type { QuizDto } from '../pages/QuizReview';
 import { Button, ErrorBox, Field, inputCls, Modal } from './ui';
 import { ClipboardList, Palette, Users } from 'lucide-react';
-import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, getMotive } from '@kvizhub/core';
+import { DEFAULT_LIVE_MOTIVE, DEFAULT_TEST_MOTIVE, getMotive } from '@kvizhub/core/client';
 import { lookName, motiveThumb, ThemePicker, type Look } from './ThemePicker';
 import { usePrefs } from '../theme/prefs';
 import { useToast } from '../ui/Toast';

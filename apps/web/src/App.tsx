@@ -1,32 +1,39 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { RequireAuth } from './auth';
-import Layout from './components/Layout';
-import GameResults from './pages/GameResults';
-import Games from './pages/Games';
-import Host from './pages/Host';
-import Login from './pages/Login';
-import Play from './pages/Play';
-import TestPlay from './pages/TestPlay';
-import TestDashboard from './pages/TestDashboard';
-import ClassesPage from './classes/ClassesPage';
-import ClassDetail from './classes/ClassDetail';
-import StudentProfile from './classes/StudentProfile';
-import CodePage from './pages/CodePage';
-import QuizReview from './pages/QuizReview';
-import Quizzes from './pages/Quizzes';
-import Tokens from './pages/Tokens';
-import LookSettings from './pages/LookSettings';
+import { ErrorBoundary, NotFound } from './pages/ErrorPages';
+import { PageSkeleton } from './ui/Feedback';
 
+// Every route is its own chunk: a phone downloads the shell plus the one student screen it opens, and
+// nothing of the teacher's app or the projector (V11.2; pnpm check:budgets measures each student route).
+const Play = lazy(() => import('./pages/Play'));
+const TestPlay = lazy(() => import('./pages/TestPlay'));
+const CodePage = lazy(() => import('./pages/CodePage'));
+const Layout = lazy(() => import('./components/Layout'));
+const Login = lazy(() => import('./pages/Login'));
+const Host = lazy(() => import('./pages/Host'));
+const Quizzes = lazy(() => import('./pages/Quizzes'));
+const QuizReview = lazy(() => import('./pages/QuizReview'));
+const Games = lazy(() => import('./pages/Games'));
+const GameResults = lazy(() => import('./pages/GameResults'));
+const TestDashboard = lazy(() => import('./pages/TestDashboard'));
+const ClassesPage = lazy(() => import('./classes/ClassesPage'));
+const ClassDetail = lazy(() => import('./classes/ClassDetail'));
+const StudentProfile = lazy(() => import('./classes/StudentProfile'));
+const Tokens = lazy(() => import('./pages/Tokens'));
+const LookSettings = lazy(() => import('./pages/LookSettings'));
 const DesignPage = lazy(() => import('./pages/DesignPage'));
+
+const page = (el: ReactNode) => <Suspense fallback={<PageSkeleton />}>{el}</Suspense>;
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/play" element={<Play />} />
-      <Route path="/test" element={<TestPlay />} />
-      <Route path="/kod" element={<CodePage />} />
+    <ErrorBoundary>
+      <Routes>
+      <Route path="/login" element={page(<Login />)} />
+      <Route path="/play" element={page(<Play />)} />
+      <Route path="/test" element={page(<TestPlay />)} />
+      <Route path="/kod" element={page(<CodePage />)} />
       <Route
         path="/_design"
         element={
@@ -35,27 +42,28 @@ export default function App() {
           </Suspense>
         }
       />
-      <Route path="/host/:gameId" element={<Host />} />
+      <Route path="/host/:gameId" element={page(<Host />)} />
       <Route
         element={
           <RequireAuth>
-            <Layout />
+            {page(<Layout />)}
           </RequireAuth>
         }
       >
         <Route path="/" element={<Navigate to="/quizzes" replace />} />
-        <Route path="/quizzes" element={<Quizzes />} />
-        <Route path="/quizzes/:id" element={<QuizReview />} />
-        <Route path="/games" element={<Games />} />
-        <Route path="/games/:id" element={<GameResults />} />
-        <Route path="/tests/:id" element={<TestDashboard />} />
-        <Route path="/classes" element={<ClassesPage />} />
-        <Route path="/classes/:id" element={<ClassDetail />} />
-        <Route path="/classes/:id/students/:sid" element={<StudentProfile />} />
-        <Route path="/settings/tokens" element={<Tokens />} />
-        <Route path="/settings/look" element={<LookSettings />} />
+        <Route path="/quizzes" element={page(<Quizzes />)} />
+        <Route path="/quizzes/:id" element={page(<QuizReview />)} />
+        <Route path="/games" element={page(<Games />)} />
+        <Route path="/games/:id" element={page(<GameResults />)} />
+        <Route path="/tests/:id" element={page(<TestDashboard />)} />
+        <Route path="/classes" element={page(<ClassesPage />)} />
+        <Route path="/classes/:id" element={page(<ClassDetail />)} />
+        <Route path="/classes/:id/students/:sid" element={page(<StudentProfile />)} />
+        <Route path="/settings/tokens" element={page(<Tokens />)} />
+        <Route path="/settings/look" element={page(<LookSettings />)} />
       </Route>
-      <Route path="*" element={<Navigate to="/quizzes" replace />} />
-    </Routes>
+      <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }

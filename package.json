@@ -21,7 +21,10 @@
     "demo": "tsx scripts/demo.ts",
     "seed:demo-class": "tsx scripts/seed-demo-class.ts",
     "docs:screens": "tsx scripts/screens.ts",
-    "check": "pnpm typecheck && pnpm lint && pnpm check:contrast && pnpm test"
+    "check": "pnpm typecheck && pnpm lint && pnpm check:contrast && pnpm test",
+    "check:budgets": "tsx scripts/budgets.ts",
+    "check:lighthouse": "tsx scripts/lighthouse.ts",
+    "test:visual": "VISUAL=1 playwright test e2e/visual"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
@@ -32,6 +35,7 @@
     "eslint": "^10.11.0",
     "exceljs": "^4.4.0",
     "globals": "^17.12.0",
+    "lighthouse": "^13.5.0",
     "socket.io-client": "^4.8.4",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3",

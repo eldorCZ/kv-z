@@ -1,6 +1,5 @@
-import * as Popover from '@radix-ui/react-popover';
 import { MonitorSmartphone, Moon, Sun } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePrefs } from '../theme/prefs';
 
@@ -51,24 +50,52 @@ export function SchemeSwitcher({ hotkey = false, className = '' }: { hotkey?: bo
     return () => window.removeEventListener('keydown', onKey);
   }, [hotkey, prefs.scheme, setPrefs]);
 
+  // a light disclosure instead of a popover library: this button is on every student screen (V11.2)
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const id = useId();
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+        button.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey, true);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey, true);
+    };
+  }, [open]);
+
   return (
-    <Popover.Root>
-      <Popover.Trigger asChild>
-        <button
-          type="button"
-          className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-pill border border-line bg-surface px-2 text-fg hover:bg-surface-2 ${className}`}
-          aria-label={t('appearance.button', { value: t(`appearance.scheme.${prefs.scheme}`) })}
-          title={t('appearance.button', { value: t(`appearance.scheme.${prefs.scheme}`) })}
-          data-testid="scheme-switcher"
-        >
-          <Icon className="h-5 w-5" aria-hidden="true" />
-        </button>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          sideOffset={8}
-          align="end"
-          className="z-50 w-72 space-y-3 rounded-md border border-line bg-surface p-4 text-fg shadow-soft"
+    <div ref={box} className="relative inline-block">
+      <button
+        ref={button}
+        type="button"
+        className={`inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-pill border border-line bg-surface px-2 text-fg hover:bg-surface-2 ${className}`}
+        aria-label={t('appearance.button', { value: t(`appearance.scheme.${prefs.scheme}`) })}
+        title={t('appearance.button', { value: t(`appearance.scheme.${prefs.scheme}`) })}
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen(!open)}
+        data-testid="scheme-switcher"
+      >
+        <Icon className="h-5 w-5" aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          id={id}
+          role="group"
+          aria-label={t('appearance.title')}
+          className="dialog-content absolute top-full right-0 z-50 mt-2 w-72 space-y-3 rounded-md border border-line bg-surface p-4 text-left text-fg shadow-soft"
           data-testid="appearance-popover"
         >
           <p className="font-display text-lg font-bold">{t('appearance.title')}</p>
@@ -93,9 +120,8 @@ export function SchemeSwitcher({ hotkey = false, className = '' }: { hotkey?: bo
             onChange={(font) => setPrefs({ font })}
             options={(['default', 'readable'] as const).map((v) => ({ v, label: t(`appearance.font.${v}`) }))}
           />
-          <Popover.Arrow className="fill-surface" />
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+        </div>
+      )}
+    </div>
   );
 }

@@ -320,7 +320,18 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<{ 
   // ---------- static web app (SPA) ----------
   const indexHtml = join(cfg.webDist, 'index.html');
   if (existsSync(indexHtml)) {
-    await app.register(fastifyStatic, { root: cfg.webDist, wildcard: false, index: false, maxAge: '1h' });
+    await app.register(fastifyStatic, {
+      root: cfg.webDist,
+      wildcard: false,
+      index: false,
+      maxAge: '1h',
+      // .br/.gz written by apps/web/precompress.mjs (V11.2)
+      preCompressed: true,
+      // hashed build files never change: cache them for a year
+      setHeaders: (res, path) => {
+        if (/[\\/]assets[\\/]/.test(path)) res.header('cache-control', 'public, max-age=31536000, immutable');
+      },
+    });
   }
   app.setNotFoundHandler((req, reply) => {
     if (req.method === 'GET' && !req.url.startsWith('/api/') && !req.url.startsWith('/media/') && !req.url.startsWith('/play/test/') && !req.url.startsWith('/play/roster/') && !req.url.startsWith('/socket.io') && existsSync(indexHtml)) {

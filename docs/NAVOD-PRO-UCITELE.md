@@ -1,4 +1,4 @@
-# KvizHub — návod pro učitele
+# Jiskra (dříve KvizHub) — návod pro učitele
 
 
 Kvízy a testy ve třídě na vlastním serveru. Žáci nepotřebují účty, výsledky nikam neodcházejí. Tenhle návod projde první kvíz, hru ve třídě, třídy s evidencí a nakonec agenta, který kvízy vyrábí z vašich materiálů.
@@ -44,6 +44,8 @@ Hra je společná: všichni vidí otázku na projektoru, odpovídají na mobilu 
 
 **Odkaz na projektor nedávejte žákům.** Obsahuje klíč, kterým se hra ovládá. Žákům patří jen PIN nebo QR kód.
 
+**Ovládání projektoru z klávesnice:** mezerník = další krok, Enter = odhalit odpověď, F = celá obrazovka, T = světlý/tmavý režim, ? = přehled zkratek. Myš se po třech vteřinách schová. Žáci mohou odpovídat i klávesami A–E nebo 1–5.
+
 
 
 ## Test místo hry
@@ -53,6 +55,18 @@ Test žáci píší každý svým tempem, bez žebříčku a bez bodů za rychlo
   - U třídního testu žák zadá PIN a pak **svůj osobní kód** — tím se ví, komu výsledek patří.
   - Aplikace hlídá **opuštění okna** (dá se vypnout): když žák přepne na jinou aplikaci, zaznamená se to a vy to vidíte v přehledu testu. Procenta se kvůli tomu nikdy nesnižují.
   - **Náhradní termín** pro nemocné se zakládá v kartě třídy, v záložce Aktivity.
+
+## Vzhled: motiv pozadí a barvy
+
+Každý kvíz může mít vlastní **motiv pozadí** (vesmír, les, konfety, podzim, jen barevný přechod…) a **barvu akcentu**. Klikněte v kvízu na **Vzhled**: vlevo vyberete motiv a barvu, vpravo hned vidíte lobby, otázku i test očima žáka, na telefonu i na projektoru, světle i tmavě. **Náhodný** vybere za vás.
+
+  - Při **Spustit hru** jde vzhled změnit **jen pro tuto hru**, nebo ho **uložit ke kvízu**.
+  - **Nastavení → Vzhled** určí výchozí motiv všech nových kvízů (i těch od agenta).
+  - **Test je vždy klidný:** motiv se nehýbe a leží pod výrazným závojem, bez konfet, bodů a žebříčku. Pro testy jsou nejvhodnější motivy s lístkem (Klidné).
+  - Můžete **nahrát vlastní fotku** (JPEG, PNG nebo WebP). Aplikace z ní odstraní údaje o místě a přístroji. Používejte jen vlastní fotky bez tváří žáků.
+  - Agent motiv sám nevybírá. Když ho chcete, napište mu třeba „dej tomu vesmírné pozadí“.
+
+Žáci i vy si můžete kdykoli přepnout **světlý nebo tmavý režim**, omezit pohyb nebo zapnout čitelnější písmo (tlačítko vpravo nahoře). Žákům se volba pamatuje jen v jejich telefonu.
 
 ## Třídy a osobní kódy
 
@@ -168,4 +182,4 @@ Co když během hry vypadne internet nebo se zavře stránka?
 
 
 
-Návod ke KvizHubu ve verzi z 26. 9. 2026. Zdrojový projekt: [github.com/eldorCZ/kv-z](https://github.com/eldorCZ/kv-z).
+Návod k Jiskře (dříve KvizHub) ve verzi z 26. 9. 2026. Zdrojový projekt: [github.com/eldorCZ/kv-z](https://github.com/eldorCZ/kv-z).

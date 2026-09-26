@@ -12,5 +12,5 @@ export default defineConfig({
       '/socket.io': { target: 'http://127.0.0.1:3000', ws: true },
     },
   },
-  build: { outDir: 'dist', sourcemap: false, chunkSizeWarningLimit: 1000 },
+  build: { outDir: 'dist', sourcemap: false, manifest: true, chunkSizeWarningLimit: 1000 },
 });

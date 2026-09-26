@@ -7,6 +7,7 @@ import { api } from '../api';
 import { useAuth } from '../auth';
 import { Logo, SparkMark } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
+import { OfflineBanner } from '../pages/ErrorPages';
 
 const COLLAPSE_KEY = 'jiskra.nav';
 
@@ -153,6 +154,7 @@ export default function Layout() {
 
       <main className="min-w-0 flex-1">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+          <OfflineBanner />
           <Outlet />
         </div>
       </main>

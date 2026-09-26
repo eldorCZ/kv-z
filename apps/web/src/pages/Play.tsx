@@ -1,4 +1,4 @@
-import { hashSeed, type GameOverEvent, type JoinResult, type LeaderboardEvent, type PublicQuestion, type RevealEvent } from '@kvizhub/core';
+import { hashSeed, type GameOverEvent, type JoinResult, type LeaderboardEvent, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
 import { Check, CircleSlash, Hourglass, LoaderCircle, SquareCheck, Square, X, Medal } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { Stage, type StageTheme } from '../game/Stage';
 import { TimeBar, TimerRing } from '../game/TimerRing';
 import { call, createSocket, useCountdown, type GameSocket } from '../socket';
 import { Logo } from '../ui/Logo';
+import { Mascot } from '../ui/Mascot';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 
 const TOKEN_KEY = 'kvizhub-player';
@@ -274,7 +275,7 @@ export default function Play() {
       <Card testId="player-lobby">
         <p className="text-3xl font-bold">{me?.nickname ? t('play.inGameAs', { name: me.nickname }) : t('play.inGame')}</p>
         <p className="mt-3 text-lg text-muted">{t('play.waitForStart')}</p>
-        <LoaderCircle aria-hidden="true" className="mx-auto mt-5 h-8 w-8 animate-spin text-primary [animation-duration:2.5s]" />
+        <Mascot pose="hello" className="mx-auto mt-4 h-24 w-24" />
       </Card>,
     );
 

@@ -1,4 +1,4 @@
-import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core';
+import { DEFAULT_LIVE_MOTIVE, getMotive } from '@kvizhub/core/client';
 import { Palette } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';

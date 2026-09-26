@@ -1,4 +1,4 @@
-import { DEFAULT_UI_PREFS, resolveMotion, resolveTheme, sanitizeUiPrefs, UI_PREFS_KEY, type UiPrefs } from '@kvizhub/core';
+import { DEFAULT_UI_PREFS, resolveMotion, resolveTheme, sanitizeUiPrefs, UI_PREFS_KEY, type UiPrefs } from '@kvizhub/core/client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 /**
