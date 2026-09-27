@@ -649,7 +649,17 @@ export default function QuestionEditor({
           ))}
       </div>
       <aside className="lg:sticky lg:top-4 lg:self-start">
-        <StudentPreview q={{ ...draft, imageLabels: draft.imageLabels.map((l) => l.text) }} index={index} total={total} look={look} />
+        <StudentPreview
+          q={{
+            ...draft,
+            // náhled dostává adresu obrázku, ne jeho id – jinak by zůstal prázdný
+            imageUrl: draft.imageId ? `/media/theme/${draft.imageId}/640.webp` : null,
+            imageLabels: draft.imageLabels.map((l) => l.text),
+          }}
+          index={index}
+          total={total}
+          look={look}
+        />
       </aside>
     </div>
   );

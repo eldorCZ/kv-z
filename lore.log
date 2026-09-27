@@ -706,3 +706,5 @@
 {"level":30,"time":1790542556017,"pid":1708024,"hostname":"vm12869","reqId":"req-20","req":{"method":"POST","url":"/api/v1/classes/_ReSS_pySHBwPOkX/log","length":"35"},"msg":"incoming request"}
 {"level":30,"time":1790542556021,"pid":1708024,"hostname":"vm12869","reqId":"req-20","res":{"statusCode":200},"responseTime":3.6819450000766665,"msg":"request completed"}
 {"level":30,"time":1790542574251,"pid":1708024,"hostname":"vm12869","gameId":"akpg8ywg7h2e-ufs","msg":"host did not return, ending game"}
+{"level":30,"time":1790542682942,"pid":1708024,"hostname":"vm12869","reqId":"req-22","req":{"method":"GET","url":"/"},"msg":"incoming request"}
+{"level":30,"time":1790542682947,"pid":1708024,"hostname":"vm12869","reqId":"req-22","res":{"statusCode":200},"responseTime":2.874543000012636,"msg":"request completed"}

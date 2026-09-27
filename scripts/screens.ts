@@ -61,6 +61,74 @@ const teacherShots: Shot[] = [
     },
   },
   { name: 'ucitel-vychozi-vzhled', go: async (p, c) => void (await p.goto(`${c.url}/settings/look`), await p.getByTestId('default-look').waitFor()) },
+  {
+    name: 'ucitel-prirazovani-do-obrazku',
+    viewport: { width: 1280, height: 1000 },
+    go: async (p, c) => {
+      // Obrázek si nakreslíme v prohlížeči, ať v repozitáři nemusí ležet binárka.
+      // Nahrání i vložení kvízu jde přes relaci učitele – nahrávat obrázky tokenem nelze.
+      const quizId = await p.evaluate(async () => {
+        // scripts/ se překládá bez DOM knihovny, proto sáhneme na document přes globalThis
+        const dok = (globalThis as unknown as { document: { createElement(t: string): any } }).document;
+        const plátno = dok.createElement('canvas');
+        plátno.width = 900;
+        plátno.height = 520;
+        const k = plátno.getContext('2d');
+        k.fillStyle = '#eef2ff';
+        k.fillRect(0, 0, 900, 520);
+        k.strokeStyle = '#3730a3';
+        k.lineWidth = 6;
+        k.strokeRect(40, 40, 820, 440);
+        const části: [string, number, number][] = [['kořen', 180, 380], ['stonek', 450, 260], ['list', 700, 150]];
+        for (const [, x, y] of části) {
+          k.beginPath();
+          k.arc(x, y, 46, 0, Math.PI * 2);
+          k.fillStyle = '#a5b4fc';
+          k.fill();
+          k.stroke();
+        }
+        const blob: unknown = await new Promise((hotovo) => plátno.toBlob((b: unknown) => hotovo(b), 'image/png'));
+        const { csrfToken } = (await (await fetch('/api/auth/me')).json()) as { csrfToken: string };
+        const nahrané = await fetch('/api/theme-images', {
+          method: 'POST',
+          headers: { 'content-type': 'image/png', 'x-csrf-token': csrfToken },
+          body: blob as NonNullable<Parameters<typeof fetch>[1]>['body'],
+        });
+        if (!nahrané.ok) throw new Error(`nahrání obrázku selhalo: ${nahrané.status} ${await nahrané.text()}`);
+        const { id } = (await nahrané.json()) as { id: string };
+
+        const kvíz = await fetch('/api/v1/quizzes', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-csrf-token': csrfToken },
+          body: JSON.stringify({
+            schemaVersion: 1,
+            title: 'Části rostliny',
+            subject: 'Přírodopis',
+            questions: [
+              {
+                type: 'image-label',
+                prompt: 'Přiřaď názvy částí rostliny do obrázku.',
+                imageId: id,
+                timeLimitSec: 60,
+                imageLabels: [
+                  { text: 'kořen', x: 0.2, y: 0.73, radius: 0.09 },
+                  { text: 'stonek', x: 0.5, y: 0.5, radius: 0.09 },
+                  { text: 'list', x: 0.78, y: 0.29, radius: 0.09 },
+                ],
+              },
+            ],
+          }),
+        });
+        if (!kvíz.ok) throw new Error(`vložení kvízu selhalo: ${kvíz.status} ${await kvíz.text()}`);
+        return ((await kvíz.json()) as { quizId: string }).quizId;
+      });
+      await p.goto(`${c.url}/quizzes/${quizId}`);
+      await p.getByTestId('question').first().getByRole('button', { name: 'Upravit' }).click();
+      await p.getByTestId('pin-plocha').waitFor();
+      await p.getByTestId('pin-plocha').scrollIntoViewIfNeeded();
+      await p.waitForTimeout(300);
+    },
+  },
   { name: 'ucitel-trida-matice', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}`), await p.getByTestId('matrix').waitFor()) },
   { name: 'ucitel-trida-temata', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}?tab=topics`), await p.getByTestId('topics').waitFor()) },
   { name: 'ucitel-profil-zaka', go: async (p, c) => void (await p.goto(`${c.url}/classes/${c.classId}/students/${c.studentId}`), await p.getByTestId('profile-name').waitFor()) },
