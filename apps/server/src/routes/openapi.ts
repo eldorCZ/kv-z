@@ -53,7 +53,7 @@ export function buildOpenApi(publicUrl: string) {
         get: { summary: 'Seznam kvízů (quizzes:read)', responses: { 200: { description: 'OK' }, ...std } },
         post: {
           summary:
-            'Vložit kvíz (quizzes:write). Volitelný vzhled "theme": {"motive", "accent"} (id z GET /themes a akcenty fialova, modra, azurova, zelena, jantarova, koralova, ruzova, grafitova). Neznámé id se ignoruje a odpověď obsahuje "warnings" (nikdy 422); vlastní obrázek (imageId) přes API nastavit nelze. Bez "theme" dostane kvíz výchozí vzhled učitele.',
+            'Vložit kvíz (quizzes:write). Volitelný vzhled "theme": {"motive", "accent"} (id z GET /themes a akcenty fialova, modra, azurova, zelena, jantarova, koralova, ruzova, grafitova). Neznámé id se ignoruje a odpověď obsahuje "warnings" (nikdy 422); vlastní obrázek (imageId) přes API nastavit nelze. Bez "theme" dostane kvíz výchozí vzhled učitele. Otázka může mít "imageId" už nahraného obrázku; samotné nahrání jde jen z přihlášeného prohlížeče (POST /api/theme-images), ne tokenem. Typ "image-label" vyžaduje "imageId" a 1–5 položek "imageLabels" {text, x, y, radius} se souřadnicemi jako podíl šířky/výšky 0..1.',
           parameters: [
             { name: 'dry_run', in: 'query', schema: { type: 'string', enum: ['1'] }, description: 'Jen validace, nic se neuloží (200 {valid, stats}).' },
             { name: 'Idempotency-Key', in: 'header', schema: { type: 'string' }, description: 'Doporučeno. Stejný klíč + obsah vrátí původní odpověď, jiný obsah 409.' },

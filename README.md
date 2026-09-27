@@ -13,7 +13,10 @@ Učitel kvíz v aplikaci Lore zkontroluje a upraví a spustí hru: žáci se př
 - **Data zůstávají na vašem serveru.** Žáci nemají účty ani hesla. U hry bez třídy se ukládá jen přezdívka a odpovědi;
   u volitelných **tříd** (průběžná evidence za školní rok) jen školní přihlašovací jméno žáka (např. `novak12`, nebo
   pseudonym či číslo), číslo v třídním výkazu, hash osobního kódu a výsledky. Žádná křestní ani celá jména. Pokrok vidí jen učitelé třídy, nikdy agent ani Telegram (viz [Třídy](#třídy-a-průběžná-evidence)).
-- **6 typů otázek:** jedna správná, více správných, pravda/nepravda, krátká odpověď, číselná odpověď a seřazení.
+- **7 typů otázek:** jedna správná, více správných, pravda/nepravda, krátká odpověď, číselná odpověď, seřazení
+  a **přiřazování do obrázku** (učitel klepnutím rozmístí špendlíky, žák na ně přetahuje názvy).
+- **Obrázek u otázky.** K libovolnému typu jde nahrát obrázek; ukáže se žákovi, na projektoru i v testu.
+  Nahrává se v editoru v prohlížeči, ne přes API (viz [Obrázky v otázkách](#obrázky-v-otázkách)).
 - **Vlastní vzhled Lore:** světlý i tmavý režim, klidná nálada pro testy a hravá pro živé hry, 24 motivů pozadí
   a 12 barevných přechodů, 8 barev akcentu, volitelně vlastní fotka učitele (viz [Vzhled a motivy](#vzhled-a-motivy)).
 - **Aplikace nevolá žádný jazykový model.** Otázky vyrábí agent (skill `kviz-z-materialu`). Kvíz jde vytvořit
@@ -101,6 +104,47 @@ Přehled API: `GET /api/v1/openapi.json` (generováno ze zod schémat). Hlavní 
 | POST/PATCH/DELETE | `/api/v1/quizzes/{id}/questions[/{qid}]` | Přidání, úprava a smazání otázky |
 | POST | `/api/v1/quizzes/{id}/games` | Hra → `{gameId, pin, joinUrl, hostUrl}` (409, když jsou všechny otázky ke kontrole) |
 | GET | `/api/v1/games/{id}`, `/api/v1/games/{id}/results` | Stav a výsledky hry |
+
+## Obrázky v otázkách
+
+K jakékoli otázce jde nahrát obrázek. Ukáže se žákovi na mobilu, na projektoru i v testu.
+Navíc existuje typ otázky **přiřazování do obrázku** (`image-label`), kde žák názvy přetahuje
+na místa v obrázku.
+
+- **Nahrání:** v editoru otázky, pole *Obrázek otázky*. Přijímá JPEG, PNG a WebP do 15 MB;
+  server obrázek převede do WebP ve třech velikostech (1920, 1280, 640) a rozdává jen ty.
+- **Kvóta:** 30 obrázků a 50 MB na učitele, **sdílená s vlastními pozadími kvízů**.
+- **Přes API to nejde.** Nahrávání je vázané na přihlášení učitele v prohlížeči
+  (`POST /api/theme-images`, session-only), API token na něj nemá právo. Agent, který
+  vyrábí kvízy z materiálů, tedy obrázky doplnit neumí — musí je učitel přidat ručně.
+  V JSON se na už nahraný obrázek odkazuje polem `imageId` (32 hex znaků).
+
+### Přiřazování do obrázku
+
+Učitel klepne do obrázku a vznikne očíslovaný špendlík; taháním ho posune, šipkami doladí
+a posuvníkem nastaví toleranci. Žák pak název přetáhne na místo (nebo ho klepnutím vybere
+a druhým klepnutím položí — bez té druhé cesty by otázka nešla vyřešit z klávesnice).
+
+Souřadnice i tolerance se ukládají jako **podíl šířky a výšky obrázku** (0..1), ne v pixelech,
+takže sedí na jakékoli velikosti displeje. Odpověď se uznává, když `hypot(dx, dy) <= radius`.
+Na obrázku na výšku je proto zásahová plocha ve skutečnosti elipsa — editor ji tak i kreslí,
+aby učitel viděl pravdu.
+
+```json
+{
+  "type": "image-label",
+  "prompt": "Přiřaď názvy částí do obrázku.",
+  "imageId": "580e33dff35889fbca0b05183698ce7a",
+  "imageLabels": [
+    { "text": "ucho",   "x": 0.42, "y": 0.06, "radius": 0.10 },
+    { "text": "kniha",  "x": 0.28, "y": 0.22, "radius": 0.12 }
+  ]
+}
+```
+
+Nejvýš 5 popisků na otázku, tolerance 3–30 %. Souřadnice ani tolerance se k žákovi nikdy
+nedostanou — server posílá jen zamíchané názvy (ověřeno testem v `packages/core/test`).
+Do Moodle GIFT se tenhle typ vyexportovat nedá a export ho přeskočí.
 
 ## Testovací režim
 

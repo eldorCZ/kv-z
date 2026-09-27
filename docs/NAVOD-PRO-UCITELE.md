@@ -14,7 +14,7 @@ Aplikace běží na [lore.zdenekstasta.cz](https://lore.zdenekstasta.cz), demo n
 4.  Na projektor promítněte obrazovku s **PINem a QR kódem**.
 5.  Žáci otevřou adresu na mobilu, zadají PIN a přezdívku. Vy spustíte první otázku.
 
-### Šest typů otázek
+### Sedm typů otázek
 
 | Typ               | Jak to vypadá u žáka           | Kdy se hodí                    |
 | ----------------- | ------------------------------ | ------------------------------ |
@@ -24,8 +24,30 @@ Aplikace běží na [lore.zdenekstasta.cz](https://lore.zdenekstasta.cz), demo n
 | Krátká odpověď    | Napíše slovo                   | Pojmy, jednotky, názvy         |
 | Číselná odpověď   | Napíše číslo                   | Výpočty, dá se uznat rozmezí   |
 | Seřazení          | Přesouvá položky šipkami       | Postupy, časové osy, velikosti |
+| Přiřazení do obrázku | Přetahuje názvy na místa v obrázku | Mapy, schémata, popis částí |
 
 **Otázky „ke kontrole".** Když otázku vyrobí agent a není si jistý, označí ji. Taková otázka se **nedostane do hry ani do exportu**, dokud ji neschválíte. Agent si ji schválit nemůže — to je vaše slovo.
+
+### Obrázek u otázky
+
+Ke každé otázce jde přidat obrázek: v editoru otázky pole **Obrázek otázky** → *Vybrat soubor*. Žák ho uvidí na mobilu, vy na projektoru, a je i v testu. Berou se JPEG, PNG a WebP do 15 MB.
+
+Máte prostor na **30 obrázků a 50 MB**, který se dělí s vlastními pozadími kvízů. Když dojde, smažte staré obrázky ve Vzhledu.
+
+Pozor: obrázek jde nahrát **jen tady v prohlížeči**. Agent, který vám vyrábí kvízy z materiálů, obrázky doplnit neumí — musíte je přidat ručně.
+
+### Přiřazování do obrázku
+
+Nejvíc se hodí na mapy, schémata a popis částí. Postup:
+
+1. Zvolte typ otázky **Přiřazení do obrázku** a nahrajte obrázek.
+2. **Klepněte do obrázku** — objeví se očíslovaný špendlík. Můžete s ním táhnout, nebo ho doladit šipkami na klávesnici.
+3. Do políčka pod obrázkem napište **název místa** („Dřevnice", „srdce", „Enter").
+4. Posuvníkem **tolerance** určete, jak přesně se musí žák trefit. Přerušovaná oblast kolem špendlíku ukazuje, kam až to projde. U velkých ploch (kontinent) dejte víc, u drobných (jedna klávesa) míň.
+
+Špendlíků může být nejvýš pět. Žák pak názvy přetahuje prstem na místa v obrázku — položený název může přesunout, nebo vytáhnout ven a vrátit zpět. Kdo nemůže táhnout, název klepnutím vybere a druhým klepnutím položí.
+
+**Na co si dát pozor:** tolerance se počítá z rozměrů obrázku, ne z pixelů. U obrázku na výšku je proto zásahová plocha vejčitá, ne kulatá — editor ji tak i kreslí, takže vidíte přesně to, co bude platit.
 
 ## Hra ve třídě
 
