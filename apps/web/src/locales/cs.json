@@ -98,7 +98,8 @@
     "truefalse": "Pravda / nepravda",
     "short": "Krátká odpověď",
     "numeric": "Číselná odpověď",
-    "order": "Seřazení"
+    "order": "Seřazení",
+    "image-label": "Přiřazení do obrázku"
   },
   "points": {
     "standard": "Standardní body",

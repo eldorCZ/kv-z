@@ -36,6 +36,8 @@ export function rowToQuestion(r: QuestionRow): StoredQuestion {
     sourceRef: r.sourceRefJson ? JSON.parse(r.sourceRefJson) : null,
     qa: { status: r.qaStatus as 'ok' | 'flagged', notes: r.qaNotes },
     ...(r.topic ? { topic: r.topic } : {}),
+    imageId: r.imageId ?? null,
+    imageLabels: r.imageLabelsJson ? JSON.parse(r.imageLabelsJson) : [],
     approvedAt: r.approvedAt,
   };
 }
@@ -62,6 +64,8 @@ function questionToRow(q: Question, quizId: string, position: number, id = newId
     qaNotes: q.qa.notes,
     approvedAt: null,
     topic: q.topic ?? null,
+    imageId: q.imageId ?? null,
+    imageLabelsJson: JSON.stringify(q.imageLabels ?? []),
   };
 }
 

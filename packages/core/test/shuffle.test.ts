@@ -41,6 +41,36 @@ describe('toPublicQuestion', () => {
     for (const k of SECRET_KEYS) expect(json).not.toContain(k);
     expect(json).not.toContain('tajné');
   });
+
+  it('publishes the uploaded question image', () => {
+    const q = {
+      id: 'q2', type: 'single' as const, prompt: 'Co je na obrázku?', timeLimitSec: 20, points: 'standard' as const,
+      options: ['a', 'b', 'c'], correctIndices: [0], acceptedAnswers: [], numericAnswer: null, numericTolerance: null,
+      imageId: 'a'.repeat(32), imageLabels: [],
+    };
+    const pub = toPublicQuestion(q, shuffleOptions(q, false), 0, 1);
+    expect(pub.imageUrl).toBe(`/media/theme/${'a'.repeat(32)}/1280.webp`);
+    expect(pub.imageLabels).toBeUndefined();
+  });
+
+  it('image-label sends shuffled label texts but never their coordinates', () => {
+    const q = {
+      id: 'q3', type: 'image-label' as const, prompt: 'Přiřaď řeky', timeLimitSec: 30, points: 'standard' as const,
+      options: [], correctIndices: [], acceptedAnswers: [], numericAnswer: null, numericTolerance: null,
+      imageId: 'b'.repeat(32),
+      imageLabels: [
+        { text: 'Dřevnice', x: 0.2, y: 0.8, radius: 0.1 },
+        { text: 'Morava', x: 0.7, y: 0.3, radius: 0.1 },
+      ],
+    };
+    const pub = toPublicQuestion(q, shuffleOptions(q, true, seededRng(7)), 0, 1);
+    expect([...(pub.imageLabels ?? [])].sort()).toEqual(['Dřevnice', 'Morava']);
+    expect(pub.imageUrl).toBe(`/media/theme/${'b'.repeat(32)}/1280.webp`);
+    // souřadnice jsou klíč k řešení – nesmí opustit server
+    const json = JSON.stringify(pub);
+    expect(json).not.toContain('0.8');
+    expect(json).not.toContain('radius');
+  });
 });
 
 describe('nickname', () => {

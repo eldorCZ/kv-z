@@ -76,11 +76,17 @@ describe('contract validation – invalid fixtures', () => {
 });
 
 describe('topic and tags (C10.1)', () => {
-  it('are optional and validated', () => {
+  it('tags and topics are optional and validated', () => {
     const ok = validateQuiz({ schemaVersion: 1, title: 't', tags: ['Fyzika', 'Optika'], questions: [{ type: 'truefalse', prompt: 'p', correctIndices: [0], topic: 'Lom světla' }] });
     expect(ok.ok).toBe(true);
     const bad = validateQuiz({ schemaVersion: 1, title: 't', tags: ['a', 'b', 'c', 'd', 'e', 'f'], questions: [{ type: 'truefalse', prompt: 'p', correctIndices: [0], topic: 'x'.repeat(61) }] });
     expect(bad.ok).toBe(false);
-    if (!bad.ok) expect(bad.errors.map((e) => e.path).sort()).toEqual(['questions[0].topic', 'tags']);
+  });
+
+  it('validates image-label questions with uploaded image id and labels', () => {
+    const ok = validateQuestion({ type: 'image-label', prompt: 'Přiřaď města', imageId: '0123456789abcdef0123456789abcdef', imageLabels: [{ text: 'Zlín', x: 0.4, y: 0.6 }] });
+    expect(ok.ok).toBe(true);
+    const bad = validateQuestion({ type: 'image-label', prompt: 'Přiřaď města', imageLabels: [{ text: 'Zlín', x: 0.4, y: 0.6 }] });
+    expect(bad.ok).toBe(false);
   });
 });

@@ -13,12 +13,14 @@ export const LATENCY_GRACE_MS = 300;
  * - order: { order } – original indices in the order chosen by the player
  * - short: { text }
  * - numeric: { value }
+ * - image-label: { placements: [{ optionIndex, x, y }] }
  */
 export type AnswerPayload =
   | { indices: number[] }
   | { order: number[] }
   | { text: string }
-  | { value: string | number };
+  | { value: string | number }
+  | { placements: { optionIndex: number; x: number; y: number }[] };
 
 export interface CheckOptions {
   /** Multi: give partial credit instead of all-or-nothing. */
@@ -33,7 +35,7 @@ export interface CheckResult {
   fraction: number;
 }
 
-type Checkable = Pick<Question, 'type' | 'options' | 'correctIndices' | 'acceptedAnswers' | 'numericAnswer' | 'numericTolerance'>;
+type Checkable = Pick<Question, 'type' | 'options' | 'correctIndices' | 'acceptedAnswers' | 'numericAnswer' | 'numericTolerance'> & Partial<Pick<Question, 'imageLabels'>>;
 
 const WRONG: CheckResult = { correct: false, fraction: 0 };
 const RIGHT: CheckResult = { correct: true, fraction: 1 };
@@ -93,6 +95,24 @@ export function checkAnswer(q: Checkable, payload: unknown, opts: CheckOptions =
       const tol = q.numericTolerance ?? 0;
       // small epsilon so that 0.1 + 0.2 style float noise does not matter
       return Math.abs(v - q.numericAnswer) <= tol + 1e-9 ? RIGHT : WRONG;
+    }
+    case 'image-label': {
+      const labels = q.imageLabels ?? [];
+      if (!Array.isArray(p.placements) || p.placements.length !== labels.length) return WRONG;
+      const seen = new Set<number>();
+      for (const raw of p.placements) {
+        if (!raw || typeof raw !== 'object') return WRONG;
+        const pl = raw as Record<string, unknown>;
+        if (!Number.isInteger(pl.optionIndex) || typeof pl.x !== 'number' || typeof pl.y !== 'number') return WRONG;
+        const optionIndex = pl.optionIndex as number;
+        if (optionIndex < 0 || optionIndex >= labels.length || seen.has(optionIndex)) return WRONG;
+        seen.add(optionIndex);
+        const target = labels[optionIndex]!;
+        const dx = (pl.x as number) - target.x;
+        const dy = (pl.y as number) - target.y;
+        if (Math.hypot(dx, dy) > target.radius) return WRONG;
+      }
+      return RIGHT;
     }
   }
 }

@@ -1,7 +1,7 @@
 import { checkAnswer, type CheckOptions } from './scoring.js';
 import type { Question } from './schema.js';
 
-type Scorable = Pick<Question, 'type' | 'options' | 'correctIndices' | 'acceptedAnswers' | 'numericAnswer' | 'numericTolerance' | 'points'> & { id: string };
+type Scorable = Pick<Question, 'type' | 'options' | 'correctIndices' | 'acceptedAnswers' | 'numericAnswer' | 'numericTolerance' | 'points'> & Partial<Pick<Question, 'imageLabels'>> & { id: string };
 
 export const pointsWeight = (mode: Question['points']) => (mode === 'double' ? 2 : mode === 'none' ? 0 : 1);
 
@@ -53,6 +53,7 @@ export function toDisplayedPayload(perm: number[], payload: unknown): unknown {
   const back = (arr: unknown) => (Array.isArray(arr) ? arr.map((o) => inverse.get(o as number) ?? -1) : []);
   if ('indices' in p) return { indices: back(p.indices) };
   if ('order' in p) return { order: back(p.order) };
+  if ('placements' in p && Array.isArray(p.placements)) return { placements: p.placements.map((pl) => ({ ...(pl as object), optionIndex: inverse.get((pl as { optionIndex?: number }).optionIndex ?? -1) ?? -1 })) };
   return p;
 }
 
@@ -77,5 +78,15 @@ export function mapDisplayedPayload(type: Question['type'], perm: number[], payl
       return { original: { text: typeof p.text === 'string' ? p.text.slice(0, 100) : '' }, displayed: null };
     case 'numeric':
       return { original: { value: typeof p.value === 'string' || typeof p.value === 'number' ? String(p.value).slice(0, 40) : '' }, displayed: null };
+    case 'image-label': {
+      const placements = Array.isArray(p.placements)
+        ? p.placements.slice(0, 10).map((raw) => {
+            const pl = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+            const d = Number.isInteger(pl.optionIndex) ? (pl.optionIndex as number) : -1;
+            return { optionIndex: d >= 0 && d < perm.length ? perm[d]! : -1, x: typeof pl.x === 'number' ? pl.x : -1, y: typeof pl.y === 'number' ? pl.y : -1 };
+          })
+        : [];
+      return { original: { placements }, displayed: null };
+    }
   }
 }

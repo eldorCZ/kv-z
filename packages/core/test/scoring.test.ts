@@ -75,6 +75,11 @@ describe('checkAnswer', () => {
     expect(checkAnswer(q, { value: 1.35 }).correct).toBe(false);
     expect(checkAnswer(q, { value: 'abc' }).correct).toBe(false);
   });
+  it('image-label accepts placements inside target radius', () => {
+    const q = { ...base, type: 'image-label' as const, imageLabels: [{ text: 'Zlín', x: 0.4, y: 0.6, radius: 0.1 }] };
+    expect(checkAnswer(q, { placements: [{ optionIndex: 0, x: 0.45, y: 0.62 }] }).correct).toBe(true);
+    expect(checkAnswer(q, { placements: [{ optionIndex: 0, x: 0.7, y: 0.62 }] }).correct).toBe(false);
+  });
 });
 
 describe('helpers', () => {

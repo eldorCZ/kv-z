@@ -16,6 +16,10 @@ export interface PublicQuestion {
   options: string[];
   timeLimitSec: number;
   points: 'standard' | 'double' | 'none';
+  /** optional uploaded question image */
+  imageUrl?: string | null;
+  /** labels for image-label questions, shuffled as options */
+  imageLabels?: string[];
 }
 
 export type GamePhase = 'lobby' | 'question' | 'reveal' | 'leaderboard' | 'finished';

@@ -303,7 +303,25 @@ export default function Host() {
                 </div>
               )}
             </div>
-            {question.options.length > 0 && question.type !== 'order' && (
+            {question.imageUrl && (
+              <img
+                src={question.imageUrl}
+                alt=""
+                data-testid="host-image"
+                className="max-h-[46vh] w-auto self-center rounded-lg border border-line object-contain shadow-soft"
+              />
+            )}
+            {/* image-label: popisky nejsou možnosti k výběru, jen ukazují, co mají žáci umístit */}
+            {question.type === 'image-label' && (
+              <ul className="flex flex-wrap justify-center gap-3 text-2xl">
+                {(reveal ? reveal.correctText : (question.imageLabels ?? [])).map((o, i) => (
+                  <li key={i} className={`rounded-pill px-5 py-2 font-semibold shadow-soft ${reveal ? 'bg-success-strong text-on-success' : 'bg-panel'}`}>
+                    {o}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {question.options.length > 0 && question.type !== 'order' && question.type !== 'image-label' && (
               <ul className="grid flex-1 auto-rows-fr grid-cols-2 gap-4">
                 {question.options.map((o, i) => {
                   const correct = reveal?.correctDisplayed.includes(i);

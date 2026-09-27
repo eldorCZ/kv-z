@@ -10,6 +10,8 @@ export interface PreviewQuestion {
   type: QuestionType;
   prompt: string;
   options: string[];
+  imageUrl?: string | null;
+  imageLabels?: string[];
   timeLimitSec: number;
 }
 
@@ -74,6 +76,7 @@ export function StudentPreview({ q, index = 0, total = 1, look }: { q: PreviewQu
             <div className="h-full w-2/3 rounded-pill bg-primary" />
           </div>
           <p className={`rounded-md bg-panel p-2 font-display font-bold leading-snug ${phone ? 'text-sm' : 'text-lg'}`}>{q.prompt || '…'}</p>
+          {q.imageUrl && <img src={q.imageUrl} alt="" className="max-h-32 rounded-md border border-line object-contain" />}
           {choice && (
             <div className={`mt-auto grid gap-1.5 ${phone ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {q.options.map((o, i) => {
@@ -91,6 +94,11 @@ export function StudentPreview({ q, index = 0, total = 1, look }: { q: PreviewQu
             <div className="mt-auto space-y-1.5">
               <div className="h-9 rounded-md border border-line-strong bg-surface" />
               <div className="flex h-9 items-center justify-center rounded-md bg-primary text-xs font-bold text-on-primary">{t('preview.send')}</div>
+            </div>
+          )}
+          {q.type === 'image-label' && (
+            <div className="mt-auto space-y-1">
+              {(q.imageLabels ?? []).map((o, i) => <div key={i} className="rounded-md bg-primary px-2 py-1 text-xs font-bold text-on-primary">{o || '…'}</div>)}
             </div>
           )}
           {q.type === 'order' && (

@@ -320,6 +320,7 @@ export default function Play() {
           </p>
           <TimerRing remaining={remaining} total={question.timeLimitSec} size="md" />
         </div>
+        {question.imageUrl && <img src={question.imageUrl} alt="" className="max-h-[38vh] rounded-lg border border-line object-contain shadow-soft" />}
         <AnswerInput q={question} onAnswer={answer} disabled={paused || remaining === 0} />
         {error && (
           <p role="alert" className="rounded bg-danger p-2 text-sm text-on-danger">
@@ -411,11 +412,15 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
   const [selected, setSelected] = useState<number[]>([]);
   const [text, setText] = useState('');
   const [order, setOrder] = useState<number[]>([]);
+  const [labelIndex, setLabelIndex] = useState<number | null>(0);
+  const [placements, setPlacements] = useState<{ optionIndex: number; x: number; y: number }[]>([]);
 
   useEffect(() => {
     setSelected([]);
     setText('');
     setOrder([]);
+    setLabelIndex(0);
+    setPlacements([]);
   }, [q.id]);
 
   const choice = q.type === 'single' || q.type === 'truefalse' || q.type === 'multi';
@@ -471,6 +476,48 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
             {t('play.submit')}
           </button>
         )}
+      </div>
+    );
+  }
+
+  if (q.type === 'image-label') {
+    const labels = q.imageLabels ?? [];
+    const placed = new Set(placements.map((p) => p.optionIndex));
+    const nextUnplaced = labels.findIndex((_, i) => !placed.has(i));
+    const active = labelIndex !== null && !placed.has(labelIndex) ? labelIndex : nextUnplaced >= 0 ? nextUnplaced : null;
+    return (
+      <div className="flex flex-1 flex-col gap-3">
+        <p className="self-start rounded-md bg-panel px-3 py-1 text-base">Přetáhni názvy na správná místa v obrázku.</p>
+        <div className="flex flex-wrap gap-2">
+          {labels.map((label, i) => (
+            <button key={i} type="button" disabled={disabled || placed.has(i)} onClick={() => setLabelIndex(i)} className={`rounded-md px-3 py-2 text-sm font-bold ${active === i ? 'bg-primary text-on-primary' : placed.has(i) ? 'bg-success-soft text-success' : 'bg-panel shadow-soft'}`}>
+              {placed.has(i) ? '✓ ' : ''}{label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          disabled={disabled || active === null}
+          onClick={(e) => {
+            const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+            const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+            if (active !== null) {
+              const next = [...placements.filter((p) => p.optionIndex !== active), { optionIndex: active, x, y }];
+              setPlacements(next);
+              setLabelIndex(labels.findIndex((_, i) => i !== active && !next.some((p) => p.optionIndex === i)));
+            }
+          }}
+          className="relative min-h-48 overflow-hidden rounded-lg border-2 border-dashed border-line bg-surface p-0"
+          data-testid="image-label-board"
+        >
+          {q.imageUrl && <img src={q.imageUrl} alt="" className="h-full max-h-80 w-full object-contain" />}
+          <span className="absolute inset-x-4 top-4 rounded bg-panel/80 p-2 text-sm">Vyber název nahoře a klikni do obrázku na správné místo.</span>
+          {placements.map((p) => <span key={p.optionIndex} style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }} className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-primary px-2 py-1 text-sm font-bold text-on-primary">{labels[p.optionIndex]}</span>)}
+        </button>
+        <button disabled={disabled || placements.length !== labels.length} onClick={() => onAnswer({ placements })} className="btn-press mt-auto min-h-14 rounded-lg bg-primary py-4 text-xl font-bold text-on-primary shadow-pop disabled:opacity-50" data-testid="submit-answer">
+          {t('play.submit')}
+        </button>
       </div>
     );
   }

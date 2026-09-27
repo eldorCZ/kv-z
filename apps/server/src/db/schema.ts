@@ -73,6 +73,8 @@ export const questions = sqliteTable(
     qaNotes: text('qa_notes').notNull().default(''),
     approvedAt: integer('approved_at'),
     topic: text('topic'),
+    imageId: text('image_id'),
+    imageLabelsJson: text('image_labels_json').notNull().default('[]'),
   },
   (t) => [index('questions_quiz').on(t.quizId, t.position)],
 );

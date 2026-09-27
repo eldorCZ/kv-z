@@ -41,11 +41,12 @@ export interface ShuffledOptions {
  * truefalse keeps its fixed order; order questions are never shown in the correct order.
  */
 export function shuffleOptions(
-  q: Pick<Question, 'type' | 'options' | 'correctIndices'>,
+  q: Pick<Question, 'type' | 'options' | 'correctIndices'> & Partial<Pick<Question, 'imageLabels'>>,
   enabled: boolean,
   rng: Rng = Math.random,
 ): ShuffledOptions {
-  const n = q.options.length;
+  const sourceOptions = q.type === 'image-label' ? (q.imageLabels ?? []).map((l) => l.text) : q.options;
+  const n = sourceOptions.length;
   let perm = Array.from({ length: n }, (_, i) => i);
   if (q.type === 'order') {
     // items are stored in the correct order – always shuffle, and never show the solution
@@ -59,7 +60,7 @@ export function shuffleOptions(
   const inverse = new Map(perm.map((orig, disp) => [orig, disp]));
   return {
     perm,
-    options: perm.map((i) => q.options[i]!),
+    options: perm.map((i) => sourceOptions[i]!),
     correctDisplayed: q.correctIndices.map((c) => inverse.get(c)!).sort((a, b) => a - b),
   };
 }

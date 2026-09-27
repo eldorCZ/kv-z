@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { leaveGuardSchema } from './leave-guard.js';
 import { normalizeText } from './text.js';
 
-export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'short', 'numeric', 'order'] as const;
+export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'short', 'numeric', 'order', 'image-label'] as const;
 export const TIME_LIMITS = [5, 10, 20, 30, 60, 120] as const;
 export const POINTS_MODES = ['standard', 'double', 'none'] as const;
 export const BLOOM_LEVELS = ['remember', 'understand', 'apply', 'analyze'] as const;
@@ -18,6 +18,7 @@ export const LIMITS = {
   quote: 300,
   locator: 60,
   acceptedAnswer: 60,
+  imageLabel: 60,
   questionsMax: 100,
   bodyBytes: 2 * 1024 * 1024,
   maxErrors: 50,
@@ -38,6 +39,13 @@ export const sourceRefSchema = z.object({
   quote: z.string().trim().max(LIMITS.quote).default(''),
 });
 
+export const imageLabelSchema = z.object({
+  text: text(LIMITS.imageLabel),
+  x: z.number().min(0).max(1),
+  y: z.number().min(0).max(1),
+  radius: z.number().min(0.03).max(0.3).default(0.12),
+});
+
 export const qaSchema = z
   .object({
     status: z.enum(QA_STATUSES).default('ok'),
@@ -56,6 +64,10 @@ const questionBase = z.object({
   options: z.array(text(LIMITS.option)).max(5).default([]),
   correctIndices: z.array(z.number().int()).default([]),
   acceptedAnswers: z.array(text(LIMITS.acceptedAnswer)).max(5).default([]),
+  /** id of uploaded question image served from /media/theme/<id>/... */
+  imageId: z.string().regex(/^[0-9a-f]{32}$/).nullable().default(null),
+  /** draggable labels and their target positions, normalized 0..1 inside the image */
+  imageLabels: z.array(imageLabelSchema).max(5).default([]),
   numericAnswer: z.number().finite().nullable().default(null),
   numericTolerance: z.number().finite().min(0).nullable().default(null),
   explanation: z.string().trim().max(LIMITS.explanation).default(''),
@@ -111,6 +123,9 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
   const noAccepted = () => {
     if (q.acceptedAnswers.length > 0) fail(ctx, ['acceptedAnswers'], 'accepted_not_allowed', `Typ „${q.type}“ nesmí mít acceptedAnswers.`);
   };
+  const noImageLabels = () => {
+    if (q.imageLabels.length > 0) fail(ctx, ['imageLabels'], 'image_labels_not_allowed', `Typ „${q.type}“ nepoužívá popisky obrázku.`);
+  };
 
   switch (q.type) {
     case 'single':
@@ -118,6 +133,7 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
       if (ci.length !== 1) fail(ctx, ['correctIndices'], 'correct_count', 'Typ „single“ musí mít právě 1 správnou odpověď.');
       noAccepted();
       noNumeric();
+      noImageLabels();
       break;
     case 'multi':
       if (optionCount(4, 5)) checkIndices();
@@ -125,6 +141,7 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
       else if (ci.length >= n && n > 0) fail(ctx, ['correctIndices'], 'correct_count', 'Typ „multi“ nesmí mít správné všechny možnosti.');
       noAccepted();
       noNumeric();
+      noImageLabels();
       break;
     case 'truefalse':
       if (n === 0) {
@@ -137,12 +154,14 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
       }
       noAccepted();
       noNumeric();
+      noImageLabels();
       break;
     case 'short':
       noOptions();
       noCorrect();
       noNumeric();
       if (q.acceptedAnswers.length < 1) fail(ctx, ['acceptedAnswers'], 'accepted_count', 'Typ „short“ vyžaduje 1–5 přijatelných odpovědí (acceptedAnswers).');
+      noImageLabels();
       break;
     case 'numeric':
       noOptions();
@@ -150,12 +169,22 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
       noAccepted();
       if (q.numericAnswer === null) fail(ctx, ['numericAnswer'], 'required', 'Typ „numeric“ vyžaduje číselnou odpověď (numericAnswer).');
       if (q.numericTolerance === null) fail(ctx, ['numericTolerance'], 'required', 'Typ „numeric“ vyžaduje toleranci (numericTolerance >= 0).');
+      noImageLabels();
       break;
     case 'order':
       optionCount(3, 5);
       noCorrect();
       noAccepted();
       noNumeric();
+      noImageLabels();
+      break;
+    case 'image-label':
+      noOptions();
+      noCorrect();
+      noAccepted();
+      noNumeric();
+      if (!q.imageId) fail(ctx, ['imageId'], 'required', 'Typ „image-label“ vyžaduje nahraný obrázek otázky.');
+      if (q.imageLabels.length < 1) fail(ctx, ['imageLabels'], 'image_label_count', 'Přiřazování do obrázku vyžaduje alespoň 1 popisek.');
       break;
   }
 
@@ -169,6 +198,7 @@ function refineQuestion(q: QuestionDraft, ctx: z.RefinementCtx) {
   };
   dupCheck(q.options, 'options', 'Možnost');
   dupCheck(q.acceptedAnswers, 'acceptedAnswers', 'Odpověď');
+  dupCheck(q.imageLabels.map((l) => l.text), 'imageLabels', 'Popisek');
 }
 
 export const questionSchema = questionBase.superRefine(refineQuestion);

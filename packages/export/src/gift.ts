@@ -40,12 +40,13 @@ function answerBlock(q: ExportQuestion): string {
     case 'numeric':
       return `{#${formatNumber(q.numericAnswer ?? 0)}:${formatNumber(q.numericTolerance ?? 0)}${fb}\n}`;
     case 'order':
-      throw new Error('order is not supported by GIFT');
+    case 'image-label':
+      throw new Error(`${q.type} is not supported by GIFT`);
   }
 }
 
 export function giftExport(quiz: ExportQuiz, opts: { includeFlagged?: boolean } = {}): { text: string; summary: ExportSummary } {
-  const skipped: Record<string, number[]> = { flagged: [], order: [] };
+  const skipped: Record<string, number[]> = { flagged: [], order: [], image: [] };
   const blocks: string[] = [
     `// ${comment(quiz.title)}`,
     `// Exportováno z Lore, formát Moodle GIFT (UTF-8).`,
@@ -55,6 +56,7 @@ export function giftExport(quiz: ExportQuiz, opts: { includeFlagged?: boolean } 
     const num = i + 1;
     if (q.qa.status === 'flagged' && !opts.includeFlagged) return void skipped.flagged!.push(num);
     if (q.type === 'order') return void skipped.order!.push(num);
+    if (q.type === 'image-label') return void skipped.image!.push(num);
     const lines: string[] = [];
     if (q.sourceRef) {
       const loc = [q.sourceRef.file, q.sourceRef.locator].filter(Boolean).join(', ');

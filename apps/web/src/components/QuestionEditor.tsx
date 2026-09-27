@@ -7,7 +7,7 @@ import {
 } from "@kvizhub/core";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { api, ApiError } from "../api";
+import { api, apiUpload, ApiError } from "../api";
 import { Button, Field, inputCls } from "./ui";
 import { StudentPreview } from "./StudentPreview";
 
@@ -18,6 +18,8 @@ export interface EditableQuestion {
   options: string[];
   correctIndices: number[];
   acceptedAnswers: string[];
+  imageId: string | null;
+  imageLabels: { text: string; x: number; y: number; radius: number }[];
   numericAnswer: number | null;
   numericTolerance: number | null;
   explanation: string;
@@ -40,6 +42,8 @@ const EDITABLE_KEYS = [
   "options",
   "correctIndices",
   "acceptedAnswers",
+  "imageId",
+  "imageLabels",
   "numericAnswer",
   "numericTolerance",
   "explanation",
@@ -68,6 +72,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: [],
         numericAnswer: null,
         numericTolerance: null,
+        imageLabels: [],
       };
     }
     case "multi": {
@@ -81,6 +86,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: [],
         numericAnswer: null,
         numericTolerance: null,
+        imageLabels: [],
       };
     }
     case "truefalse":
@@ -92,6 +98,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: [],
         numericAnswer: null,
         numericTolerance: null,
+        imageLabels: [],
       };
     case "short":
       return {
@@ -102,6 +109,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: d.acceptedAnswers.length ? d.acceptedAnswers : [""],
         numericAnswer: null,
         numericTolerance: null,
+        imageLabels: [],
       };
     case "numeric":
       return {
@@ -112,6 +120,7 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: [],
         numericAnswer: d.numericAnswer ?? 0,
         numericTolerance: d.numericTolerance ?? 0,
+        imageLabels: [],
       };
     case "order": {
       const o = [...opts];
@@ -124,8 +133,20 @@ function changeType(d: Draft, type: QuestionType): Draft {
         acceptedAnswers: [],
         numericAnswer: null,
         numericTolerance: null,
+        imageLabels: [],
       };
     }
+    case "image-label":
+      return {
+        ...d,
+        type,
+        options: [],
+        correctIndices: [],
+        acceptedAnswers: [],
+        numericAnswer: null,
+        numericTolerance: null,
+        imageLabels: d.imageLabels.length ? d.imageLabels : [{ text: "Popisek", x: 0.5, y: 0.5, radius: 0.12 }],
+      };
   }
 }
 
@@ -235,6 +256,17 @@ export default function QuestionEditor({
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) =>
     setDraft((d) => ({ ...d, [k]: v }));
+  const uploadQuestionImage = async (file: File) => {
+    setServerError("");
+    try {
+      const r = await apiUpload<{ id: string }>("/api/theme-images", file);
+      set("imageId", r.id);
+    } catch (e) {
+      const err = e as ApiError;
+      setServerError(err.message);
+      setState("error");
+    }
+  };
   const errFor = (prefix: string) =>
     errors.filter(
       (e) =>
@@ -366,6 +398,37 @@ export default function QuestionEditor({
           />
           <ErrList path="prompt" />
         </Field>
+
+        <Field label="Obrázek otázky" hint="Volitelné pro běžné otázky, povinné pro přiřazování do obrázku.">
+          {draft.imageId && (
+            <img src={`/media/theme/${draft.imageId}/640.webp`} alt="Nahraný obrázek otázky" className="mb-2 max-h-64 rounded-md border border-line object-contain" />
+          )}
+          <div className="flex flex-wrap gap-2">
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => e.target.files?.[0] && void uploadQuestionImage(e.target.files[0])} data-testid="question-image-input" />
+            {draft.imageId && <Button type="button" variant="ghost" onClick={() => set("imageId", null)}>Odebrat obrázek</Button>}
+          </div>
+          <ErrList path="imageId" />
+        </Field>
+
+        {draft.type === "image-label" && (
+          <fieldset>
+            <legend className="mb-1 text-sm font-medium text-fg">Popisky do obrázku</legend>
+            <p className="mb-2 text-xs text-muted">Souřadnice jsou v procentech šířky/výšky obrázku. Žák přetáhne názvy na správná místa.</p>
+            <ul className="space-y-2">
+              {draft.imageLabels.map((l, i) => (
+                <li key={i} className="grid gap-2 rounded-md border border-line p-2 sm:grid-cols-[1fr_80px_80px_80px_auto]">
+                  <input className={inputCls} value={l.text} maxLength={60} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, text: e.target.value } : x))} aria-label={`Popisek ${i + 1}`} />
+                  <input className={inputCls} type="number" min={0} max={100} value={Math.round(l.x * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, x: Math.max(0, Math.min(1, Number(e.target.value) / 100)) } : x))} aria-label={`X ${i + 1}`} />
+                  <input className={inputCls} type="number" min={0} max={100} value={Math.round(l.y * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, y: Math.max(0, Math.min(1, Number(e.target.value) / 100)) } : x))} aria-label={`Y ${i + 1}`} />
+                  <input className={inputCls} type="number" min={3} max={30} value={Math.round(l.radius * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, radius: Math.max(0.03, Math.min(0.3, Number(e.target.value) / 100)) } : x))} aria-label={`Tolerance ${i + 1}`} />
+                  {draft.imageLabels.length > 1 && <Button type="button" variant="ghost" className="text-danger" onClick={() => set("imageLabels", draft.imageLabels.filter((_, j) => j !== i))}>✕</Button>}
+                </li>
+              ))}
+            </ul>
+            {draft.imageLabels.length < 5 && <Button type="button" className="mt-2" onClick={() => set("imageLabels", [...draft.imageLabels, { text: "", x: 0.5, y: 0.5, radius: 0.12 }])}>+ Přidat popisek</Button>}
+            <ErrList path="imageLabels" />
+          </fieldset>
+        )}
 
         {(choice || draft.type === "order") && (
           <fieldset>
@@ -578,7 +641,7 @@ export default function QuestionEditor({
         {errors
           .filter(
             (e) =>
-              !/^(prompt|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(
+              !/^(prompt|imageId|imageLabels|options|correctIndices|acceptedAnswers|numeric|explanation|topic)/.test(
                 e.path,
               ),
           )
@@ -589,7 +652,7 @@ export default function QuestionEditor({
           ))}
       </div>
       <aside className="lg:sticky lg:top-4 lg:self-start">
-        <StudentPreview q={draft} index={index} total={total} look={look} />
+        <StudentPreview q={{ ...draft, imageLabels: draft.imageLabels.map((l) => l.text) }} index={index} total={total} look={look} />
       </aside>
     </div>
   );

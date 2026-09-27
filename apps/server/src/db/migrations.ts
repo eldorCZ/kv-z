@@ -290,6 +290,11 @@ export const MIGRATIONS: string[] = [
   );
   CREATE INDEX theme_images_teacher ON theme_images(teacher_id);
   `,
+  // 8: question images and image-label questions
+  `
+  ALTER TABLE questions ADD COLUMN image_id TEXT;
+  ALTER TABLE questions ADD COLUMN image_labels_json TEXT NOT NULL DEFAULT '[]';
+  `,
 ];
 
 export function migrate(sqlite: Database.Database): void {
