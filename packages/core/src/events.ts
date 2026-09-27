@@ -23,7 +23,7 @@ export type GamePhase = 'lobby' | 'question' | 'reveal' | 'leaderboard' | 'finis
 export interface PlayerSummary {
   id: string;
   nickname: string;
-  /** Stable Lore mascot avatar shown in the game lobby. */
+  /** Lore mascot avatar shown in the game lobby. Picked by the player, or server defaulted. */
   avatar: PlayerAvatar;
   /** class games: guest without a code (visible to hosts in the lobby list) */
   guest?: boolean;
@@ -140,7 +140,7 @@ export interface ClientToServerEvents {
   allow_return: (e: { playerId: string }, ack?: Ack) => void;
   // player
   /** nickname join, or a class game join with a one-time ticket from /play/roster/identify */
-  join: (e: { pin: string; nickname?: string; ticket?: string }, ack: Ack<JoinResult>) => void;
+  join: (e: { pin: string; nickname?: string; ticket?: string; avatar?: PlayerAvatar }, ack: Ack<JoinResult>) => void;
   reconnect_player: (e: { token: string }, ack: Ack<JoinResult>) => void;
   answer: (e: { questionId: string; payload: unknown }, ack?: Ack<{ accepted: boolean }>) => void;
 }

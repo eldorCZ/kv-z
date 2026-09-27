@@ -1,4 +1,4 @@
-import { checkNickname, playerAvatarForId, type ClientToServerEvents, type ServerToClientEvents } from '@kvizhub/core';
+import { checkNickname, parsePlayerAvatar, type ClientToServerEvents, type ServerToClientEvents } from '@kvizhub/core';
 import type { ClassGames } from '../classes/class-games.js';
 import { HttpError } from './service.js';
 import type { FastifyBaseLogger } from 'fastify';
@@ -120,22 +120,23 @@ export function setupSockets(deps: SocketDeps) {
       const g = games.getByPin(pin);
       if (!g) return fail(ack, 'Hra s tímto PINem neexistuje. Zkontrolujte PIN.');
       try {
+        const avatar = parsePlayerAvatar(e?.avatar);
         // class games (Dodatek 3): a student joins with a one-time ticket, a guest with a nickname when allowed
         let joined;
         if (g.row.classId && deps.classGames) {
           if (e?.ticket) {
             const { student } = deps.classGames.consumeTicket(e.ticket, g.id);
-            joined = g.joinStudent({ id: student.id, displayName: deps.classGames.displayName(g.row, student) });
+            joined = g.joinStudent({ id: student.id, displayName: deps.classGames.displayName(g.row, student) }, avatar ?? undefined);
           } else {
             const nick = checkNickname(e?.nickname);
             if (!nick.ok) return fail(ack, nick.error);
             deps.classGames.assertGuestAllowed(g.row, nick.nickname);
-            joined = g.join(e?.nickname, { isGuest: true });
+            joined = g.join(e?.nickname, { isGuest: true, avatar: avatar ?? undefined });
           }
-        } else joined = g.join(e?.nickname);
+        } else joined = g.join(e?.nickname, { avatar: avatar ?? undefined });
         const { player, token } = joined;
         attachPlayer(g, player.id);
-        ok(ack, { token, playerId: player.id, nickname: player.nickname, avatar: playerAvatarForId(player.id), score: 0, theme: gameTheme(g) });
+        ok(ack, { token, playerId: player.id, nickname: player.nickname, avatar: player.avatar, score: 0, theme: gameTheme(g) });
         g.syncPlayer(player.id);
       } catch (err) {
         if (err instanceof GameError || err instanceof HttpError) return fail(ack, err.message);
@@ -151,7 +152,7 @@ export function setupSockets(deps: SocketDeps) {
       if (!found) return fail(ack, 'Hra už neexistuje nebo jste byli odebráni.');
       const p = found.game.players.get(found.playerId)!;
       attachPlayer(found.game, found.playerId);
-      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, avatar: playerAvatarForId(p.id), score: p.score, theme: gameTheme(found.game) });
+      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, avatar: p.avatar, score: p.score, theme: gameTheme(found.game) });
       found.game.syncPlayer(p.id);
     });
 

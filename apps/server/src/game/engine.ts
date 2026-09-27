@@ -17,6 +17,7 @@ import {
   type RevealEvent,
   type ServerToClientEvents,
   type ShuffledOptions,
+  type PlayerAvatar,
   playerAvatarForId,
 } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
@@ -47,6 +48,7 @@ interface LivePlayer {
   studentId?: string | null;
   isGuest?: boolean;
   allowReturn?: boolean;
+  avatar: PlayerAvatar;
   tokenHash: string;
   score: number;
   streak: number;
@@ -128,7 +130,7 @@ export class LiveGame {
     return {
       pin: this.pin,
       locked: this.locked,
-      players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname, avatar: playerAvatarForId(p.id), ...(p.isGuest ? { guest: true } : {}) })),
+      players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname, avatar: p.avatar, ...(p.isGuest ? { guest: true } : {}) })),
     };
   }
 
@@ -452,7 +454,7 @@ export class LiveGame {
   }
 
   /** Class game: join as a roster student (C5.1). A second connection is refused unless the host allowed a return. */
-  joinStudent(student: { id: string; displayName: string }): { player: LivePlayer; token: string } {
+  joinStudent(student: { id: string; displayName: string }, avatar?: PlayerAvatar): { player: LivePlayer; token: string } {
     const existing = [...this.players.values()].find((p) => p.studentId === student.id);
     const token = randomBytes(24).toString('base64url');
     if (existing) {
@@ -467,7 +469,7 @@ export class LiveGame {
     if (blocked) throw new GameError(blocked);
     const tokenHash = sha256(token);
     const id = this.deps.repo.addPlayer(this.id, student.displayName, tokenHash, { studentId: student.id, isGuest: false });
-    const player: LivePlayer = { id, nickname: student.displayName, tokenHash, score: 0, streak: 0, sockets: 0, studentId: student.id, isGuest: false };
+    const player: LivePlayer = { id, nickname: student.displayName, avatar: avatar ?? playerAvatarForId(id), tokenHash, score: 0, streak: 0, sockets: 0, studentId: student.id, isGuest: false };
     this.players.set(id, player);
     this.emitAll('lobby_update', this.lobby());
     this.broadcastHostState();
@@ -480,7 +482,7 @@ export class LiveGame {
     p.allowReturn = true;
   }
 
-  join(rawNickname: unknown, opts: { isGuest?: boolean } = {}): { player: LivePlayer; token: string } {
+  join(rawNickname: unknown, opts: { isGuest?: boolean; avatar?: PlayerAvatar } = {}): { player: LivePlayer; token: string } {
     const blocked = this.canJoin();
     if (blocked) throw new GameError(blocked);
     const nick = checkNickname(rawNickname);
@@ -490,7 +492,7 @@ export class LiveGame {
     const token = randomBytes(24).toString('base64url');
     const tokenHash = sha256(token);
     const id = this.deps.repo.addPlayer(this.id, nick.nickname, tokenHash, opts.isGuest ? { studentId: null, isGuest: true } : undefined);
-    const player: LivePlayer = { id, nickname: nick.nickname, tokenHash, score: 0, streak: 0, sockets: 0, isGuest: opts.isGuest };
+    const player: LivePlayer = { id, nickname: nick.nickname, avatar: opts.avatar ?? playerAvatarForId(id), tokenHash, score: 0, streak: 0, sockets: 0, isGuest: opts.isGuest };
     this.players.set(id, player);
     this.emitAll('lobby_update', this.lobby());
     this.broadcastHostState();

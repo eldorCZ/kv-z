@@ -1,4 +1,4 @@
-import { hashSeed, type GameOverEvent, type JoinResult, type LeaderboardEvent, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
+import { hashSeed, PLAYER_AVATARS, type GameOverEvent, type JoinResult, type LeaderboardEvent, type PlayerAvatar, type PublicQuestion, type RevealEvent } from '@kvizhub/core/client';
 import { useTitle } from '../ui/useTitle';
 import { Check, CircleSlash, Hourglass, LoaderCircle, SquareCheck, Square, X, Medal } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
@@ -54,6 +54,7 @@ export default function Play() {
   const [view, setView] = useState<View>('join');
   const [pin, setPin] = useState(params.get('pin')?.replace(/\D/g, '') ?? '');
   const [nickname, setNickname] = useState('');
+  const [avatar, setAvatar] = useState<PlayerAvatar>('hello');
   const [me, setMe] = useState<JoinResult | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -164,7 +165,7 @@ export default function Play() {
       setBusy(false);
       return setError(t('play.nicknameHint'));
     }
-    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, nickname });
+    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, nickname, avatar });
     setBusy(false);
     if (!r.ok) return setError(r.error);
     finishJoin(r);
@@ -172,7 +173,7 @@ export default function Play() {
 
   const joinWithTicket = async (ticket: string) => {
     if (!sock.current) return;
-    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, ticket });
+    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, ticket, avatar });
     if (!r.ok) {
       setRoster(null);
       return setError(r.error);
@@ -230,7 +231,7 @@ export default function Play() {
   if (view === 'join')
     return shell(
       <form onSubmit={join} className="m-auto w-full max-w-sm space-y-5 rounded-lg bg-panel p-6 text-fg shadow-pop">
-        <Mascot pose="hello" size={96} className="mx-auto -mb-2" />
+        <Mascot pose={avatar} size={96} className="mx-auto -mb-2" still />
         <h1 className="flex justify-center py-1">
           <Logo height={52} />
         </h1>
@@ -259,6 +260,23 @@ export default function Play() {
           />
           <span className="mt-1 block text-xs text-muted">{t('play.nicknameHint')}</span>
         </label>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium">Postava</legend>
+          <div className="grid grid-cols-5 gap-2" data-testid="avatar-picker">
+            {PLAYER_AVATARS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                onClick={() => setAvatar(a)}
+                aria-label={`Postava ${a}`}
+                aria-pressed={avatar === a}
+                className={`flex h-16 items-end justify-center overflow-hidden rounded-md border-2 bg-surface ${avatar === a ? 'border-primary ring-2 ring-primary/35' : 'border-line-strong'}`}
+              >
+                <Mascot pose={a} size={58} still className="translate-y-2" />
+              </button>
+            ))}
+          </div>
+        </fieldset>
         {error && (
           <p role="alert" className="rounded bg-danger-soft p-2 text-sm text-danger">
             {error}

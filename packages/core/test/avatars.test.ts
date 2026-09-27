@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { playerAvatarForId, PLAYER_AVATARS } from '../src/avatars.js';
+import { parsePlayerAvatar, playerAvatarForId, PLAYER_AVATARS } from '../src/avatars.js';
 
 describe('player avatars', () => {
   it('assigns a stable Lore mascot avatar from the finished mascot set', () => {
@@ -11,5 +11,11 @@ describe('player avatars', () => {
   it('spreads adjacent players across different lobby avatars', () => {
     const firstFive = Array.from({ length: 5 }, (_, i) => playerAvatarForId(`player-${i + 1}`));
     expect(new Set(firstFive).size).toBeGreaterThan(1);
+  });
+
+  it('accepts only known Lore mascot avatars from the player picker', () => {
+    expect(parsePlayerAvatar('celebrate')).toBe('celebrate');
+    expect(parsePlayerAvatar('error')).toBeNull();
+    expect(parsePlayerAvatar('../sleep')).toBeNull();
   });
 });

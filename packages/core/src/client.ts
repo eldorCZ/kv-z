@@ -8,5 +8,6 @@ export * from './color.js';
 export * from './leave-tracker.js';
 export * from './motives.js';
 export * from './ui-prefs.js';
+export * from './avatars.js';
 export type * from './events.js';
 export type { QuestionType } from './schema.js';
