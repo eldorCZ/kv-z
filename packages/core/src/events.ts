@@ -1,4 +1,5 @@
 import type { PlayerTheme } from './theme.js';
+import type { PlayerAvatar } from './avatars.js';
 import type { QuestionType } from './schema.js';
 
 /**
@@ -22,6 +23,8 @@ export type GamePhase = 'lobby' | 'question' | 'reveal' | 'leaderboard' | 'finis
 export interface PlayerSummary {
   id: string;
   nickname: string;
+  /** Stable Lore mascot avatar shown in the game lobby. */
+  avatar: PlayerAvatar;
   /** class games: guest without a code (visible to hosts in the lobby list) */
   guest?: boolean;
 }
@@ -116,6 +119,8 @@ export interface JoinResult {
   token: string;
   playerId: string;
   nickname: string;
+  /** Same avatar as displayed on the host lobby. */
+  avatar: PlayerAvatar;
   score: number;
   /** look of the game (Dodatek 4, V7.4) – game info only, never inside a question */
   theme: PlayerTheme;

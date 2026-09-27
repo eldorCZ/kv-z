@@ -1,4 +1,4 @@
-import { checkNickname, type ClientToServerEvents, type ServerToClientEvents } from '@kvizhub/core';
+import { checkNickname, playerAvatarForId, type ClientToServerEvents, type ServerToClientEvents } from '@kvizhub/core';
 import type { ClassGames } from '../classes/class-games.js';
 import { HttpError } from './service.js';
 import type { FastifyBaseLogger } from 'fastify';
@@ -135,7 +135,7 @@ export function setupSockets(deps: SocketDeps) {
         } else joined = g.join(e?.nickname);
         const { player, token } = joined;
         attachPlayer(g, player.id);
-        ok(ack, { token, playerId: player.id, nickname: player.nickname, score: 0, theme: gameTheme(g) });
+        ok(ack, { token, playerId: player.id, nickname: player.nickname, avatar: playerAvatarForId(player.id), score: 0, theme: gameTheme(g) });
         g.syncPlayer(player.id);
       } catch (err) {
         if (err instanceof GameError || err instanceof HttpError) return fail(ack, err.message);
@@ -151,7 +151,7 @@ export function setupSockets(deps: SocketDeps) {
       if (!found) return fail(ack, 'Hra už neexistuje nebo jste byli odebráni.');
       const p = found.game.players.get(found.playerId)!;
       attachPlayer(found.game, found.playerId);
-      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, score: p.score, theme: gameTheme(found.game) });
+      ok(ack, { token: e.token, playerId: p.id, nickname: p.nickname, avatar: playerAvatarForId(p.id), score: p.score, theme: gameTheme(found.game) });
       found.game.syncPlayer(p.id);
     });
 

@@ -276,9 +276,9 @@ export default function Play() {
   if (view === 'lobby')
     return shell(
       <Card testId="player-lobby">
+        <Mascot pose={me?.avatar ?? 'hello'} size={120} className="mx-auto mb-3" still />
         <p className="text-3xl font-bold">{me?.nickname ? t('play.inGameAs', { name: me.nickname }) : t('play.inGame')}</p>
         <p className="mt-3 text-lg text-muted">{t('play.waitForStart')}</p>
-        <Mascot pose="hello" size={120} className="mx-auto mt-4" />
       </Card>,
     );
 

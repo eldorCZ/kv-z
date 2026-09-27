@@ -223,7 +223,7 @@ export default function Host() {
       )}
       <ShortcutsDialog open={help} onClose={() => setHelp(false)} keys={shortcutKeys} />
 
-      <main className="flex min-w-0 flex-1 flex-col px-3 py-4 sm:px-[5vw] sm:py-[4vh]">
+      <main className="flex flex-1 flex-col px-[5vw] py-[4vh]">
         {phase === 'lobby' && (
           <div className="grid flex-1 content-center items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="flex flex-col gap-6">
@@ -255,14 +255,19 @@ export default function Host() {
                   <li key={p.id} className="bubble flex items-center gap-1">
                     <span>
                       <button
-                        className="rounded-pill bg-panel px-5 py-2 text-2xl font-semibold shadow-soft hover:bg-danger hover:text-on-danger"
+                        className="inline-flex items-center gap-3 rounded-pill bg-panel py-2 pr-5 pl-2 text-2xl font-semibold shadow-soft hover:bg-danger hover:text-on-danger"
                         title={t('host.kick')}
                         onClick={() => {
                           if (confirm(t('host.confirmKick', { nickname: p.nickname }))) void cmd('kick_player', { playerId: p.id });
                         }}
                       >
-                        {p.nickname}
-                        {p.guest ? ` (${t('host.guest')})` : ''}
+                        <span className="flex h-14 w-14 shrink-0 items-end justify-center overflow-hidden rounded-pill bg-surface-2 ring-2 ring-line" data-testid="host-player-avatar" data-avatar={p.avatar}>
+                          <Mascot pose={p.avatar} size={56} still className="translate-y-2" />
+                        </span>
+                        <span>
+                          {p.nickname}
+                          {p.guest ? ` (${t('host.guest')})` : ''}
+                        </span>
                       </button>
                     </span>
                     {state.classGame && !p.guest && (
@@ -286,7 +291,7 @@ export default function Host() {
         {(phase === 'question' || phase === 'reveal') && question && (
           <div className="flex flex-1 flex-col gap-6">
             <div className="flex items-center gap-6">
-              <p className="min-w-0 flex-1 rounded-lg bg-panel px-4 py-4 text-[clamp(1.1rem,3.2vw,3rem)] leading-tight font-bold shadow-soft break-words sm:px-8 sm:py-6" data-testid="host-prompt">
+              <p className="flex-1 rounded-lg bg-panel px-8 py-6 text-[clamp(1.75rem,3.2vw,3rem)] leading-tight font-bold shadow-soft" data-testid="host-prompt">
                 {question.prompt}
               </p>
               {phase === 'question' && (
@@ -299,7 +304,7 @@ export default function Host() {
               )}
             </div>
             {question.options.length > 0 && question.type !== 'order' && (
-              <ul className="grid flex-1 auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+              <ul className="grid flex-1 auto-rows-fr grid-cols-2 gap-4">
                 {question.options.map((o, i) => {
                   const correct = reveal?.correctDisplayed.includes(i);
                   const style = answerStyle(i);
@@ -307,10 +312,10 @@ export default function Host() {
                     <li
                       key={i}
                       data-correct={reveal ? String(!!correct) : undefined}
-                      className={`flex min-w-0 items-center gap-3 rounded-lg p-3 text-[clamp(1rem,2.6vw,2.5rem)] font-bold shadow-tile transition-opacity sm:gap-5 sm:p-5 ${style.bg} ${style.fg} ${reveal && !correct ? 'opacity-40' : ''} ${correct ? 'reveal-pulse ring-4 ring-fg ring-offset-4 ring-offset-canvas' : ''}`}
+                      className={`flex items-center gap-5 rounded-lg p-5 text-[clamp(1.5rem,2.6vw,2.5rem)] font-bold shadow-tile transition-opacity ${style.bg} ${style.fg} ${reveal && !correct ? 'opacity-40' : ''} ${correct ? 'reveal-pulse ring-4 ring-fg ring-offset-4 ring-offset-canvas' : ''}`}
                     >
                       <AnswerMark index={i} size="lg" />
-                      <span className="min-w-0 flex-1 break-words hyphens-auto">{o}</span>
+                      <span className="flex-1">{o}</span>
                       {reveal && (
                         <span className="flex items-center gap-2 text-2xl">
                           {correct && (

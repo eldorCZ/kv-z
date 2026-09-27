@@ -97,10 +97,13 @@ describe('join rate limit and privacy', () => {
       const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(auth).send({})).body;
       const host = await connect(t.url);
       await emit(host, 'host_attach', { gameId: g.gameId, hostKey: new URL(g.hostUrl).hash.slice(5) });
-      const lobby = once<{ players: { nickname: string }[] }>(host, 'lobby_update');
+      const lobby = once<{ players: { nickname: string; avatar: string }[] }>(host, 'lobby_update');
       const p = await connect(t.url);
-      await emit(p, 'join', { pin: g.pin, nickname: '<img src=x>' });
-      expect((await lobby).players[0]!.nickname).toBe('<img src=x>'); // React renders it as text
+      const joined = await emit<{ ok: boolean; avatar: string }>(p, 'join', { pin: g.pin, nickname: '<img src=x>' });
+      const first = (await lobby).players[0]!;
+      expect(first.nickname).toBe('<img src=x>'); // React renders it as text
+      expect(first.avatar).toMatch(/^(hello|think|celebrate|encourage|sleep)$/);
+      expect(joined.avatar).toBe(first.avatar);
       host.disconnect();
       p.disconnect();
     } finally {

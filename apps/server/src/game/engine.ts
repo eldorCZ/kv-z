@@ -17,6 +17,7 @@ import {
   type RevealEvent,
   type ServerToClientEvents,
   type ShuffledOptions,
+  playerAvatarForId,
 } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
 import type { FastifyBaseLogger } from 'fastify';
@@ -127,7 +128,7 @@ export class LiveGame {
     return {
       pin: this.pin,
       locked: this.locked,
-      players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname, ...(p.isGuest ? { guest: true } : {}) })),
+      players: [...this.players.values()].map((p) => ({ id: p.id, nickname: p.nickname, avatar: playerAvatarForId(p.id), ...(p.isGuest ? { guest: true } : {}) })),
     };
   }
 
