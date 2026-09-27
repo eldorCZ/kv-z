@@ -1,0 +1,4 @@
+{"level":30,"time":1790518751891,"pid":1677458,"hostname":"vm12869","games":0,"audit":0,"names":0,"classes":{"classes":0,"accessLog":0},"retentionDays":365,"msg":"retention job finished"}
+{"level":30,"time":1790518751920,"pid":1677458,"hostname":"vm12869","msg":"Server listening at http://127.0.0.1:3010"}
+{"level":30,"time":1790518777540,"pid":1677458,"hostname":"vm12869","reqId":"req-3","req":{"method":"GET","url":"/"},"msg":"incoming request"}
+{"level":30,"time":1790518777543,"pid":1677458,"hostname":"vm12869","reqId":"req-3","res":{"statusCode":200},"responseTime":1.82018799999787,"msg":"request completed"}
