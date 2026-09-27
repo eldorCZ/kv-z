@@ -18,3 +18,7 @@ kviz.log
 apps/web/public/brand/
 apps/web/public/icons/
 apps/web/public/favicon.svg
+
+# provozní logy a zálohy databáze před nasazením
+*.log
+/zalohy/
