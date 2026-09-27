@@ -304,11 +304,12 @@ export default function Host() {
               )}
             </div>
             {question.imageUrl && (
+              // s odpovědními dlaždicemi musí obrázek ustoupit, jinak vytlačí poslední možnost mimo plátno
               <img
                 src={question.imageUrl}
                 alt=""
                 data-testid="host-image"
-                className="max-h-[46vh] w-auto self-center rounded-lg border border-line object-contain shadow-soft"
+                className={`${question.options.length > 0 && question.type !== 'image-label' ? 'max-h-[26vh]' : 'max-h-[52vh]'} min-h-0 w-auto self-center rounded-lg border border-line object-contain shadow-soft`}
               />
             )}
             {/* image-label: popisky nejsou možnosti k výběru, jen ukazují, co mají žáci umístit */}

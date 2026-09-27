@@ -320,7 +320,10 @@ export default function Play() {
           </p>
           <TimerRing remaining={remaining} total={question.timeLimitSec} size="md" />
         </div>
-        {question.imageUrl && <img src={question.imageUrl} alt="" className="max-h-[38vh] rounded-lg border border-line object-contain shadow-soft" />}
+        {/* u přiřazování je obrázek už v pracovní ploše níž – na telefonu by se zobrazil dvakrát */}
+        {question.imageUrl && question.type !== 'image-label' && (
+          <img src={question.imageUrl} alt="" className="max-h-[38vh] rounded-lg border border-line object-contain shadow-soft" />
+        )}
         <AnswerInput q={question} onAnswer={answer} disabled={paused || remaining === 0} />
         {error && (
           <p role="alert" className="rounded bg-danger p-2 text-sm text-on-danger">
@@ -487,7 +490,7 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
     const active = labelIndex !== null && !placed.has(labelIndex) ? labelIndex : nextUnplaced >= 0 ? nextUnplaced : null;
     return (
       <div className="flex flex-1 flex-col gap-3">
-        <p className="self-start rounded-md bg-panel px-3 py-1 text-base">Přetáhni názvy na správná místa v obrázku.</p>
+        <p className="self-start rounded-md bg-panel px-3 py-1 text-base">Vyber název a klepni do obrázku na správné místo.</p>
         <div className="flex flex-wrap gap-2">
           {labels.map((label, i) => (
             <button key={i} type="button" disabled={disabled || placed.has(i)} onClick={() => setLabelIndex(i)} className={`rounded-md px-3 py-2 text-sm font-bold ${active === i ? 'bg-primary text-on-primary' : placed.has(i) ? 'bg-success-soft text-success' : 'bg-panel shadow-soft'}`}>
@@ -512,7 +515,6 @@ function AnswerInput({ q, onAnswer, disabled }: { q: PublicQuestion; onAnswer: (
           data-testid="image-label-board"
         >
           {q.imageUrl && <img src={q.imageUrl} alt="" className="h-full max-h-80 w-full object-contain" />}
-          <span className="absolute inset-x-4 top-4 rounded bg-panel/80 p-2 text-sm">Vyber název nahoře a klikni do obrázku na správné místo.</span>
           {placements.map((p) => <span key={p.optionIndex} style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }} className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-primary px-2 py-1 text-sm font-bold text-on-primary">{labels[p.optionIndex]}</span>)}
         </button>
         <button disabled={disabled || placements.length !== labels.length} onClick={() => onAnswer({ placements })} className="btn-press mt-auto min-h-14 rounded-lg bg-primary py-4 text-xl font-bold text-on-primary shadow-pop disabled:opacity-50" data-testid="submit-answer">
