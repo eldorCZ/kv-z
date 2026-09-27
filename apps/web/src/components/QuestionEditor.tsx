@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, apiUpload, ApiError } from "../api";
 import { Button, Field, inputCls } from "./ui";
+import { ImagePinEditor } from "./ImagePinEditor";
 import { StudentPreview } from "./StudentPreview";
 
 export interface EditableQuestion {
@@ -412,20 +413,16 @@ export default function QuestionEditor({
 
         {draft.type === "image-label" && (
           <fieldset>
-            <legend className="mb-1 text-sm font-medium text-fg">Popisky do obrázku</legend>
-            <p className="mb-2 text-xs text-muted">Souřadnice jsou v procentech šířky/výšky obrázku. Žák přetáhne názvy na správná místa.</p>
-            <ul className="space-y-2">
-              {draft.imageLabels.map((l, i) => (
-                <li key={i} className="grid gap-2 rounded-md border border-line p-2 sm:grid-cols-[1fr_80px_80px_80px_auto]">
-                  <input className={inputCls} value={l.text} maxLength={60} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, text: e.target.value } : x))} aria-label={`Popisek ${i + 1}`} />
-                  <input className={inputCls} type="number" min={0} max={100} value={Math.round(l.x * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, x: Math.max(0, Math.min(1, Number(e.target.value) / 100)) } : x))} aria-label={`X ${i + 1}`} />
-                  <input className={inputCls} type="number" min={0} max={100} value={Math.round(l.y * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, y: Math.max(0, Math.min(1, Number(e.target.value) / 100)) } : x))} aria-label={`Y ${i + 1}`} />
-                  <input className={inputCls} type="number" min={3} max={30} value={Math.round(l.radius * 100)} onChange={(e) => set("imageLabels", draft.imageLabels.map((x, j) => j === i ? { ...x, radius: Math.max(0.03, Math.min(0.3, Number(e.target.value) / 100)) } : x))} aria-label={`Tolerance ${i + 1}`} />
-                  {draft.imageLabels.length > 1 && <Button type="button" variant="ghost" className="text-danger" onClick={() => set("imageLabels", draft.imageLabels.filter((_, j) => j !== i))}>✕</Button>}
-                </li>
-              ))}
-            </ul>
-            {draft.imageLabels.length < 5 && <Button type="button" className="mt-2" onClick={() => set("imageLabels", [...draft.imageLabels, { text: "", x: 0.5, y: 0.5, radius: 0.12 }])}>+ Přidat popisek</Button>}
+            <legend className="mb-1 text-sm font-medium text-fg">Místa v obrázku</legend>
+            {draft.imageId ? (
+              <ImagePinEditor
+                src={`/media/theme/${draft.imageId}/1280.webp`}
+                pins={draft.imageLabels}
+                onChange={(pins) => set("imageLabels", pins)}
+              />
+            ) : (
+              <p className="rounded-md bg-panel px-3 py-2 text-sm text-muted">Nejdřív nahrajte obrázek otázky, pak do něj půjde klepnout.</p>
+            )}
             <ErrList path="imageLabels" />
           </fieldset>
         )}

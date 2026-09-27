@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router';
 import RosterCodeStep from '../classes/RosterCodeStep';
+import { ImageLabelBoard } from '../components/ImageLabelBoard';
 import { AnswerMark, answerStyle } from '../components/Shapes';
 import { GuardController, type HeartbeatStatus } from '../leave-guard-client';
 import { useCountdown } from '../socket';
@@ -546,7 +547,8 @@ function formatTime(sec: number) {
 function TestAnswer({ q, value, onChange, disabled }: { q: PublicQuestion; value: unknown; onChange: (p: unknown) => void; disabled: boolean }) {
   const { t } = useTranslation();
   const v = (value ?? {}) as { indices?: number[]; order?: number[]; text?: string; value?: string; placements?: { optionIndex: number; x: number; y: number }[] };
-  if (q.type === 'image-label') return <TestImageLabel q={q} placements={v.placements ?? []} onChange={(placements) => onChange({ placements })} disabled={disabled} />;
+  if (q.type === 'image-label')
+    return <ImageLabelBoard imageUrl={q.imageUrl} labels={q.imageLabels ?? []} placements={v.placements ?? []} onChange={(placements) => onChange({ placements })} disabled={disabled} testId="test-image-label-board" />;
   if (q.type === 'single' || q.type === 'truefalse' || q.type === 'multi') {
     const multi = q.type === 'multi';
     const selected = v.indices ?? [];
@@ -622,76 +624,3 @@ function TestAnswer({ q, value, onChange, disabled }: { q: PublicQuestion; value
   );
 }
 
-/**
- * Přiřazování popisků do obrázku v testovém režimu. Na rozdíl od živé hry je odpověď
- * řízená zvenčí (dá se měnit až do odevzdání), proto se pozice drží v `placements`
- * a lokálně si pamatujeme jen to, který popisek je zrovna vybraný.
- */
-function TestImageLabel({
-  q,
-  placements,
-  onChange,
-  disabled,
-}: {
-  q: PublicQuestion;
-  placements: { optionIndex: number; x: number; y: number }[];
-  onChange: (p: { optionIndex: number; x: number; y: number }[]) => void;
-  disabled: boolean;
-}) {
-  const labels = q.imageLabels ?? [];
-  const [vybrany, setVybrany] = useState<number | null>(0);
-  const umisteno = new Set(placements.map((p) => p.optionIndex));
-  const dalsiVolny = labels.findIndex((_, i) => !umisteno.has(i));
-  const aktivni = vybrany !== null && !umisteno.has(vybrany) ? vybrany : dalsiVolny >= 0 ? dalsiVolny : null;
-
-  return (
-    <div className="grid gap-3">
-      <p className="text-sm text-muted">Vyber název a klepni do obrázku na správné místo. Umístěný název můžeš přesunout tak, že ho vybereš znovu.</p>
-      <div className="flex flex-wrap gap-2">
-        {labels.map((label, i) => (
-          <button
-            key={i}
-            type="button"
-            disabled={disabled}
-            onClick={() => setVybrany(i)}
-            aria-pressed={aktivni === i}
-            className={`rounded-md px-3 py-2 text-sm font-semibold ${aktivni === i ? 'bg-primary text-on-primary' : umisteno.has(i) ? 'bg-success-soft text-success' : 'bg-panel'}`}
-          >
-            {umisteno.has(i) ? '✓ ' : ''}
-            {label}
-          </button>
-        ))}
-      </div>
-      <button
-        type="button"
-        disabled={disabled || aktivni === null}
-        data-testid="test-image-label-board"
-        className="relative min-h-48 overflow-hidden rounded-lg border-2 border-dashed border-line bg-canvas p-0"
-        onClick={(e) => {
-          if (aktivni === null) return;
-          const r = e.currentTarget.getBoundingClientRect();
-          const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-          const y = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
-          onChange([...placements.filter((p) => p.optionIndex !== aktivni), { optionIndex: aktivni, x, y }]);
-          setVybrany(labels.findIndex((_, i) => i !== aktivni && !placements.some((p) => p.optionIndex === i)));
-        }}
-      >
-        {q.imageUrl && <img src={q.imageUrl} alt="" className="h-full max-h-80 w-full object-contain" />}
-        {placements.map((p) => (
-          <span
-            key={p.optionIndex}
-            style={{ left: `${p.x * 100}%`, top: `${p.y * 100}%` }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-primary px-2 py-1 text-sm font-bold text-on-primary"
-          >
-            {labels[p.optionIndex]}
-          </span>
-        ))}
-      </button>
-      {placements.length > 0 && (
-        <button type="button" disabled={disabled} onClick={() => onChange([])} className="justify-self-start rounded-md border border-line px-3 py-1 text-sm text-muted">
-          Vymazat umístění
-        </button>
-      )}
-    </div>
-  );
-}
