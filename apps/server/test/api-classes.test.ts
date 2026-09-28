@@ -160,3 +160,22 @@ describe('mazání aktivity z evidence třídy', () => {
     expect(aktivity.n).toBe(0);
   });
 });
+
+describe('výsledky třídní hry: číslo ve výkazu', () => {
+  it('ranking nese rosterNo a CSV má sloupec Číslo; u hry bez třídy ne', async () => {
+    const cls = await classWithStudents(t, sess, ['horak1', 'novak2'], '6.D');
+    const kvizId = (await t.http.post('/api/v1/quizzes').set(agent).send(quiz)).body.quizId;
+
+    const tridni = (await t.http.post(`/api/v1/quizzes/${kvizId}/games`).set(agent).send({ mode: 'live', settings: { classId: cls.classId } })).body;
+    const r = await t.http.get(`/api/v1/games/${tridni.gameId}/results`).set('cookie', sess.cookie);
+    expect(r.body.classGame).toBe(true);
+    const csv = await t.http.get(`/api/v1/games/${tridni.gameId}/results.csv`).set('cookie', sess.cookie);
+    expect(csv.text.split('\n')[0]).toContain('Číslo');
+
+    const bezTridy = (await t.http.post(`/api/v1/quizzes/${kvizId}/games`).set(agent).send({ mode: 'live' })).body;
+    const r2 = await t.http.get(`/api/v1/games/${bezTridy.gameId}/results`).set('cookie', sess.cookie);
+    expect(r2.body.classGame).toBe(false);
+    const csv2 = await t.http.get(`/api/v1/games/${bezTridy.gameId}/results.csv`).set('cookie', sess.cookie);
+    expect(csv2.text.split('\n')[0]).not.toContain('Číslo');
+  });
+});

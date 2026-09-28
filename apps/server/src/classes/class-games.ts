@@ -189,6 +189,15 @@ export class ClassGames {
     return (p) => (p.studentId && names.get(p.studentId)) || (p.studentId ? p.nickname : `${p.nickname} (host)`);
   }
 
+  /**
+   * Čísla v třídním výkazu podle id žáka. Učitel podle nich zapisuje známky,
+   * takže je posíláme k výsledkům; u hry bez třídy je mapa prázdná.
+   */
+  rosterNumbers(g: GameRow): Map<string, number | null> {
+    if (!g.classId) return new Map();
+    return new Map(this.classes.students(g.classId).map((s) => [s.id, s.rosterNo ?? null]));
+  }
+
   accountNames(classId: string): Map<string, string> {
     return new Map(this.classes.students(classId).map((s) => [s.id, s.accountName]));
   }

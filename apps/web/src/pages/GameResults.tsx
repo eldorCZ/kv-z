@@ -19,7 +19,8 @@ interface Results {
   status: string;
   quizId: string;
   playerCount: number;
-  ranking: { nickname: string; score: number; rank: number }[];
+  classGame?: boolean;
+  ranking: { nickname: string; score: number; rank: number; rosterNo?: number | null }[];
   perQuestion: { questionId: string; number: number; prompt: string; answered: number; correct: number; successRate: number; avgTimeMs: number | null }[];
 }
 
@@ -28,6 +29,9 @@ export default function GameResults() {
   const { id } = useParams();
   const [res, setRes] = useState<Results | TestResults | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
+  // u třídní hry si učitel může přepnout na pořadí podle třídního výkazu:
+  // zapisuje pak známky shora dolů, jak je má v katalogu
+  const [podleVykazu, setPodleVykazu] = useState(false);
 
   useEffect(() => {
     api<Results | TestResults>('GET', `/api/v1/games/${id}/results`)
@@ -38,6 +42,10 @@ export default function GameResults() {
   if (!res) return <ErrorBox error={error} />;
   if (res.mode === 'test') return <TestResultsView res={res} id={id!} onError={setError} error={error} />;
   const hardest = [...res.perQuestion].sort((a, b) => a.successRate - b.successRate).slice(0, 3);
+  const tridni = !!res.classGame;
+  const radky = podleVykazu
+    ? [...res.ranking].sort((a, b) => (a.rosterNo ?? 999) - (b.rosterNo ?? 999) || a.nickname.localeCompare(b.nickname, 'cs'))
+    : res.ranking;
 
   return (
     <div className="space-y-6">
@@ -57,20 +65,30 @@ export default function GameResults() {
         </div>
       )}
       <section>
-        <h2 className="mb-2 text-lg font-semibold">{t('results.ranking')}</h2>
+        <div className="mb-2 flex flex-wrap items-center gap-3">
+          <h2 className="text-lg font-semibold">{t('results.ranking')}</h2>
+          {tridni && (
+            <Button size="sm" onClick={() => setPodleVykazu(!podleVykazu)} data-testid="sort-toggle">
+              {podleVykazu ? t('results.sortByScore') : t('results.sortByRoster')}
+            </Button>
+          )}
+        </div>
+        {!tridni && <p className="mb-2 rounded-md bg-info-soft p-2 text-sm text-info">{t('results.noClassHint')}</p>}
         <div className="overflow-x-auto rounded-lg border border-line bg-surface">
           <table className="w-full text-left text-sm">
             <thead className="bg-surface-2 text-xs uppercase text-muted">
               <tr>
                 <th className="p-3">#</th>
-                <th className="p-3">{t('results.nickname')}</th>
+                {tridni && <th className="p-3">{t('results.rosterNo')}</th>}
+                <th className="p-3">{tridni ? t('results.student') : t('results.nickname')}</th>
                 <th className="p-3 text-right">{t('results.score')}</th>
               </tr>
             </thead>
             <tbody>
-              {res.ranking.map((r, i) => (
+              {radky.map((r, i) => (
                 <tr key={i} className="border-t border-line">
                   <td className="p-3">{r.rank}.</td>
+                  {tridni && <td className="p-3 tabular">{r.rosterNo ?? '—'}</td>}
                   <td className="p-3">{r.nickname}</td>
                   <td className="p-3 text-right font-mono">{r.score}</td>
                 </tr>

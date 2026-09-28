@@ -101,14 +101,16 @@ export class GameService {
     };
   }
 
-  results(row: GameRow, naming?: PlayerNaming) {
+  results(row: GameRow, naming?: PlayerNaming, rosterNos?: Map<string, number | null>) {
     const players = this.repo.players(row.id).map((p, i) => (naming ? { ...p, nickname: naming({ studentId: p.studentId ?? null, nickname: p.nickname }, i) } : p));
     const answers = this.repo.answers(row.id);
     const quiz = this.quizzes.get(row.quizId);
     const qmap = new Map(quiz?.questions.map((q) => [q.id, q]));
     const scores = new Map(players.map((p) => [p.id, 0]));
     for (const a of answers) scores.set(a.playerId, (scores.get(a.playerId) ?? 0) + a.points);
-    const sorted = players.map((p) => ({ playerId: p.id, nickname: p.nickname, score: scores.get(p.id) ?? 0 })).sort((a, b) => b.score - a.score || a.nickname.localeCompare(b.nickname, 'cs'));
+    const sorted = players
+      .map((p) => ({ playerId: p.id, nickname: p.nickname, score: scores.get(p.id) ?? 0, rosterNo: p.studentId ? (rosterNos?.get(p.studentId) ?? null) : null }))
+      .sort((a, b) => b.score - a.score || a.nickname.localeCompare(b.nickname, 'cs'));
     const ranking = sorted.map((p) => ({ ...p, rank: 1 + sorted.filter((o) => o.score > p.score).length }));
     const perQuestion = row.questionIds.map((qid, i) => {
       const as = answers.filter((a) => a.questionId === qid);
@@ -123,12 +125,12 @@ export class GameService {
         avgTimeMs: as.length ? Math.round(as.reduce((s, a) => s + a.elapsedMs, 0) / as.length) : null,
       };
     });
-    return { gameId: row.id, quizId: row.quizId, status: this.status(row).status, playerCount: players.length, ranking, perQuestion };
+    return { gameId: row.id, quizId: row.quizId, classGame: !!row.classId, status: this.status(row).status, playerCount: players.length, ranking, perQuestion };
   }
 
   /** CSV with nickname, score and answers only (no personal data). Semicolon separated + BOM for Czech Excel. */
-  resultsCsv(row: GameRow, naming?: PlayerNaming): string {
-    const res = this.results(row, naming);
+  resultsCsv(row: GameRow, naming?: PlayerNaming, rosterNos?: Map<string, number | null>): string {
+    const res = this.results(row, naming, rosterNos);
     const answers = this.repo.answers(row.id);
     const quiz = this.quizzes.get(row.quizId);
     const qmap = new Map(quiz?.questions.map((q) => [q.id, q]));
@@ -146,10 +148,17 @@ export class GameService {
       if (payload.value !== undefined) return String(payload.value);
       return '';
     };
-    const header = ['Pořadí', 'Přezdívka', 'Skóre', ...res.perQuestion.flatMap((q) => [`Otázka ${q.number}`, `Otázka ${q.number} správně`])];
+    // U třídní hry řadíme podle čísla v třídním výkazu a číslo dáváme do prvního
+    // sloupce: učitel pak zapisuje známky rovnou shora dolů podle výkazu.
+    const header = res.classGame
+      ? ['Číslo', 'Pořadí', 'Přezdívka', 'Skóre', ...res.perQuestion.flatMap((q) => [`Otázka ${q.number}`, `Otázka ${q.number} správně`])]
+      : ['Pořadí', 'Přezdívka', 'Skóre', ...res.perQuestion.flatMap((q) => [`Otázka ${q.number}`, `Otázka ${q.number} správně`])];
     const lines = [header.map(cell).join(';')];
-    for (const p of res.ranking) {
-      const cols: unknown[] = [p.rank, p.nickname, p.score];
+    const radky = res.classGame
+      ? [...res.ranking].sort((a, b) => (a.rosterNo ?? 999) - (b.rosterNo ?? 999) || a.nickname.localeCompare(b.nickname, 'cs'))
+      : res.ranking;
+    for (const p of radky) {
+      const cols: unknown[] = res.classGame ? [p.rosterNo ?? '', p.rank, p.nickname, p.score] : [p.rank, p.nickname, p.score];
       for (const q of res.perQuestion) {
         const a = answers.find((x) => x.playerId === p.playerId && x.questionId === q.questionId);
         cols.push(a ? render(q.questionId, JSON.parse(a.payloadJson)) : '', a ? (a.correct ? 'ano' : 'ne') : '');

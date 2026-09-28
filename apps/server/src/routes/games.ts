@@ -56,7 +56,7 @@ export const gameRoutes =
       const pii = req.auth!.scopes.has('results:pii');
       const naming = s.classGames.naming(g, pii);
       if (g.mode === 'test') return s.testService.results(g, pii, naming);
-      return s.gameService.results(g, naming);
+      return s.gameService.results(g, naming, s.classGames.rosterNumbers(g));
     });
 
     app.get<GameParams>('/games/:id/results.csv', { config: { scope: 'games:read' } }, async (req, reply) => {
@@ -66,7 +66,7 @@ export const gameRoutes =
       return reply
         .type('text/csv; charset=utf-8')
         .header('content-disposition', `attachment; filename="vysledky-${g.id}.csv"`)
-        .send(g.mode === 'test' ? s.testService.resultsCsv(g, naming) : s.gameService.resultsCsv(g, naming));
+        .send(g.mode === 'test' ? s.testService.resultsCsv(g, naming) : s.gameService.resultsCsv(g, naming, s.classGames.rosterNumbers(g)));
     });
 
     // ---------- test mode: teacher dashboard (D8), only in the app (not for API tokens) ----------
