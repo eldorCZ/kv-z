@@ -163,8 +163,14 @@ async function gameShots(browser: Browser, teacher: Page, ctx: ScreenCtx, scheme
   await teacher.goto(`${ctx.url}/quizzes/${ctx.quizId}`);
   await teacher.getByTestId('start-game').click();
   await teacher.getByTestId('confirm-start').click();
-  const pin = (await teacher.getByTestId('pin').textContent())!.replace(/\s/g, '');
-  const hostHref = (await teacher.getByTestId('open-host').getAttribute('href'))!;
+  // živá hra se otevře rovnou do lobby v témže okně; odkaz na druhou obrazovku
+  // si učitel kopíruje odtud (proto ho tu bereme ze schránky)
+  await teacher.getByTestId('host-pin').waitFor();
+  const pin = (await teacher.getByTestId('host-pin').textContent())!.replace(/\s/g, '');
+  await teacher.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await teacher.getByTestId('copy-host').click();
+  // scripts/ se překládá bez DOM knihovny, proto si schránku popíšeme ručně
+  const hostHref = await teacher.evaluate(() => (navigator as unknown as { clipboard: { readText(): Promise<string> } }).clipboard.readText());
   const host = await teacher.context().newPage();
   await host.setViewportSize(PROJECTOR);
   await host.goto(new URL(hostHref, ctx.url).href);

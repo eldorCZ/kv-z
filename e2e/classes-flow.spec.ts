@@ -53,7 +53,10 @@ async function startFromReview(page: Page, reviewPath: string, className: string
   }
   await page.getByTestId('game-class').selectOption({ label: className });
   await page.getByTestId('confirm-start').click();
-  return (await page.getByTestId('pin').textContent())!.replace(/\s/g, '');
+  // test zůstává v okně s PINem, živá hra jde rovnou do lobby na projektor
+  const pin = mode === 'test' ? page.getByTestId('pin') : page.getByTestId('host-pin');
+  await expect(pin).toBeVisible();
+  return (await pin.textContent())!.replace(/\s/g, '');
 }
 
 test('classes: roster, class test with codes, makeup, matrix, live class game', async ({ page, browser, request }) => {
@@ -131,9 +134,11 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
 
   // ---------- live class game: the projector shows account names only, never codes ----------
   const livePin = await startFromReview(page, reviewPath, '8.B Fyzika', 'live');
-  const hostUrl = await page.getByTestId('open-host').getAttribute('href');
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByTestId('copy-host').click();
+  const hostUrl = await page.evaluate(() => navigator.clipboard.readText());
   const projector = await browser.newPage();
-  await projector.goto(hostUrl!);
+  await projector.goto(hostUrl);
   await expect(projector.getByTestId('host-pin')).toHaveText(new RegExp(livePin.slice(0, 3)));
   await expect(projector.getByTestId('host-not-joined')).toContainText('erbenova5');
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });

@@ -26,6 +26,11 @@ export default function Host() {
   const [title, setTitle] = useState('');
   const [joinUrl, setJoinUrl] = useState('');
   const [qr, setQr] = useState('');
+  const [zkopirovano, setZkopirovano] = useState<'' | 'pozvanka' | 'ovladani'>('');
+  const oznam = (co: 'pozvanka' | 'ovladani') => {
+    setZkopirovano(co);
+    setTimeout(() => setZkopirovano(''), 2500);
+  };
   const [state, setState] = useState<HostState | null>(null);
   const [lobby, setLobby] = useState<LobbyUpdate | null>(null);
   const [question, setQuestion] = useState<PublicQuestion | null>(null);
@@ -232,6 +237,36 @@ export default function Host() {
                 <p className="font-display text-4xl font-bold break-all text-primary">{joinUrl.replace(/^https?:\/\//, '')}</p>
               </div>
               <PinDisplay pin={lobby.pin} />
+              {/* pozvánka k odeslání do Teams/Bakalářů – učitel ji jinak musí skládat ručně
+                  a odkaz pro ovládání, který má po ruce, žákům poslat nesmí */}
+              <div className="flex flex-wrap gap-2">
+                <HostButton
+                  testId="copy-invite"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(t('game.inviteText', { title, url: joinUrl, pin: lobby.pin }));
+                    oznam('pozvanka');
+                  }}
+                >
+                  {zkopirovano === 'pozvanka' ? t('game.inviteCopied') : t('game.copyInvite')}
+                </HostButton>
+                {/* Klíč pro ovládání se z adresy hned schová (projektor), ale drží se
+                    v této záložce – odsud si ho učitel může poslat na druhou obrazovku. */}
+                <HostButton
+                  testId="copy-host"
+                  onClick={() => {
+                    let klic = '';
+                    try {
+                      klic = sessionStorage.getItem(keyStorage(gameId!)) ?? '';
+                    } catch {
+                      /* soukromé okno */
+                    }
+                    void navigator.clipboard?.writeText(`${location.origin}/host/${gameId}${klic ? `#key=${klic}` : ''}`);
+                    oznam('ovladani');
+                  }}
+                >
+                  {zkopirovano === 'ovladani' ? t('game.hostCopied') : t('game.copyHost')}
+                </HostButton>
+              </div>
               {state.codeAlert && (
                 <p role="alert" className="flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-lg font-semibold text-on-accent">
                   <TriangleAlert aria-hidden="true" className="h-5 w-5 shrink-0" /> {t('host.codeAlert')}

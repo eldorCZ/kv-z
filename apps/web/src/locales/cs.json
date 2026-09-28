@@ -167,7 +167,11 @@
     "qrAlt": "QR kód pro připojení žáků",
     "joinAt": "Žáci se připojí na",
     "openHost": "Otevřít projektor a ovládání",
+    "copyInvite": "Kopírovat pozvánku pro žáky",
+    "inviteCopied": "Pozvánka zkopírována do schránky.",
+    "inviteText": "{{title}} – připoj se na {{url}} a zadej PIN {{pin}}.",
     "copyHost": "Kopírovat odkaz pro ovládání",
+    "hostCopied": "Odkaz pro ovládání zkopírován.",
     "hostHint": "Odkaz pro ovládání neposílejte žákům. Platí jen pro tuto hru.",
     "modeLabel": "Režim",
     "modes": {

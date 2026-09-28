@@ -1,7 +1,7 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { api, ApiError } from '../api';
 import type { QuizDto } from '../pages/QuizReview';
 import { Button, ErrorBox, Field, inputCls, Modal } from './ui';
@@ -34,6 +34,7 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
   const { t } = useTranslation();
   const { theme: scheme } = usePrefs();
   const toast = useToast();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'live' | 'test'>('live');
   // look of this game only (V7.2); undefined = the quiz's look
   const [gameLook, setGameLook] = useState<Look | undefined>(undefined);
@@ -110,6 +111,13 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
               },
             };
       const r = await api<Created>('POST', `/api/v1/quizzes/${quiz.id}/games`, body);
+      // Živá hra jde rovnou do lobby: PIN, QR i adresa jsou na projektoru větší
+      // a učitel nemusí mačkat další tlačítko. Mezikrok by jen zdržoval.
+      if (r.mode !== 'test' && r.hostUrl) {
+        const u = new URL(r.hostUrl);
+        navigate(u.pathname + u.hash);
+        return;
+      }
       setCreated(r);
       setQr(await QRCode.toDataURL(r.qrUrl, { margin: 1, width: 240 }));
     } catch (e) {
@@ -330,9 +338,20 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
             {t('game.joinAt')} <strong>{created.joinUrl}</strong>
           </p>
           {created.mode === 'test' ? (
-            <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-dashboard">
-              {t('game.openDashboard')}
-            </Link>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link to={`/tests/${created.gameId}`} className="inline-block rounded-md bg-primary px-4 py-2 font-medium text-on-primary hover:bg-primary-hover" data-testid="open-dashboard">
+                {t('game.openDashboard')}
+              </Link>
+              <Button
+                data-testid="copy-invite"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(t('game.inviteText', { title: quiz.title, url: created.joinUrl, pin: created.pin }));
+                  toast(t('game.inviteCopied'));
+                }}
+              >
+                {t('game.copyInvite')}
+              </Button>
+            </div>
           ) : (
             <>
               <div className="flex flex-wrap justify-center gap-2">

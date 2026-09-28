@@ -92,12 +92,11 @@ test('teacher flow + live game with 3 players', async ({ page, browser, request 
   // ---------- starts a game ----------
   await page.getByTestId('start-game').click();
   await page.getByTestId('confirm-start').click();
-  const pin = (await page.getByTestId('pin').textContent())!.replace(/\s/g, '');
+  // živá hra se otevře rovnou do lobby v témže okně, žádný mezikrok s PINem
+  const host = page;
+  await expect(host.getByTestId('host-pin')).toBeVisible();
+  const pin = (await host.getByTestId('host-pin').textContent())!.replace(/\s/g, '');
   expect(pin).toMatch(/^\d{6}$/);
-  const hostHref = await page.getByTestId('open-host').getAttribute('href');
-  const host = await page.context().newPage();
-  await host.goto(hostHref!);
-  await expect(host.getByTestId('host-pin')).toHaveText(`${pin.slice(0, 3)} ${pin.slice(3)}`);
   // host key is removed from the address bar (projector)
   expect(host.url()).not.toContain('key=');
 

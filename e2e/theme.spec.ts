@@ -52,8 +52,12 @@ test('teacher picks a look in the editor; the card, the host and the student sho
   await teacher.getByTestId('theme-apply-game').click();
   await expect(teacher.getByTestId('game-look-name')).toContainText('Les · Modrá · jen pro tuto hru');
   await teacher.getByTestId('confirm-start').click();
-  const pin = (await teacher.getByTestId('pin').textContent())!.replace(/\s/g, '');
-  const hostHref = (await teacher.getByTestId('open-host').getAttribute('href'))!;
+  // rovnou v lobby; odkaz pro druhou obrazovku si učitel zkopíruje odsud
+  await expect(teacher.getByTestId('host-pin')).toBeVisible();
+  const pin = (await teacher.getByTestId('host-pin').textContent())!.replace(/\s/g, '');
+  await teacher.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await teacher.getByTestId('copy-host').click();
+  const hostHref = await teacher.evaluate(() => navigator.clipboard.readText());
   // the quiz changes afterwards – the running game keeps its look
   await teacher.request.patch(`/api/v1/quizzes/${quizId}`, { headers: auth(), data: { theme: { motive: 'more' } } });
 
