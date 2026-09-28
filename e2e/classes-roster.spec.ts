@@ -44,7 +44,7 @@ test('tisk karet: pod kartami nezůstává prázdná stránka', async ({ page })
   // na kartě musí být i adresa k ručnímu opsání, QR kód sám o sobě stačit nemůže
   const prvni = page.locator('.code-card').first();
   await expect(prvni).toContainText('Přihlaš se na');
-  await expect(prvni).toContainText(`${new URL(page.url()).host}/kod`);
+  await expect(prvni).toContainText(`${new URL(page.url()).host}/play`);
   await expect(prvni.locator('img')).toHaveCount(1);
 
   await page.emulateMedia({ media: 'print' });

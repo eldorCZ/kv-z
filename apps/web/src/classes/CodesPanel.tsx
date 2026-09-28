@@ -31,8 +31,9 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
     return () => window.removeEventListener('beforeunload', h);
   }, []);
 
-  // adresa pro ruční zadání – bez https:// a bez kódu, ten je na kartě zvlášť
-  const prihlaseniUrl = `${window.location.host}/kod`;
+  // Adresa pro ruční opsání. Schválně /play, ne /kod: /kod funguje jen s kódem
+  // v odkazu z QR, ručně opsaná by skončila hláškou o neplatném kódu.
+  const prihlaseniUrl = `${window.location.host}/play`;
 
   const print = () => {
     if (!confirm(t('roster.printWarning'))) return;
