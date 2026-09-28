@@ -293,7 +293,13 @@
       "finished": "dokončena",
       "aborted": "přerušena"
     },
-    "testBadge": "Test"
+    "testBadge": "Test",
+  "delete": "Smazat",
+  "deleteConfirm": "Opravdu smazat {{co}} „{{nazev}}“ z {{datum}}?\n\nSmažou se i všechny odpovědi a výsledky žáků a nepůjdou obnovit. U třídní hry zmizí výsledky i z přehledu třídy.",
+  "deleteGame": "hru",
+  "deleteTest": "test",
+  "deleted": "Smazáno.",
+  "deleteRunning": "Běžící hru nejde smazat. Nejdřív ji ukončete."
   },
   "results": {
     "title": "Výsledky hry",

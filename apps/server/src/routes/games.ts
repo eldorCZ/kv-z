@@ -141,6 +141,18 @@ export const gameRoutes =
       return s.classAdmin.guests(g);
     });
 
+    app.delete<GameParams>('/games/:id', { config: { scope: 'games:write' } }, async (req, reply) => {
+      const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
+      if (!g) return;
+      // Rozehranou hru nemažeme pod rukama žákům – ať ji učitel nejdřív ukončí.
+      const live = s.games.get(g.id);
+      const bezi = g.mode === 'test' ? g.status === 'running' : !!live && !live.finished;
+      if (bezi) return sendError(reply, 409, 'Hra ještě běží. Nejdřív ji ukončete, pak půjde smazat.', 'game_running');
+      if (live) s.games.remove(g.id);
+      s.gameRepo.delete(g.id);
+      return reply.code(204).send();
+    });
+
     app.post<GameParams>('/games/:id/end', { config: { scope: 'games:write' } }, async (req, reply) => {
       const g = ownedGame(req.params.id, req.auth!.teacherId, reply);
       if (!g) return;

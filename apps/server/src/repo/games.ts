@@ -174,6 +174,11 @@ export class GameRepo {
     return this.db.select().from(answers).where(eq(answers.gameId, gameId)).all();
   }
 
+  /** Učitel maže jednu doběhlou hru nebo test; hráči, odpovědi i pokusy odejdou kaskádou. */
+  delete(id: string): boolean {
+    return this.db.delete(games).where(eq(games.id, id)).run().changes > 0;
+  }
+
   /** Retention: delete games (and by cascade players and answers) older than the cutoff. */
   deleteOlderThan(cutoff: number): number {
     return this.db.delete(games).where(lt(games.createdAt, cutoff)).run().changes;

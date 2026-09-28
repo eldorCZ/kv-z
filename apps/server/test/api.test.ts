@@ -311,6 +311,30 @@ describe('games via API', () => {
     const res = await t.http.get(`/api/v1/games/${r.body.gameId}/results`).set(auth());
     expect(res.body).toMatchObject({ ranking: [], perQuestion: expect.any(Array) });
   });
+
+  it('smaže doběhlou hru, běžící odmítne a cizí nenajde', async () => {
+    const id = (await t.http.post('/api/v1/quizzes').set(auth()).send(fixture('valid/optika.json'))).body.quizId;
+    const gameId = (await t.http.post(`/api/v1/quizzes/${id}/games`).set(auth()).send({ mode: 'live' })).body.gameId;
+
+    // dokud hra běží (čeká v lobby), smazat nejde
+    const bezici = await t.http.delete(`/api/v1/games/${gameId}`).set(auth());
+    expect(bezici.status).toBe(409);
+    expect(bezici.body.code).toBe('game_running');
+
+    await t.http.post(`/api/v1/games/${gameId}/end`).set(auth());
+
+    // cizí učitel ji nesmí ani vidět, natož smazat
+    const cizi = await teacher(t);
+    const ciziToken = (await apiToken(t, cizi)).token;
+    const pokus = await t.http.delete(`/api/v1/games/${gameId}`).set({ authorization: `Bearer ${ciziToken}` });
+    expect(pokus.status).toBe(404);
+    expect((await t.http.get(`/api/v1/games/${gameId}`).set(auth())).status).toBe(200);
+
+    const smazano = await t.http.delete(`/api/v1/games/${gameId}`).set(auth());
+    expect(smazano.status).toBe(204);
+    expect((await t.http.get(`/api/v1/games/${gameId}`).set(auth())).status).toBe(404);
+    expect((await t.http.get('/api/v1/games').set(auth())).body.games.some((g: { id: string }) => g.id === gameId)).toBe(false);
+  });
 });
 
 describe('topic and tags roundtrip (C10.1)', () => {
