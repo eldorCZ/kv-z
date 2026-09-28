@@ -295,7 +295,9 @@ export default function Play() {
   if (view === 'lobby')
     return shell(
       <Card testId="player-lobby">
-        <Mascot pose={me?.avatar ?? 'hello'} size={120} className="mx-auto mb-3" still />
+        {/* v lobby Lorík dýchá (L4/L7.5) – „still" sem omylem přišlo s výběrem postavy;
+            při prefers-reduced-motion ho stejně zastaví motiv, ne tahle vlastnost */}
+        <Mascot pose={me?.avatar ?? 'hello'} size={120} className="mx-auto mb-3" />
         <p className="text-3xl font-bold">{me?.nickname ? t('play.inGameAs', { name: me.nickname }) : t('play.inGame')}</p>
         <p className="mt-3 text-lg text-muted">{t('play.waitForStart')}</p>
       </Card>,

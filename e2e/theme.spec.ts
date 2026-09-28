@@ -186,14 +186,17 @@ test('Lorík: where he belongs in a live game, still under reduced motion, breat
   for (const [nick, motion] of [['mala4', 'reduce'], ['erben7', 'no-preference']] as const) {
     const p = await (await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: motion })).newPage();
     await p.goto(`/play?pin=${game.pin}`);
-    // PIN screen: hello, a single figure
-    await expect(p.getByTestId('mascot')).toHaveCount(1);
-    await expect(p.getByTestId('mascot')).toHaveAttribute('data-pose', 'hello');
-    await expect(p.getByTestId('mascot')).toHaveAttribute('alt', '');
+    // Přihlašovací obrazovka: nahoře jeden velký Lorík v póze „hello" a pod ním
+    // výběr postavy (pět menších). Dřív tu byl jediný – test se srovnal s tím,
+    // že si žák od zavedení výběru postavy vybírá.
+    const velky = p.getByTestId('mascot').first();
+    await expect(velky).toHaveAttribute('data-pose', 'hello');
+    await expect(velky).toHaveAttribute('alt', '');
+    await expect(p.getByTestId('avatar-picker').getByTestId('mascot')).toHaveCount(5);
     await p.getByLabel('Přezdívka').fill(nick);
     await p.getByRole('button', { name: 'Připojit se' }).click();
     await expect(p.getByTestId('player-lobby').getByTestId('mascot')).toHaveAttribute('data-pose', 'hello');
-    await p.getByTestId('mascot').evaluate((i: HTMLImageElement) => i.decode());
+    await p.getByTestId('mascot').first().evaluate((i: HTMLImageElement) => i.decode());
     phones.push(p);
   }
   expect(await running(phones[0]!)).toBe(0);
