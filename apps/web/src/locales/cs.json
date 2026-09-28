@@ -605,6 +605,7 @@
     "closeCodesConfirm": "Opravdu zavřít? Kódy už znovu neuvidíte.",
     "printWarning": "Výtisk obsahuje osobní kódy žáků. Karty rozdejte žákům a zbytek skartujte. Pokračovat?",
     "csvWarning": "Soubor obsahuje přihlašovací jména a osobní kódy žáků. Uložte ho bezpečně a po vytištění smažte. Pokračovat?",
+    "cardUrl": "Přihlaš se na",
     "cardText": "Tento kód je tvůj. Nikomu ho neukazuj a neposílej. Když ho ztratíš, řekni učiteli.",
     "title": "Soupiska ({{count}})",
     "rotateAll": "Nové kódy pro celou třídu",

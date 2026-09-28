@@ -31,6 +31,9 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
     return () => window.removeEventListener('beforeunload', h);
   }, []);
 
+  // adresa pro ruční zadání – bez https:// a bez kódu, ten je na kartě zvlášť
+  const prihlaseniUrl = `${window.location.host}/kod`;
+
   const print = () => {
     if (!confirm(t('roster.printWarning'))) return;
     void api('POST', `/api/v1/classes/${classId}/log`, { action: 'cards_print', count: codes.length }).catch(() => undefined);
@@ -86,6 +89,11 @@ export default function CodesPanel({ classId, className, codes, onClose }: { cla
                     {c.student.rosterNo ? ` (${c.student.rosterNo})` : ''}
                   </p>
                   <p className="mt-2 font-mono text-2xl font-extrabold tracking-widest">{c.code}</p>
+                  {/* adresa i slovy: ne každý žák má po ruce foťák a QR kód sám o sobě
+                      nikam nevede, když sedí u počítače */}
+                  <p className="mt-1 text-[11px] leading-tight">
+                    {t('roster.cardUrl')} <span className="font-mono font-semibold">{prihlaseniUrl}</span>
+                  </p>
                 </div>
                 {qrs[c.student.id] && <img src={qrs[c.student.id]} alt="" className="h-20 w-20" />}
               </div>
