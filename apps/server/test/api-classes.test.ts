@@ -130,3 +130,33 @@ describe('agent API for classes (C10.3)', () => {
     expect(ui1.body.ranking[0].nickname).toBe('horak1');
   });
 });
+
+describe('mazání aktivity z evidence třídy', () => {
+  it('smaže aktivitu i s dohrávkami, výsledky a hrou; cizí třídu nenajde', async () => {
+    const cls = await classWithStudents(t, sess, NAMES.slice(0, 3), '5.C');
+    const db = t.services.db.$client;
+    const ids = cls.created.map((c) => c.student.id);
+    const korenId = insertActivity(db, { classId: cls.classId, kind: 'test', label: 'Opakování', playedAt: Date.now(), rosterSize: 3, results: ids.map((id) => ({ studentId: id, percent: 70 })) });
+    const dohravkaId = insertActivity(db, { classId: cls.classId, kind: 'test', label: 'Opakování (dohrávka)', playedAt: Date.now() + 10, rosterSize: 3, rootActivityId: korenId, results: [{ studentId: ids[0]!, percent: 90 }] });
+
+    const pred = await t.http.get(`/api/v1/classes/${cls.classId}/activities`).set('cookie', sess.cookie);
+    expect(pred.body.activities).toHaveLength(1);
+    expect(pred.body.activities[0].makeups).toHaveLength(1);
+
+    // cizí učitel se k aktivitě nedostane
+    const cizi = await teacher(t);
+    const pokus = await t.http.delete(`/api/v1/classes/${cls.classId}/activities/${korenId}`).set('cookie', cizi.cookie).set('x-csrf-token', cizi.csrf);
+    expect([403, 404]).toContain(pokus.status);
+
+    const smazano = await t.http.delete(`/api/v1/classes/${cls.classId}/activities/${korenId}`).set('cookie', sess.cookie).set('x-csrf-token', sess.csrf);
+    expect(smazano.status).toBe(204);
+
+    const po = await t.http.get(`/api/v1/classes/${cls.classId}/activities`).set('cookie', sess.cookie);
+    expect(po.body.activities).toHaveLength(0);
+    // odešly i výsledky obou aktivit téhle třídy, nezůstaly osiřelé
+    const zbyva = db.prepare('SELECT count(*) AS n FROM activity_results WHERE activity_id IN (?, ?)').get(korenId, dohravkaId) as { n: number };
+    expect(zbyva.n).toBe(0);
+    const aktivity = db.prepare('SELECT count(*) AS n FROM class_activities WHERE class_id = ?').get(cls.classId) as { n: number };
+    expect(aktivity.n).toBe(0);
+  });
+});

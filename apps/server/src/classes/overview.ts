@@ -191,6 +191,24 @@ export class ClassOverview {
     this.sql.prepare('UPDATE class_activities SET count_in_stats = ? WHERE id = ? OR root_activity_id = ?').run(count ? 1 : 0, activityId, activityId);
   }
 
+  /**
+   * Smazání celé aktivity z evidence třídy i s dohrávkami.
+   *
+   * Nestačí smazat hru: `class_activities.game_id` má ON DELETE SET NULL, takže
+   * by v přehledu třídy zůstal záznam s výsledky a jen bez odkazu na hru.
+   * Mažeme proto aktivitu (výsledky a položky odejdou kaskádou) a k tomu hry,
+   * které za ní stojí, ať po nich nezůstanou osiřelé odpovědi.
+   */
+  deleteActivity(c: ClassRow, activityId: string): { hry: number } {
+    const a = this.evidence.activity(activityId);
+    if (!a || a.classId !== c.id || a.rootActivityId) throw new HttpError(404, 'Aktivita nenalezena.', 'not_found');
+    const retez = this.evidence.chain(activityId);
+    const hry = retez.map((x) => x.gameId).filter((id): id is string => !!id);
+    this.sql.prepare('DELETE FROM class_activities WHERE id = ? OR root_activity_id = ?').run(activityId, activityId);
+    for (const id of hry) this.sql.prepare('DELETE FROM games WHERE id = ?').run(id);
+    return { hry: hry.length };
+  }
+
   /** C8.2 "Témata". */
   topics(c: ClassRow, q: { kind?: string; period?: string; from?: string; to?: string }) {
     const kind = q.kind === 'test' || q.kind === 'quiz' ? q.kind : undefined;

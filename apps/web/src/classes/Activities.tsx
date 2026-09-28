@@ -33,6 +33,8 @@ export default function Activities({ cls }: { cls: ClassDto }) {
   const [list, setList] = useState<ActivityDto[] | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
   const [makeup, setMakeup] = useState<Makeup | null>(null);
+  const [mazu, setMazu] = useState<string | null>(null);
+  const [hlaska, setHlaska] = useState('');
   const canEdit = cls.status === 'active' && cls.role !== 'viewer';
 
   const load = useCallback(async () => {
@@ -45,6 +47,24 @@ export default function Activities({ cls }: { cls: ClassDto }) {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /** Maže celou aktivitu z evidence třídy: výsledky, odpovědi i dohrávky. */
+  const smaz = async (a: ActivityDto) => {
+    const co = t(`overview.kinds.${a.kind}`).toLocaleLowerCase('cs');
+    if (!confirm(t('overview.deleteActivityConfirm', { co, nazev: a.label || a.quizTitle, datum: formatDate(a.playedAt) }))) return;
+    setError(null);
+    setHlaska('');
+    setMazu(a.id);
+    try {
+      await api('DELETE', `/api/v1/classes/${cls.id}/activities/${a.id}`);
+      await load();
+      setHlaska(t('overview.activityDeleted'));
+    } catch (e) {
+      setError(e as ApiError);
+    } finally {
+      setMazu(null);
+    }
+  };
 
   const run = async (fn: () => Promise<unknown>) => {
     setError(null);
@@ -60,6 +80,11 @@ export default function Activities({ cls }: { cls: ClassDto }) {
   return (
     <div className="space-y-3">
       <ErrorBox error={error} onClose={() => setError(null)} />
+      {hlaska && (
+        <p role="status" className="mb-3 rounded-md bg-success-soft px-3 py-2 text-sm text-success" data-testid="aktivity-hlaska">
+          {hlaska}
+        </p>
+      )}
       {makeup && (
         <div className="rounded-lg border border-primary bg-primary-soft p-4 text-sm" data-testid="makeup-info">
           <p className="font-semibold">{makeup.reused ? t('overview.makeupReused') : t('overview.makeupCreated', { count: makeup.audienceSize })}</p>
@@ -119,6 +144,9 @@ export default function Activities({ cls }: { cls: ClassDto }) {
                     <input type="checkbox" checked={a.countInStats} onChange={(e) => run(() => api('PATCH', `/api/v1/classes/${cls.id}/activities/${a.id}`, { countInStats: e.target.checked }))} />
                     {t('overview.countInStats')}
                   </label>
+                  <Button variant="ghost" className="text-danger" disabled={mazu === a.id} onClick={() => void smaz(a)} data-testid={`delete-activity-${a.id}`}>
+                    {t('overview.deleteActivity')}
+                  </Button>
                 </div>
               )}
             </div>

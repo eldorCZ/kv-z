@@ -107,6 +107,12 @@ export const classRoutes =
       return { ok: true };
     });
 
+    app.delete<{ Params: { id: string; aid: string } }>('/classes/:id/activities/:aid', { config: { sessionOnly: true } }, async (req, reply) => {
+      const c = access(req as unknown as FastifyRequest<ClassParams>, 'editor');
+      s.overview.deleteActivity(c, req.params.aid);
+      return reply.code(204).send();
+    });
+
     app.get<ClassParams & { Querystring: Q }>('/classes/:id/topics', { config: { sessionOnly: true } }, async (req) => {
       const c = access(req, 'viewer');
       return s.overview.topics(c, req.query);

@@ -68,8 +68,10 @@ const teacherShots: Shot[] = [
       // Obrázek si nakreslíme v prohlížeči, ať v repozitáři nemusí ležet binárka.
       // Nahrání i vložení kvízu jde přes relaci učitele – nahrávat obrázky tokenem nelze.
       const quizId = await p.evaluate(async () => {
-        // scripts/ se překládá bez DOM knihovny, proto sáhneme na document přes globalThis
-        const dok = (globalThis as unknown as { document: { createElement(t: string): any } }).document;
+        // scripts/ se překládá bez DOM knihovny, proto si tvary popíšeme ručně
+        type Kresba = { fillStyle: string; strokeStyle: string; lineWidth: number; fillRect(a: number, b: number, c: number, d: number): void; strokeRect(a: number, b: number, c: number, d: number): void; beginPath(): void; arc(x: number, y: number, r: number, o: number, k: number): void; fill(): void; stroke(): void };
+        type Platno = { width: number; height: number; getContext(t: '2d'): Kresba; toBlob(cb: (b: unknown) => void, typ: string): void };
+        const dok = (globalThis as unknown as { document: { createElement(t: string): Platno } }).document;
         const plátno = dok.createElement('canvas');
         plátno.width = 900;
         plátno.height = 520;
