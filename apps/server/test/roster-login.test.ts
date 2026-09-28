@@ -127,7 +127,9 @@ describe('tickets and joining a test', () => {
 });
 
 describe('live class game', () => {
-  it('students join with a ticket, the host sees account names and who has not joined', async () => {
+  it('students join with a ticket, the host sees who has not joined', async () => {
+    // výchozí je od 28. 9. 2026 „number", takže projektor ukazuje „Žák <číslo>";
+    // přihlašovací jména vidí učitel ve výsledcích, ne celá třída
     const { game, created } = await classGame('live');
     const host = await connect(t.url);
     const att = await emit<{ ok: boolean; state: { notJoined: { name: string }[]; classGame: boolean } }>(host, 'host_attach', {
@@ -135,11 +137,11 @@ describe('live class game', () => {
       hostKey: new URL(game.hostUrl!).hash.slice(5),
     });
     expect(att.state.classGame).toBe(true);
-    expect(att.state.notJoined.map((x) => x.name)).toEqual(['dvorak3', 'novak12', 'svoboda7']);
+    expect(att.state.notJoined.map((x) => x.name)).toEqual(['Žák 1', 'Žák 2', 'Žák 3']);
     const p = await connect(t.url);
     const tk = (await identify(game.pin, created[0]!.code)).body.ticket;
     const j = await emit<{ ok: boolean; nickname: string }>(p, 'join', { pin: game.pin, ticket: tk });
-    expect(j).toMatchObject({ ok: true, nickname: 'novak12' });
+    expect(j).toMatchObject({ ok: true, nickname: 'Žák 2' }); // novak12 je v abecedě druhý
     // nickname join without allowGuests is refused, second connection of the same student too
     const guest = await connect(t.url);
     expect(await emit(guest, 'join', { pin: game.pin, nickname: 'Host' })).toMatchObject({ ok: false });

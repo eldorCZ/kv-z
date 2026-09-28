@@ -19,6 +19,8 @@ test('test mode: teacher starts a test, two students submit, dashboard and resul
   await page.goto(new URL(reviewUrl).pathname);
   await page.getByTestId('start-game').click();
   await page.getByTestId('mode-test').check({ force: true });
+  // headless prohlížeč celou obrazovku nedá, jinak by dialog blokoval psaní
+  await page.getByTestId('guard-fullscreen').uncheck();
   await page.getByTestId('test-limit').fill('15');
   await page.getByTestId('confirm-start').click();
   const pin = (await page.getByTestId('pin').textContent())!.replace(/\s/g, '');

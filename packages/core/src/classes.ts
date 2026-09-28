@@ -82,8 +82,12 @@ export const classSettingsSchema = z.object({
     .string()
     .regex(/^\d{2}-\d{2}$/)
     .default('02-01'),
-  /** what classmates and the projector see in a live class game (C5.6) */
-  leaderboardNames: z.enum(['account', 'number']).default('account'),
+  /**
+   * Co v živé třídní hře vidí spolužáci a projektor (C5.6).
+   * Výchozí je „number" („Žák 3"): promítat přihlašovací jména celé třídě
+   * není nutné a učitel je stejně vidí ve výsledcích.
+   */
+  leaderboardNames: z.enum(['account', 'number']).default('number'),
 });
 export type ClassSettings = z.output<typeof classSettingsSchema>;
 

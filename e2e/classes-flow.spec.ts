@@ -140,7 +140,9 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   const projector = await browser.newPage();
   await projector.goto(hostUrl);
   await expect(projector.getByTestId('host-pin')).toHaveText(new RegExp(livePin.slice(0, 3)));
-  await expect(projector.getByTestId('host-not-joined')).toContainText('erbenova5');
+  // projektor od 28. 9. 2026 ukazuje „Žák <číslo>", ne přihlašovací jména
+  await expect(projector.getByTestId('host-not-joined')).toContainText('Žák 1');
+  await expect(projector.getByTestId('host-not-joined')).not.toContainText('erbenova5');
   const phone = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const sp = await phone.newPage();
   await sp.goto(`/play?pin=${livePin}`);
@@ -149,7 +151,10 @@ test('classes: roster, class test with codes, makeup, matrix, live class game', 
   await expect(sp.getByTestId('roster-confirm')).toContainText('erbenova5');
   await sp.getByTestId('roster-yes').click();
   await expect(sp.getByTestId('player-lobby')).toBeVisible();
-  await expect(projector.locator('body')).toContainText('erbenova5');
+  // žák vidí své přihlašovací jméno ve vlastním potvrzení (řádek výš),
+  // projektor ale ne — tam je jen „Žák <číslo>"
+  await expect(projector.locator('body')).toContainText('Žák');
+  await expect(projector.locator('body')).not.toContainText('erbenova5');
   const projHtml = await projector.content();
   for (const c of Object.values(codes)) expect(projHtml).not.toContain(c);
   await phone.close();

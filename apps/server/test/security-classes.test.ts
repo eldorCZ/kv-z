@@ -74,9 +74,12 @@ describe('student, host key and projector payloads contain account names only, n
     await sleep(200);
     for (const s of [host, ...players]) {
       expect(leaks(s.frames.join('\n'), bad)).toEqual([]);
-      // account names do travel (lobby, leaderboard) – the check really inspected the frames
     }
-    expect(host.frames.join('\n')).toContain('kvasnicka1');
+    // Od 28. 9. 2026 je výchozí „number": projektor ani spolužáci nevidí
+    // přihlašovací jména, jen „Žák <číslo>". Že rámce opravdu něco nesly,
+    // ověřujeme právě tímhle označením.
+    expect(host.frames.join('\n')).toContain('Žák 1');
+    expect(host.frames.join('\n')).not.toContain('kvasnicka1');
     expect(leaks(bodies, bad)).toEqual([]);
     // agent: status and results without names
     expect(leaks((await t.http.get(`/api/v1/games/${g.gameId}`).set(agent)).body, bad)).toEqual([]);

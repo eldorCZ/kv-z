@@ -52,15 +52,23 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
     allowLateJoin: false,
     partialMulti: false,
   });
+  // Výchozí nastavení míří na test psaný v hodině, ne na domácí úkol:
+  // zavírá se dnes večer, žák nezadává jméno (u třídy se hlásí kódem jako
+  // do kvízu) a vyžaduje se celá obrazovka.
+  const konecDne = () => {
+    const d = new Date();
+    d.setHours(23, 59, 0, 0);
+    return d.getTime();
+  };
   const [test, setTest] = useState({
     timeLimitMin: '20',
-    closesAt: localInput(Date.now() + 7 * 86_400_000),
-    requireName: true,
+    closesAt: localInput(konecDne()),
+    requireName: false,
     allowBackNavigation: true,
     showResultsToStudent: 'score' as 'none' | 'score' | 'full',
   });
   // Dodatek 2, G2 defaults
-  const [guard, setGuard] = useState({ mode: 'warn' as 'off' | 'log' | 'warn', maxLeaves: 2, onExceed: 'notify' as 'notify' | 'lock', requireFullscreen: false, minLeaveMs: 1000 });
+  const [guard, setGuard] = useState({ mode: 'warn' as 'off' | 'log' | 'warn', maxLeaves: 2, onExceed: 'notify' as 'notify' | 'lock', requireFullscreen: true, minLeaveMs: 1000 });
   // Dodatek 3 (C6.1): class game
   const [classes, setClasses] = useState<{ id: string; name: string; status: string; role?: string }[]>([]);
   const [cls, setCls] = useState({ classId: '', label: quiz.title.slice(0, 60), audienceAll: true, audience: [] as string[], allowGuests: false, countInStats: true });
@@ -313,7 +321,7 @@ export default function StartGameModal({ quiz, onClose, onQuizTheme }: { quiz: Q
                       <input className={inputCls} type="number" min={0.5} max={5} step={0.5} value={guard.minLeaveMs / 1000} onChange={(e) => setGuard({ ...guard, minLeaveMs: Math.round(Math.max(0.5, Math.min(5, Number(e.target.value) || 1)) * 1000) })} />
                     </Field>
                     <label className="flex items-center gap-2 pt-6 text-sm">
-                      <input type="checkbox" className="h-4 w-4" checked={guard.requireFullscreen} onChange={(e) => setGuard({ ...guard, requireFullscreen: e.target.checked })} />
+                      <input type="checkbox" className="h-4 w-4" checked={guard.requireFullscreen} onChange={(e) => setGuard({ ...guard, requireFullscreen: e.target.checked })} data-testid="guard-fullscreen" />
                       {t('guard.settings.fullscreen')}
                     </label>
                   </>
