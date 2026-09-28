@@ -123,19 +123,29 @@ body {
     size: A4;
     margin: 10mm;
   }
-  /* card printing: only the print area is visible */
-  body:has(.print-area) * {
-    visibility: hidden;
+  /* Tisk karet s kódy: všechno mimo tiskovou plochu musí zmizet Z ROZVRŽENÍ.
+     Dřív se schovávalo přes visibility:hidden — jenže takový obsah si drží
+     svou výšku, takže soupiska třídy vyrobila za kartami prázdné stránky
+     (28 žáků a tisk jediné karty = jedna karta a jedna prázdná stránka). */
+  body:has(.print-area) *:not(:has(.print-area), .print-area, .print-area *) {
+    display: none !important;
   }
-  .print-area,
-  .print-area * {
-    visibility: visible;
+  /* předkové tiskové plochy zůstávají, ale nesmí přidávat vlastní výšku ani rámy */
+  body:has(.print-area) *:has(.print-area) {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
   }
   .print-area {
     display: block;
-    position: absolute;
-    left: 0;
-    top: 0;
     width: 100%;
   }
   .no-print {
@@ -152,7 +162,7 @@ body {
     break-inside: avoid;
     color: #000;
   }
-  .card-sheet .code-card:nth-child(10n) {
+  .card-sheet .code-card:nth-child(10n):not(:last-child) {
     break-after: page;
   }
   .print-only {

@@ -28,6 +28,38 @@ test('roster: 25 account names pasted, cards printed, codes are gone after reloa
   expect(await page.content()).not.toContain(first!);
 });
 
+test('tisk karet: pod kartami nezůstává prázdná stránka', async ({ page }) => {
+  await registerAndToken(page);
+  await page.getByRole('link', { name: 'Třídy' }).click();
+  await page.getByTestId('new-class').click();
+  await page.getByTestId('class-name').fill('9.A Tisk');
+  await page.getByTestId('create-class').click();
+  await expect(page.getByTestId('class-title')).toHaveText('9.A Tisk');
+  // dlouhá soupiska, krátký výtisk – přesně ten případ, kdy dřív vypadly prázdné stránky
+  await page.getByTestId('roster-text').fill(Array.from({ length: 28 }, (_, i) => `zak${String(i + 1).padStart(2, '0')}`).join('\n'));
+  await page.getByTestId('roster-preview').click();
+  await page.getByTestId('roster-commit').click();
+  await expect(page.getByTestId('plain-code')).toHaveCount(28);
+
+  await page.emulateMedia({ media: 'print' });
+  const m = await page.evaluate(() => {
+    const plocha = document.querySelector('.print-area') as HTMLElement;
+    return {
+      vyskaDokumentu: document.documentElement.scrollHeight,
+      vyskaPlochy: Math.round(plocha.getBoundingClientRect().height),
+      vyskaOkna: window.innerHeight,
+      // nic mimo tiskovou plochu (a mimo její předky) nesmí při tisku zabírat místo
+      zbytek: [...document.querySelectorAll('body *')].filter(
+        (e) => !e.closest('.print-area') && !e.querySelector('.print-area') && e.getBoundingClientRect().height > 0,
+      ).length,
+    };
+  });
+  expect(m.zbytek).toBe(0);
+  // dokument je vysoký jako karty (nebo jako okno, když jsou karty nižší), ne o soupisku víc
+  expect(m.vyskaDokumentu).toBeLessThanOrEqual(Math.max(m.vyskaPlochy, m.vyskaOkna) + 4);
+  await page.emulateMedia({ media: 'screen' });
+});
+
 test('CSV import from AD: only the login and the number are sent to the server (C4.3)', async ({ page }) => {
   await registerAndToken(page);
   await page.getByRole('link', { name: 'Třídy' }).click();
