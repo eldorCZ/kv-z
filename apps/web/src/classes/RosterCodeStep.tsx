@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { forgetDeviceCode, readDeviceCode } from './deviceCode';
 
@@ -51,6 +51,17 @@ export default function RosterCodeStep({
       setBusy(false);
     }
   };
+
+  // Kód uložený z QR karty použijeme rovnou: žák jinak kouká na formulář
+  // s předvyplněným kódem a má pocit, že ho aplikace chce znovu. Při chybě
+  // (kód se mezitím přegeneroval) zůstane formulář i s hláškou.
+  const zkusilAutomaticky = useRef(false);
+  useEffect(() => {
+    if (saved && !zkusilAutomaticky.current) {
+      zkusilAutomaticky.current = true;
+      void identify();
+    }
+  }, [saved]);
 
   const box = `w-full max-w-sm space-y-4 rounded-xl p-6 shadow-lg ${dark ? 'bg-surface text-fg' : 'bg-surface'}`;
 

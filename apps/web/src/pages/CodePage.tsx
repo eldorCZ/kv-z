@@ -16,7 +16,6 @@ export default function CodePage() {
   useTitle(t('titles.code'));
   const [code, setCode] = useState<string | null>(null);
   const [saved, setSaved] = useState<'none' | 'saved' | 'skipped'>('none');
-  const [remember, setRemember] = useState(false);
 
   useEffect(() => {
     const m = /[#&]c=([^&]+)/.exec(window.location.hash);
@@ -47,22 +46,20 @@ export default function CodePage() {
       <p className="text-center font-mono text-2xl font-bold tracking-widest">{formatCode(code)}</p>
       {saved === 'none' ? (
         <>
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" className="mt-1 h-4 w-4" checked={remember} onChange={(e) => setRemember(e.target.checked)} data-testid="remember-code" />
-            <span>
-              {t('kod.save')}
-              <span className="block text-xs text-warning">{t('kod.saveWarning')}</span>
-            </span>
-          </label>
+          {/* Uložení je hlavní volba: bez něj naskenování karty nic neušetří — žák
+              stejně musí kód při připojení opsat. Souhlas ale zůstává výslovný,
+              proto dvě jasná tlačítka místo zaškrtávátka (C5.5). */}
+          <p className="text-sm">{t('kod.saveHint')}</p>
+          <p className="text-xs text-warning">{t('kod.saveWarning')}</p>
           <button
             className="w-full rounded-md bg-primary py-3 font-semibold text-on-primary"
-            onClick={() => {
-              if (remember && saveDeviceCode(code)) setSaved('saved');
-              else setSaved('skipped');
-            }}
+            onClick={() => setSaved(saveDeviceCode(code) ? 'saved' : 'skipped')}
             data-testid="code-continue"
           >
-            {remember ? t('kod.saveButton') : t('kod.dontRemember')}
+            {t('kod.saveButton')}
+          </button>
+          <button className="w-full rounded-md border border-line py-2 text-sm" onClick={() => setSaved('skipped')} data-testid="code-skip">
+            {t('kod.dontRemember')}
           </button>
         </>
       ) : (

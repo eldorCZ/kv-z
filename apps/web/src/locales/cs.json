@@ -637,8 +637,9 @@
     "intro": "Tvůj osobní kód:",
     "save": "Uložit kód do tohoto zařízení",
     "saveWarning": "Ukládej jen na svém vlastním telefonu, ne na sdíleném počítači.",
-    "saveButton": "Uložit a pokračovat",
-    "dontRemember": "Nepamatovat a pokračovat",
+    "saveButton": "Uložit do telefonu a pokračovat",
+    "dontRemember": "Jen ukázat kód, neukládat",
+    "saveHint": "Doporučeno na vlastním telefonu: příště zadáš jen PIN hry a jsi ve hře.",
     "saved": "Kód je uložený. Při připojení do třídní hry ho nebudeš muset opisovat.",
     "notSaved": "Kód se neuložil. Při připojení ho opiš z karty.",
     "forget": "Zapomenout kód na tomto zařízení"
