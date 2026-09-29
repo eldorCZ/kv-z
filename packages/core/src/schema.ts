@@ -26,6 +26,9 @@ export const LIMITS = {
 
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
+/** Kolik špendlíků unese jedna otázka „přiřazování do obrázku". Sdílí ho editor i kontrakt. */
+export const MAX_IMAGE_LABELS = 10;
+
 /** Adds a contract rule violation with a stable machine code. */
 function fail(ctx: z.RefinementCtx, path: (string | number)[], code: string, message: string) {
   ctx.addIssue({ code: 'custom', path, message, params: { code } });
@@ -67,7 +70,8 @@ const questionBase = z.object({
   /** id of uploaded question image served from /media/theme/<id>/... */
   imageId: z.string().regex(/^[0-9a-f]{32}$/).nullable().default(null),
   /** draggable labels and their target positions, normalized 0..1 inside the image */
-  imageLabels: z.array(imageLabelSchema).max(5).default([]),
+  // 10, ne 5: na mapě světa nestačí ani na kontinenty
+  imageLabels: z.array(imageLabelSchema).max(MAX_IMAGE_LABELS).default([]),
   numericAnswer: z.number().finite().nullable().default(null),
   numericTolerance: z.number().finite().min(0).nullable().default(null),
   explanation: z.string().trim().max(LIMITS.explanation).default(''),

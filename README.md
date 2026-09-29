@@ -142,8 +142,10 @@ aby učitel viděl pravdu.
 }
 ```
 
-Nejvýš 5 popisků na otázku, tolerance 3–30 %. Souřadnice ani tolerance se k žákovi nikdy
-nedostanou — server posílá jen zamíchané názvy (ověřeno testem v `packages/core/test`).
+Nejvýš 10 popisků na otázku, tolerance 3–30 %. Souřadnice ani tolerance se k žákovi
+nedostanou před vyhodnocením — server posílá jen zamíchané názvy. Až při vyhodnocení
+přibude `correctPins`, aby projektor i mobil žáka ukázaly, kam který název patřil
+(ověřeno testy v `packages/core/test` a `apps/server/test/media.test.ts`).
 Do Moodle GIFT se tenhle typ vyexportovat nedá a export ho přeskočí.
 
 ## Testovací režim

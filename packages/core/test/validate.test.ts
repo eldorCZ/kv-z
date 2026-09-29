@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { validateQuiz, validateQuestion, quizStats } from '../src/index.js';
+import { validateQuiz, validateQuestion, quizStats, MAX_IMAGE_LABELS } from '../src/index.js';
 
 const dir = join(import.meta.dirname, '../../../fixtures/quizzes');
 const load = (p: string) => JSON.parse(readFileSync(join(dir, p), 'utf8'));
@@ -88,5 +88,17 @@ describe('topic and tags (C10.1)', () => {
     expect(ok.ok).toBe(true);
     const bad = validateQuestion({ type: 'image-label', prompt: 'Přiřaď města', imageLabels: [{ text: 'Zlín', x: 0.4, y: 0.6 }] });
     expect(bad.ok).toBe(false);
+  });
+
+  it('allows ten labels (a world map needs more than five), refuses the eleventh', () => {
+    const pin = (i: number) => ({ text: `Místo ${i}`, x: 0.1 + i * 0.05, y: 0.5, radius: 0.1 });
+    const q = (n: number) => ({
+      type: 'image-label',
+      prompt: 'Přiřaď názvy kontinentů',
+      imageId: '0123456789abcdef0123456789abcdef',
+      imageLabels: Array.from({ length: n }, (_, i) => pin(i)),
+    });
+    expect(validateQuestion(q(MAX_IMAGE_LABELS)).ok).toBe(true);
+    expect(validateQuestion(q(MAX_IMAGE_LABELS + 1)).ok).toBe(false);
   });
 });

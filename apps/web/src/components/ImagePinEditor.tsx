@@ -1,3 +1,5 @@
+// plný balíček, ne /client: tohle je učitelská obrazovka, klientský vstup je schválně bez zod
+import { MAX_IMAGE_LABELS } from '@kvizhub/core';
 import { useRef, useState } from 'react';
 import { Button, inputCls } from './ui';
 
@@ -8,7 +10,7 @@ export interface ImagePin {
   radius: number;
 }
 
-const MAX_PINS = 5;
+const MAX_PINS = MAX_IMAGE_LABELS;
 const KROK = 0.01;
 
 /**
@@ -174,7 +176,13 @@ export function ImagePinEditor({
       </ul>
 
       {pins.length === 0 && <p className="rounded-md bg-panel px-3 py-2 text-sm text-muted">Zatím tu není žádný špendlík. Klepni do obrázku.</p>}
-      {pins.length >= MAX_PINS && <p className="text-xs text-muted">Víc než {MAX_PINS} špendlíků do jedné otázky nejde.</p>}
+      {/* dřív to byla drobná šedá poznámka pod seznamem a šla přehlédnout – učitel pak marně
+          klepal do obrázku a myslel si, že je editor rozbitý */}
+      {pins.length >= MAX_PINS && (
+        <p role="status" className="rounded-md bg-panel px-3 py-2 text-sm font-semibold" data-testid="pin-limit">
+          Dosažen strop {MAX_PINS} špendlíků — další už do téhle otázky nepřidáš. Chceš-li víc míst, rozděl je do dvou otázek.
+        </p>
+      )}
     </div>
   );
 }

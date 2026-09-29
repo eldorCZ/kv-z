@@ -1,7 +1,8 @@
 import sharp from 'sharp';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { RevealEvent } from '@kvizhub/core';
 import { apiToken, startApp, teacher, ui, type TestApp } from './helpers.js';
-import { connect, emit, type Client } from './socket-helpers.js';
+import { connect, emit, once, type Client } from './socket-helpers.js';
 
 let t: TestApp;
 let sess: { cookie: string; csrf: string };
@@ -116,5 +117,40 @@ describe('custom background images (Dodatek 4, V8)', () => {
     expect((await t.http.get(`/api/v1/quizzes/${q.quizId}`).set(ui(sess))).body.theme).toEqual({ motive: 'les' });
     expect((await t.http.get(`/media/theme/${img}/640.webp`)).status).toBe(404);
     expect((await t.http.get('/media/theme/../../etc/passwd')).status).toBe(404);
+  });
+
+  it('image-label: labels go out without coordinates, the reveal adds where they belong', async () => {
+    const img = (await upload(await png())).body.id as string;
+    const pins = [
+      { text: 'Evropa', x: 0.52, y: 0.3, radius: 0.1 },
+      { text: 'Asie', x: 0.7, y: 0.35, radius: 0.12 },
+    ];
+    const quiz = {
+      schemaVersion: 1,
+      title: 'Kontinenty',
+      settings: { shuffleQuestions: false, shuffleOptions: false },
+      questions: [{ type: 'image-label', prompt: 'Přiřaď názvy kontinentů', imageId: img, imageLabels: pins, timeLimitSec: 10 }],
+    };
+    const q = (await t.http.post('/api/v1/quizzes').set(ui(sess)).send(quiz)).body;
+    expect(q.quizId).toBeTruthy();
+    const g = (await t.http.post(`/api/v1/quizzes/${q.quizId}/games`).set(ui(sess)).send({ mode: 'live' })).body;
+    const hostKey = new URL(g.hostUrl).hash.replace('#key=', '');
+    const host: Client = await connect(t.url);
+    await emit(host, 'host_attach', { gameId: g.gameId, hostKey });
+    const p: Client = await connect(t.url);
+    await emit(p, 'join', { pin: g.pin, nickname: 'novak12' });
+
+    const otazka = once<{ question: { id: string; imageLabels?: unknown } }>(p, 'question');
+    await emit(host, 'start');
+    const { question } = await otazka;
+    // před vyhodnocením žák dostane jen názvy, souřadnice jsou tajemství
+    expect(question.imageLabels).toEqual(['Evropa', 'Asie']);
+
+    const odhaleni = once<RevealEvent>(host, 'reveal');
+    await emit(host, 'reveal');
+    const r = await odhaleni;
+    // tohle je to, co projektor kreslí do obrázku – bez toho vidí jen výčet názvů
+    expect(r.correctPins).toEqual(pins);
+    [host, p].forEach((s) => s.disconnect());
   });
 });
