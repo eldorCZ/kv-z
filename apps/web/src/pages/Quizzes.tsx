@@ -150,7 +150,7 @@ export default function Quizzes() {
           <div className="relative overflow-hidden rounded-lg border border-accent/25 bg-surface p-5 shadow-soft">
             <div className="absolute -right-6 -bottom-8 h-24 w-24 rounded-pill bg-warning-soft" aria-hidden="true" />
             <div className="relative flex items-center gap-4">
-              <span className="flex h-12 w-12 items-center justify-center rounded-md bg-warning-soft font-display text-xl font-bold text-warning" aria-hidden="true">?</span>
+              <span className="flex h-12 w-12 items-center justify-center rounded-md bg-warning-soft font-display text-xl font-bold text-warning" aria-hidden="true">Σ</span>
               <div><p className="text-sm font-bold text-muted">{t('quizzes.totalQuestions')}</p><p className="font-display text-3xl font-bold tabular">{totalQuestions}</p></div>
             </div>
           </div>
@@ -170,8 +170,8 @@ export default function Quizzes() {
           </select>
         </label>
         <div className="flex rounded-md border border-line bg-surface p-1" aria-label={t('quizzes.view')}>
-          <button type="button" onClick={() => setView('grid')} aria-pressed={view === 'grid'} aria-label={t('quizzes.grid')} className={`grid h-9 w-9 grid-cols-2 place-content-center gap-0.5 rounded-sm ${view === 'grid' ? 'bg-primary text-on-primary' : 'text-muted hover:bg-surface-2'}`}>{[0, 1, 2, 3].map((n) => <span key={n} className="h-1.5 w-1.5 rounded-[1px] bg-current" aria-hidden="true" />)}</button>
-          <button type="button" onClick={() => setView('list')} aria-pressed={view === 'list'} aria-label={t('quizzes.list')} className={`flex h-9 w-9 flex-col items-center justify-center gap-1 rounded-sm ${view === 'list' ? 'bg-primary text-on-primary' : 'text-muted hover:bg-surface-2'}`}><span className="h-0.5 w-4 rounded bg-current" aria-hidden="true" /><span className="h-0.5 w-4 rounded bg-current" aria-hidden="true" /><span className="h-0.5 w-4 rounded bg-current" aria-hidden="true" /></button>
+          <button type="button" onClick={() => setView('grid')} aria-pressed={view === 'grid'} aria-label={t('quizzes.grid')} className={`flex h-9 w-9 items-center justify-center rounded-sm text-lg font-bold leading-none ${view === 'grid' ? 'bg-primary text-on-primary' : 'text-muted hover:bg-surface-2'}`}><span aria-hidden="true">▦</span></button>
+          <button type="button" onClick={() => setView('list')} aria-pressed={view === 'list'} aria-label={t('quizzes.list')} className={`flex h-9 w-9 items-center justify-center rounded-sm text-lg font-bold leading-none ${view === 'list' ? 'bg-primary text-on-primary' : 'text-muted hover:bg-surface-2'}`}><span aria-hidden="true">☰</span></button>
         </div>
       </Toolbar>
       <ErrorBox error={error} onClose={() => setError(null)} />
