@@ -1,4 +1,4 @@
-import type { PublicQuestion } from './events.js';
+import type { PublicQuestion, RevealEvent } from './events.js';
 import type { Question } from './schema.js';
 import type { ShuffledOptions } from './shuffle.js';
 
@@ -22,6 +22,15 @@ export function toPublicQuestion(q: Stored, shuffled: ShuffledOptions, index: nu
 
 function formatNumber(n: number): string {
   return String(n).replace('.', ',');
+}
+
+/**
+ * Where the labels belong (image-label only), for the reveal screen. Coordinates stay
+ * secret until then — `toPublicQuestion` sends the label texts alone.
+ */
+export function correctPins(q: Pick<Question, 'type'> & Partial<Pick<Question, 'imageLabels'>>): RevealEvent['correctPins'] {
+  if (q.type !== 'image-label') return undefined;
+  return (q.imageLabels ?? []).map((l) => ({ text: l.text, x: l.x, y: l.y, radius: l.radius }));
 }
 
 /** Human readable key shown at reveal. */

@@ -394,6 +394,7 @@
     "correctWas": "Správná odpověď",
     "yourRank": "Vaše pořadí",
     "gameOver": "Konec hry! Vaše umístění:",
+    "nextGame": "Připojit se k další hře",
     "multiHint": "Vyberte všechny správné možnosti a potvrďte.",
     "orderHint": "Klepejte na položky ve správném pořadí.",
     "numericHint": "Desetinná čárka i tečka jsou v pořádku.",
@@ -662,7 +663,9 @@
     "yes": "Ano, pokračovat",
     "no": "Ne, zadat jiný kód",
     "noCode": "Nemám kód",
-    "askTeacher": "Požádej učitele o nový kód."
+    "askTeacher": "Požádej učitele o nový kód.",
+    "nickname": "Přezdívka do hry",
+    "nicknameHint": "Nepovinné. Uvidí ji spolužáci na plátně. Bez ní budeš „Žák 1“."
   },
   "overview": {
     "period": "Období",

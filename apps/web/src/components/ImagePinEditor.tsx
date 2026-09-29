@@ -48,7 +48,11 @@ export function ImagePinEditor({
   const uprav = (i: number, zmena: Partial<ImagePin>) => onChange(pins.map((p, j) => (j === i ? { ...p, ...zmena } : p)));
 
   const pridej = (e: React.MouseEvent) => {
-    if (disabled || tahne.current !== null || pins.length >= MAX_PINS) return;
+    // Příznak spotřebujeme hned: kdyby se konec tahu někdy neohlásil, přijdeme
+    // nanejvýš o jedno klepnutí místo o celý editor.
+    const poTahu = tahne.current !== null;
+    tahne.current = null;
+    if (disabled || poTahu || pins.length >= MAX_PINS) return;
     const { x, y } = zPolohy(e.clientX, e.clientY);
     onChange([...pins, { text: '', x, y, radius: 0.12 }]);
     setVybrany(pins.length);
@@ -104,15 +108,17 @@ export function ImagePinEditor({
                 e.stopPropagation();
                 tahne.current = i;
                 setVybrany(i);
-                (e.target as HTMLElement).setPointerCapture(e.pointerId);
+                e.currentTarget.setPointerCapture(e.pointerId);
               }}
               onPointerMove={(e) => {
                 if (tahne.current !== i) return;
                 const { x, y } = zPolohy(e.clientX, e.clientY);
                 uprav(i, { x, y });
               }}
-              onPointerUp={(e) => {
-                (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+              // Konec tahu hlídáme přes ztrátu zachycení, ne přes pointerup: ten nepřijde,
+              // když tah skončí mimo okno nebo ho prohlížeč zruší (pointercancel). Dřív
+              // kvůli tomu zůstal příznak tahu viset a do obrázku už nešlo klepnout.
+              onLostPointerCapture={() => {
                 // kliknutí na plochu přijde hned po puštění – ať nevznikne špendlík navíc
                 setTimeout(() => (tahne.current = null), 0);
               }}

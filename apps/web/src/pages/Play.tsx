@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router';
 import RosterCodeStep from '../classes/RosterCodeStep';
 import { ImageLabelBoard } from '../components/ImageLabelBoard';
+import { ImageLabelReveal } from '../components/ImageLabelReveal';
 import { AnswerMark, answerStyle } from '../components/Shapes';
 import { Stage, type StageTheme } from '../game/Stage';
 import { TimeBar, TimerRing } from '../game/TimerRing';
@@ -172,9 +173,9 @@ export default function Play() {
     finishJoin(r);
   };
 
-  const joinWithTicket = async (ticket: string) => {
+  const joinWithTicket = async (ticket: string, prezdivka?: string) => {
     if (!sock.current) return;
-    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, ticket, avatar });
+    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, ticket, avatar, nickname: prezdivka });
     if (!r.ok) {
       setRoster(null);
       return setError(r.error);
@@ -225,7 +226,14 @@ export default function Play() {
   if (view === 'join' && roster && !guest)
     return shell(
       <div className="m-auto flex w-full justify-center">
-        <RosterCodeStep pin={pin} allowGuests={roster.allowGuests} onTicket={(ticket) => joinWithTicket(ticket)} onGuest={() => setGuest(true)} dark />
+        <RosterCodeStep
+          pin={pin}
+          allowGuests={roster.allowGuests}
+          onTicket={(ticket, _jmeno, prezdivka) => joinWithTicket(ticket, prezdivka)}
+          onGuest={() => setGuest(true)}
+          dark
+          askNickname
+        />
       </div>,
     );
 
@@ -355,11 +363,20 @@ export default function Play() {
           {you && you.streak > 1 && <p className="mt-1">{t('play.streak', { count: you.streak })}</p>}
           {you && <p className="mt-1 text-lg">{t('play.rank', { rank: you.rank })}</p>}
         </div>
-        {!you?.correct && reveal.correctText.length > 0 && (
-          <p className="mt-4 rounded-lg bg-panel p-3 text-lg">
-            {t('play.correctWas')}: <strong>{reveal.correctText.join(question?.type === 'order' ? ' → ' : ' / ')}</strong>
-          </p>
-        )}
+        {!you?.correct &&
+          (reveal.correctPins?.length ? (
+            // u přiřazování je správná odpověď místo v obrázku, ne text
+            <div className="mt-4 rounded-lg bg-panel p-3">
+              <p className="mb-2 text-lg">{t('play.correctWas')}:</p>
+              <ImageLabelReveal imageUrl={question?.imageUrl} pins={reveal.correctPins} size="sm" />
+            </div>
+          ) : (
+            reveal.correctText.length > 0 && (
+              <p className="mt-4 rounded-lg bg-panel p-3 text-lg">
+                {t('play.correctWas')}: <strong>{reveal.correctText.join(question?.type === 'order' ? ' → ' : ' / ')}</strong>
+              </p>
+            )
+          ))}
         {reveal.explanation && <p className="mt-3 rounded-lg bg-panel p-3 text-base text-muted">{reveal.explanation}</p>}
         {/* live game only, small and still: never in a test (D7) */}
         {(kind === 'wrong' || kind === 'none') && (
@@ -398,6 +415,19 @@ export default function Play() {
             </li>
           ))}
         </ol>
+        {/* Učitel často pustí druhý kvíz hned. Bez tohohle tlačítka musí žáci zavřít
+            a znovu otevřít aplikaci – token staré hry by je jinak vracel sem. */}
+        <button
+          type="button"
+          className="mt-6 w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary"
+          data-testid="player-next-game"
+          onClick={() => {
+            writeToken(null);
+            window.location.assign('/play');
+          }}
+        >
+          {t('play.nextGame')}
+        </button>
       </Card>,
     );
 

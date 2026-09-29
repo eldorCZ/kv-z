@@ -126,7 +126,12 @@ export function setupSockets(deps: SocketDeps) {
         if (g.row.classId && deps.classGames) {
           if (e?.ticket) {
             const { student } = deps.classGames.consumeTicket(e.ticket, g.id);
-            joined = g.joinStudent({ id: student.id, displayName: deps.classGames.displayName(g.row, student) }, avatar ?? undefined);
+            // v živém kvízu si žák může zvolit přezdívku – spolužáci a projektor uvidí ji,
+            // ve výsledcích zůstává číslo a login, aby šlo známkovat (C10.3)
+            joined = g.joinStudent(
+              { id: student.id, displayName: deps.classGames.displayName(g.row, student, e?.nickname) },
+              avatar ?? undefined,
+            );
           } else {
             const nick = checkNickname(e?.nickname);
             if (!nick.ok) return fail(ack, nick.error);

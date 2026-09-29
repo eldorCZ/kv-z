@@ -78,17 +78,22 @@ export function Ranking({ title, entries, previous }: { title: string; entries: 
   );
 }
 
-/** Podium: three columns 2–1–3 rising from the floor, then one burst of confetti. */
-export function Podium({ podium, title }: { podium: RankEntry[]; title: string }) {
+/**
+ * Podium: three columns 2–1–3 rising from the floor, then one burst of confetti.
+ *
+ * `rest` jsou 4. místo a dál. Učiteli nestačí první tři – chce po hře přečíst celé
+ * pořadí třídy, tak ho vypíšeme pod stupně a stupňům na to ubereme na výšce.
+ */
+export function Podium({ podium, title, rest = [] }: { podium: RankEntry[]; title: string; rest?: RankEntry[] }) {
   const { t } = useTranslation();
-  const heights = ['h-[36vh]', 'h-[26vh]', 'h-[19vh]'];
+  const heights = rest.length ? ['h-[24vh]', 'h-[17vh]', 'h-[13vh]'] : ['h-[36vh]', 'h-[26vh]', 'h-[19vh]'];
   const tones = ['bg-accent text-on-accent', 'bg-primary text-on-primary', 'bg-panel-2 text-fg'];
   return (
-    <div className="flex flex-1 flex-col items-center justify-end gap-8">
+    <div className={`flex flex-1 flex-col items-center ${rest.length ? 'justify-center gap-4' : 'justify-end gap-8'}`}>
       <Confetti />
       <div className="flex items-center gap-4">
-        <Mascot pose="celebrate" size={120} />
-        <h2 className="text-6xl font-bold">{title}</h2>
+        <Mascot pose="celebrate" size={rest.length ? 84 : 120} />
+        <h2 className={`font-bold ${rest.length ? 'text-5xl' : 'text-6xl'}`}>{title}</h2>
       </div>
       <div className="flex items-end gap-6" data-testid="podium">
         {[1, 0, 2].map((i) => {
@@ -106,6 +111,22 @@ export function Podium({ podium, title }: { podium: RankEntry[]; title: string }
           );
         })}
       </div>
+      {rest.length > 0 && (
+        // víc sloupců vedle sebe: celá třída se má vejít na plátno bez rolování
+        <ol
+          data-testid="podium-rest"
+          className="grid w-full max-w-[90vw] auto-rows-min grid-flow-col grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-x-8 gap-y-1 text-xl"
+          style={{ gridTemplateRows: `repeat(${Math.ceil(rest.length / 3)}, minmax(0, 1fr))` }}
+        >
+          {rest.map((p) => (
+            <li key={`${p.rank}-${p.nickname}`} className="flex items-baseline gap-3 border-b border-line/60 py-0.5">
+              <span className="w-8 shrink-0 text-right font-bold tabular text-muted">{p.rank}.</span>
+              <span className="min-w-0 flex-1 truncate font-semibold">{p.nickname}</span>
+              <span className="shrink-0 tabular text-muted">{t('game.points', { count: p.score })}</span>
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

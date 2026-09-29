@@ -88,6 +88,37 @@ describe('student, host key and projector payloads contain account names only, n
     [host, ...players].forEach((s) => s.disconnect());
   });
 
+  it('live class game: a nickname replaces "Žák N", and a dropped student returns without the teacher', async () => {
+    const cls = await classWithStudents(t, sess, NAMES, 'Přezdívky live');
+    const g = (await t.http.post(`/api/v1/quizzes/${quizId}/games`).set(agent).send({ mode: 'live', settings: { classId: cls.classId } })).body;
+    const host = await connect(t.url);
+    await emit(host, 'host_attach', { gameId: g.gameId, hostKey: new URL(g.hostUrl).hash.slice(5) });
+    const kod = cls.created[0]!.code;
+    const listek = async () => (await t.http.post('/play/roster/identify').send({ pin: g.pin, code: kod })).body.ticket;
+
+    const prvni = await connect(t.url);
+    await emit(prvni, 'join', { pin: g.pin, ticket: await listek(), nickname: 'Drak' });
+    await sleep(100);
+    // přezdívku vidí spolužáci i projektor, přihlašovací jméno pořád ne
+    expect(host.frames.join('\n')).toContain('Drak');
+    expect(host.frames.join('\n')).not.toContain('kvasnicka1');
+
+    // druhé zařízení za živého připojení je pořád odmítnuté
+    const soused = await connect(t.url);
+    const odmitnuto = await emit<{ ok: boolean; error?: string }>(soused, 'join', { pin: g.pin, ticket: await listek() });
+    expect(odmitnuto.ok).toBe(false);
+    expect(odmitnuto.error).toContain('už je ve hře připojen');
+    soused.disconnect();
+
+    // zamklý displej / zahozená karta: po odpojení se žák vrátí sám
+    prvni.disconnect();
+    await sleep(150);
+    const zpet = await connect(t.url);
+    const znovu = await emit<{ ok: boolean }>(zpet, 'join', { pin: g.pin, ticket: await listek(), nickname: 'Drak' });
+    expect(znovu.ok).toBe(true);
+    [host, zpet].forEach((s) => s.disconnect());
+  });
+
   it('class test: join, start, answers, submit and result for the student', async () => {
     const cls = await classWithStudents(t, sess, NAMES, 'Bezpečnost test');
     const bad = forbidden(cls.created);

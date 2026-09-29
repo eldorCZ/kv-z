@@ -4,6 +4,7 @@ import {
   checkNickname,
   mapDisplayedPayload,
   computePoints,
+  correctPins,
   correctText,
   shuffleOptions,
   toPublicQuestion,
@@ -413,6 +414,7 @@ export class LiveGame {
       questionId: r.q.id,
       correctDisplayed: r.q.type === 'order' ? [] : r.shuffled.correctDisplayed,
       correctText: correctText(r.q),
+      ...(correctPins(r.q) ? { correctPins: correctPins(r.q) } : {}),
       explanation: r.q.explanation,
       stats: { answered: r.answers.size, correct, playerCount: this.players.size, distribution },
     };
@@ -458,7 +460,11 @@ export class LiveGame {
     const existing = [...this.players.values()].find((p) => p.studentId === student.id);
     const token = randomBytes(24).toString('base64url');
     if (existing) {
-      if (!existing.allowReturn) throw new GameError('Tento žák už je ve hře připojen. Požádej učitele o obnovení.');
+      // Smysl téhle zábrany je zabránit dvěma zařízením hrát za jednoho žáka naráz.
+      // Když po původním připojení nezůstal žádný živý socket (zamklý displej, zahozená
+      // karta, vybitý mobil), není proti čemu chránit – žák se vrátí sám a učitel ho
+      // nemusí odebírat z lobby. Skóre si nese s sebou.
+      if (!existing.allowReturn && existing.sockets > 0) throw new GameError('Tento žák už je ve hře připojen. Požádej učitele o obnovení.');
       // take over the player (score stays), the old token stops working
       existing.allowReturn = false;
       existing.tokenHash = sha256(token);

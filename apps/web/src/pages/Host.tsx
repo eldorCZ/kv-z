@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
+import { ImageLabelReveal } from '../components/ImageLabelReveal';
 import { AnswerMark, answerStyle } from '../components/Shapes';
 import { FullscreenButton, PinDisplay, Podium, QrFrame, Ranking, ShortcutsDialog, useFullscreen } from '../game/Board';
 import { Stage, type StageTheme } from '../game/Stage';
@@ -338,17 +339,22 @@ export default function Host() {
                 </div>
               )}
             </div>
-            {question.imageUrl && (
-              // s odpovědními dlaždicemi musí obrázek ustoupit, jinak vytlačí poslední možnost mimo plátno
-              <img
-                src={question.imageUrl}
-                alt=""
-                data-testid="host-image"
-                className={`${question.options.length > 0 && question.type !== 'image-label' ? 'max-h-[26vh]' : 'max-h-[52vh]'} min-h-0 w-auto self-center rounded-lg border border-line object-contain shadow-soft`}
-              />
-            )}
+            {/* při vyhodnocení přiřazování kreslíme obrázek i s názvy na správných místech – samotný
+                výčet názvů žákům neřekne, kam patřily */}
+            {question.imageUrl &&
+              (reveal?.correctPins?.length ? (
+                <ImageLabelReveal imageUrl={question.imageUrl} pins={reveal.correctPins} />
+              ) : (
+                // s odpovědními dlaždicemi musí obrázek ustoupit, jinak vytlačí poslední možnost mimo plátno
+                <img
+                  src={question.imageUrl}
+                  alt=""
+                  data-testid="host-image"
+                  className={`${question.options.length > 0 && question.type !== 'image-label' ? 'max-h-[26vh]' : 'max-h-[52vh]'} min-h-0 w-auto self-center rounded-lg border border-line object-contain shadow-soft`}
+                />
+              ))}
             {/* image-label: popisky nejsou možnosti k výběru, jen ukazují, co mají žáci umístit */}
-            {question.type === 'image-label' && (
+            {question.type === 'image-label' && !reveal?.correctPins?.length && (
               <ul className="flex flex-wrap justify-center gap-3 text-2xl">
                 {(reveal ? reveal.correctText : (question.imageLabels ?? [])).map((o, i) => (
                   <li key={i} className={`rounded-pill px-5 py-2 font-semibold shadow-soft ${reveal ? 'bg-success-strong text-on-success' : 'bg-panel'}`}>
@@ -413,7 +419,7 @@ export default function Host() {
 
         {phase === 'leaderboard' && leaderboard && <Ranking title={t('host.leaderboard')} entries={leaderboard.top} previous={previousRanks.current} />}
 
-        {phase === 'finished' && over && <Podium podium={over.podium} title={t('host.podium')} />}
+        {phase === 'finished' && over && <Podium podium={over.podium} title={t('host.podium')} rest={over.ranking.slice(3)} />}
       </main>
     </Stage>
   );

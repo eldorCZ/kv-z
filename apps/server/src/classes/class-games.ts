@@ -1,4 +1,4 @@
-import { createGameSchema, studentNumberLabel, type CreateGameInput } from '@kvizhub/core';
+import { checkNickname, createGameSchema, studentNumberLabel, type CreateGameInput } from '@kvizhub/core';
 import { randomBytes } from 'node:crypto';
 import type { GameManager } from '../game/engine.js';
 import { HttpError } from '../game/service.js';
@@ -162,8 +162,15 @@ export class ClassGames {
   /**
    * Name of a student in a class game (C5.6, C6.2): the account name; in a live game with
    * leaderboardNames = "number" "Žák <číslo>" (classmates and the projector see it).
+   *
+   * Přezdívka, kterou si žák zvolí při vstupu do živého kvízu, má přednost — v lobby
+   * je „Žák 1, Žák 2" k nerozeznání. V testu se přezdívka nezadává a nepoužije se.
    */
-  displayName(g: GameRow, student: StudentRow): string {
+  displayName(g: GameRow, student: StudentRow, nickname?: unknown): string {
+    if (g.mode !== 'test' && typeof nickname === 'string' && nickname.trim()) {
+      const n = checkNickname(nickname);
+      if (n.ok) return n.nickname;
+    }
     if (g.mode === 'test' || this.classes.settingsOf(g.classId!).leaderboardNames !== 'number') return student.accountName;
     const list = this.classes.students(g.classId!);
     return studentNumberLabel(student.rosterNo, list.findIndex((s) => s.id === student.id));

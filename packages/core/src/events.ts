@@ -66,6 +66,8 @@ export interface RevealEvent {
   correctDisplayed: number[];
   /** human readable correct answer(s): accepted answers, number ± tolerance, or items in the correct order */
   correctText: string[];
+  /** image-label only: where each label belongs, as a share of the image (0..1), so the reveal can point at the spot */
+  correctPins?: { text: string; x: number; y: number; radius: number }[];
   explanation: string;
   stats: {
     answered: number;
