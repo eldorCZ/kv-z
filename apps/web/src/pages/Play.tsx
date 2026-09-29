@@ -122,7 +122,6 @@ export default function Play() {
 
   /** A PIN can belong to a live game or a test; class games need a personal code (Dodatek 3, C5). */
   const [roster, setRoster] = useState<{ allowGuests: boolean } | null>(null);
-  const [guest, setGuest] = useState(false);
   const lookup = async (p: string): Promise<{ mode: string; identity: string; allowGuests: boolean } | null> => {
     if (!p) return null;
     try {
@@ -159,7 +158,7 @@ export default function Play() {
       setBusy(false);
       return navigate(`/test?pin=${pin}&name=${encodeURIComponent(nickname)}`);
     }
-    if (info?.identity === 'roster' && !guest) {
+    if (info?.identity === 'roster') {
       setBusy(false);
       return setRoster({ allowGuests: info.allowGuests });
     }
@@ -171,6 +170,15 @@ export default function Play() {
     setBusy(false);
     if (!r.ok) return setError(r.error);
     finishJoin(r);
+  };
+
+  /** Host bez osobního kódu: připojíme ho rovnou z karty s kódem, ať nemusí zpět na formulář. */
+  const joinAsGuest = async (prezdivka: string) => {
+    if (!sock.current) return 'Spojení se serverem se nepodařilo navázat.';
+    const r = await call<JoinResult & { theme?: StageTheme }>(sock.current, 'join', { pin, nickname: prezdivka, avatar });
+    if (!r.ok) return r.error;
+    finishJoin(r);
+    return undefined;
   };
 
   const joinWithTicket = async (ticket: string, prezdivka?: string) => {
@@ -223,7 +231,7 @@ export default function Play() {
     </Stage>
   );
 
-  if (view === 'join' && roster && !guest)
+  if (view === 'join' && roster)
     return shell(
       <div className="m-auto flex w-full justify-center">
         {/* Na přezdívku se ptáme právě jednou. Kdo přišel přes formulář s PINem, zadal ji tam;
@@ -232,8 +240,10 @@ export default function Play() {
           pin={pin}
           allowGuests={roster.allowGuests}
           askNickname={!nickname.trim()}
+          nickname={nickname}
           onTicket={(ticket, _jmeno, zadana) => joinWithTicket(ticket, zadana ?? (nickname.trim() || undefined))}
-          onGuest={() => setGuest(true)}
+          onGuest={joinAsGuest}
+          guestInline
           dark
         />
       </div>,

@@ -665,7 +665,9 @@
     "noCode": "Nemám kód",
     "askTeacher": "Požádej učitele o nový kód.",
     "nickname": "Přezdívka do hry",
-    "nicknameHint": "Nepovinné. Uvidí ji spolužáci na plátně. Bez ní budeš „Žák 1“."
+    "nicknameHint": "Nepovinné. Uvidí ji spolužáci na plátně. Bez ní budeš „Žák 1“.",
+    "guestTitle": "Připojit se jako host",
+    "guestBack": "Zpět na osobní kód"
   },
   "overview": {
     "period": "Období",

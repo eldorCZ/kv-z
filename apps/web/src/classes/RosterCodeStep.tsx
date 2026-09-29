@@ -11,13 +11,23 @@ export default function RosterCodeStep({
   allowGuests,
   onTicket,
   onGuest,
+  guestInline = false,
+  nickname = '',
   dark = false,
   askNickname = false,
 }: {
   pin: string;
   allowGuests: boolean;
   onTicket: (ticket: string, accountName: string, nickname?: string) => Promise<void> | void;
-  onGuest: () => void;
+  /**
+   * S `guestInline` připojí hosta rovnou a vrácený text je chyba k zobrazení
+   * (obsazená přezdívka apod.); bez něj jen přepne rodiče na jeho vlastní formulář.
+   */
+  onGuest: (nickname: string) => string | undefined | void | Promise<string | undefined | void>;
+  /** Zeptat se hosta na přezdívku tady místo návratu na přihlašovací formulář. */
+  guestInline?: boolean;
+  /** Přezdívka, kterou žák případně zadal na obrazovce s PINem. */
+  nickname?: string;
   dark?: boolean;
   /**
    * Zeptat se tu na přezdívku. Rodič ji zapne jen tehdy, když ji žák ještě nezadal —
@@ -34,6 +44,10 @@ export default function RosterCodeStep({
   const [noCode, setNoCode] = useState(false);
   const [hasSaved, setHasSaved] = useState(!!saved);
   const [prezdivka, setPrezdivka] = useState('');
+  // host bez osobního kódu zůstává v téhle kartě – dřív ho „Nemám kód" vracelo
+  // na celý přihlašovací formulář a musel znovu vyplnit PIN i přezdívku
+  const [hostRezim, setHostRezim] = useState(false);
+  const [hostPrezdivka, setHostPrezdivka] = useState(nickname);
 
   const identify = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -71,6 +85,54 @@ export default function RosterCodeStep({
   }, [saved]);
 
   const box = `w-full max-w-sm space-y-4 rounded-xl p-6 shadow-lg ${dark ? 'bg-surface text-fg' : 'bg-surface'}`;
+
+  if (hostRezim)
+    return (
+      <form
+        className={box}
+        data-testid="guest-step"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError('');
+          const chyba = await onGuest(hostPrezdivka.trim());
+          if (typeof chyba === 'string' && chyba) setError(chyba);
+          setBusy(false);
+        }}
+      >
+        <h1 className="text-xl font-bold text-primary">{t('rosterLogin.guestTitle')}</h1>
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium">{t('play.nickname')}</span>
+          <input
+            className="w-full rounded-md border border-line-strong px-3 py-3 text-lg"
+            autoComplete="off"
+            maxLength={20}
+            required
+            autoFocus
+            value={hostPrezdivka}
+            onChange={(e) => setHostPrezdivka(e.target.value)}
+            data-testid="guest-nickname"
+          />
+          <span className="mt-1 block text-xs text-muted">{t('play.nicknameHint')}</span>
+        </label>
+        {error && (
+          <p role="alert" className="rounded bg-danger-soft p-2 text-sm text-danger">
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          disabled={busy || !hostPrezdivka.trim()}
+          className="w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary"
+          data-testid="guest-join"
+        >
+          {t('play.join')}
+        </button>
+        <button type="button" className="w-full text-sm text-primary underline" onClick={() => (setHostRezim(false), setError(''))}>
+          {t('rosterLogin.guestBack')}
+        </button>
+      </form>
+    );
 
   if (who)
     return (
@@ -133,7 +195,7 @@ export default function RosterCodeStep({
       <button type="submit" disabled={busy || !code.trim()} className="w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary disabled:bg-primary" data-testid="roster-continue">
         {t('rosterLogin.continue')}
       </button>
-      <button type="button" className="w-full text-sm text-primary underline" onClick={() => (allowGuests ? onGuest() : setNoCode(true))}>
+      <button type="button" className="w-full text-sm text-primary underline" onClick={() => (allowGuests && guestInline ? setHostRezim(true) : allowGuests ? onGuest('') : setNoCode(true))}>
         {t('rosterLogin.noCode')}
       </button>
       {noCode && <p className="text-center text-sm">{t('rosterLogin.askTeacher')}</p>}
