@@ -50,7 +50,7 @@ export function buildOpenApi(publicUrl: string) {
     },
     paths: {
       '/quizzes': {
-        get: { summary: 'Seznam kvízů (quizzes:read)', responses: { 200: { description: 'OK' }, ...std } },
+        get: { summary: 'Seznam kvízů (quizzes:read). Každá položka: id, title, questionCount, flaggedCount, updatedAt, theme, tags, avgSuccess (průměrná úspěšnost dokončených her a testů v %, nebo null) a classes ({id, name} tříd, ve kterých se hrál).', responses: { 200: { description: 'OK' }, ...std } },
         post: {
           summary:
             'Vložit kvíz (quizzes:write). Volitelný vzhled "theme": {"motive", "accent"} (id z GET /themes a akcenty fialova, modra, azurova, zelena, jantarova, koralova, ruzova, grafitova). Neznámé id se ignoruje a odpověď obsahuje "warnings" (nikdy 422); vlastní obrázek (imageId) přes API nastavit nelze. Bez "theme" dostane kvíz výchozí vzhled učitele. Otázka může mít "imageId" už nahraného obrázku; samotné nahrání jde jen z přihlášeného prohlížeče (POST /api/theme-images), ne tokenem. Typ "image-label" vyžaduje "imageId" a 1–10 položek "imageLabels" {text, x, y, radius} se souřadnicemi jako podíl šířky/výšky 0..1.',

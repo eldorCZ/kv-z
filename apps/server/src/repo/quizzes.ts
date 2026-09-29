@@ -91,6 +91,12 @@ export interface QuizListItem {
   id: string;
   title: string;
   theme: QuizTheme | null;
+  /** quiz tags (e.g. the subject), for the gallery filter (Dodatek 5) */
+  tags: string[];
+  /** mean success in percent over the quiz's finished games and tests, null when nothing was played */
+  avgSuccess: number | null;
+  /** classes the quiz was played in (names only, the teacher's own games) */
+  classes: { id: string; name: string }[];
   questionCount: number;
   flaggedCount: number;
   createdAt: number;
@@ -161,6 +167,7 @@ export class QuizRepo {
         id: quizzes.id,
         title: quizzes.title,
         themeJson: quizzes.themeJson,
+        tagsJson: quizzes.tagsJson,
         createdAt: quizzes.createdAt,
         updatedAt: quizzes.updatedAt,
         // the outer column must be qualified: an unqualified "id" would resolve to q.id inside the subquery
@@ -171,7 +178,55 @@ export class QuizRepo {
       .where(where)
       .orderBy(desc(quizzes.updatedAt))
       .all();
-    return rows.map(({ themeJson, ...r }) => ({ ...r, theme: themeJson ? (JSON.parse(themeJson) as QuizTheme) : null }));
+    const stats = this.galleryStats(teacherId);
+    return rows.map(({ themeJson, tagsJson, ...r }) => ({
+      ...r,
+      theme: themeJson ? (JSON.parse(themeJson) as QuizTheme) : null,
+      tags: tagsJson ? (JSON.parse(tagsJson) as string[]) : [],
+      avgSuccess: stats.success.get(r.id) ?? null,
+      classes: stats.classes.get(r.id) ?? [],
+    }));
+  }
+
+  /**
+   * Success per quiz for the gallery (Dodatek 5): a live game counts correct answers out of players × played
+   * questions (as its results do), a test the mean percent of scored attempts; the quiz is the mean over its
+   * finished games. Results removed by retention simply drop out.
+   */
+  private galleryStats(teacherId: string) {
+    const db = this.db.$client;
+    const perGame = db
+      .prepare(
+        `SELECT g.quiz_id AS quizId,
+           CASE WHEN g.mode = 'test' THEN
+             (SELECT avg(a.percent) FROM attempts a WHERE a.game_id = g.id AND a.percent IS NOT NULL)
+           ELSE
+             100.0 * (SELECT coalesce(sum(an.correct), 0) FROM answers an WHERE an.game_id = g.id)
+               / nullif((SELECT count(*) FROM players p WHERE p.game_id = g.id) * json_array_length(coalesce(g.played_json, g.question_ids_json)), 0)
+           END AS rate
+         FROM games g
+         WHERE g.teacher_id = ? AND g.status = 'finished'`,
+      )
+      .all(teacherId) as { quizId: string; rate: number | null }[];
+    const sums = new Map<string, { total: number; n: number }>();
+    for (const g of perGame) {
+      if (g.rate === null) continue;
+      const e = sums.get(g.quizId) ?? { total: 0, n: 0 };
+      e.total += g.rate;
+      e.n++;
+      sums.set(g.quizId, e);
+    }
+    const success = new Map([...sums].map(([id, e]) => [id, Math.round(e.total / e.n)]));
+    const classRows = db
+      .prepare(
+        `SELECT DISTINCT g.quiz_id AS quizId, c.id AS id, c.name AS name
+         FROM games g JOIN classes c ON c.id = g.class_id
+         WHERE g.teacher_id = ? ORDER BY c.name`,
+      )
+      .all(teacherId) as { quizId: string; id: string; name: string }[];
+    const classes = new Map<string, { id: string; name: string }[]>();
+    for (const r of classRows) classes.set(r.quizId, [...(classes.get(r.quizId) ?? []), { id: r.id, name: r.name }]);
+    return { success, classes };
   }
 
   updateMeta(id: string, patch: { title?: string; language?: string; gradeLevel?: string; settings?: QuizSettings; theme?: QuizTheme | null }) {

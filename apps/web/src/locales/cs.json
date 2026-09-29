@@ -55,7 +55,23 @@
     "newTitle": "Nový kvíz",
     "newQuestion": "Upravte tuto otázku",
     "actions": "Akce pro kvíz {{title}}",
-    "noMatch": "Hledání nic nenašlo."
+    "noMatch": "Hledání nic nenašlo.",
+    "deleteTitle": "Smazat kvíz?",
+    "stats": {
+      "label": "Přehled kvízů",
+      "total": "Kvízů",
+      "toReview": "Ke kontrole",
+      "avgSuccess": "Průměrná úspěšnost",
+      "none": "zatím nehráno"
+    },
+    "filter": {
+      "subject": "Předmět",
+      "class": "Třída",
+      "all": "Vše"
+    },
+    "success": "Úspěšnost",
+    "successOf": "Úspěšnost kvízu {{title}}",
+    "notPlayed": "Zatím nehráno"
   },
   "review": {
     "back": "Zpět na kvízy",

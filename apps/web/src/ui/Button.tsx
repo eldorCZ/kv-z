@@ -1,13 +1,17 @@
 import { Loader2 } from 'lucide-react';
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'accent';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'success' | 'accent';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
+// outline-like variants (Dodatek 5, point 1): a quiet 1px --line border; ghost keeps a transparent one so
+// hovering never changes its size. shadow-pop stays only on primary and only in the playful mood (tokens).
+const OUTLINE = 'border border-line bg-surface text-fg hover:border-line-strong hover:bg-surface-2';
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-on-primary hover:bg-primary-hover shadow-pop',
-  secondary: 'border border-line-strong bg-surface text-fg hover:bg-surface-2',
-  ghost: 'text-fg hover:bg-surface-2',
+  secondary: OUTLINE,
+  outline: OUTLINE,
+  ghost: 'border border-transparent text-fg hover:border-line hover:bg-surface-2',
   danger: 'bg-danger text-on-danger hover:brightness-95',
   success: 'bg-success-strong text-on-success hover:brightness-95',
   accent: 'bg-accent text-on-accent hover:brightness-95',
