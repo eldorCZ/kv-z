@@ -298,12 +298,12 @@
       "aborted": "přerušena"
     },
     "testBadge": "Test",
-  "delete": "Smazat",
-  "deleteConfirm": "Opravdu smazat {{co}} „{{nazev}}“ z {{datum}}?\n\nSmažou se i všechny odpovědi a výsledky žáků a nepůjdou obnovit. U třídní hry zmizí výsledky i z přehledu třídy.",
-  "deleteGame": "hru",
-  "deleteTest": "test",
-  "deleted": "Smazáno.",
-  "deleteRunning": "Běžící hru nejde smazat. Nejdřív ji ukončete."
+    "delete": "Smazat",
+    "deleteConfirm": "Opravdu smazat {{co}} „{{nazev}}“ z {{datum}}?\n\nSmažou se i všechny odpovědi a výsledky žáků a nepůjdou obnovit. U třídní hry zmizí výsledky i z přehledu třídy.",
+    "deleteGame": "hru",
+    "deleteTest": "test",
+    "deleted": "Smazáno.",
+    "deleteRunning": "Běžící hru nejde smazat. Nejdřív ji ukončete."
   },
   "results": {
     "title": "Výsledky hry",
@@ -663,9 +663,7 @@
     "yes": "Ano, pokračovat",
     "no": "Ne, zadat jiný kód",
     "noCode": "Nemám kód",
-    "askTeacher": "Požádej učitele o nový kód.",
-    "nickname": "Přezdívka do hry",
-    "nicknameHint": "Nepovinné. Uvidí ji spolužáci na plátně. Bez ní budeš „Žák 1“."
+    "askTeacher": "Požádej učitele o nový kód."
   },
   "overview": {
     "period": "Období",
