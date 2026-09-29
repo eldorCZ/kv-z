@@ -3,6 +3,23 @@
 Na tomhle repozitáři pracuje víc agentů a střídají se. Tenhle soubor je pro ně;
 Zdeněk (učitel, majitel) ho číst nemusí.
 
+## Nejdřív si ověř, kde stojíš
+
+```
+pwd   # musí být TVŮJ worktree, ne ~/kviz a ne ~/kviz-demo
+```
+
+**Claude pracuje v `~/kviz-prace`, Codex v `~/kviz-codex`.** Nikde jinde.
+
+V `~/kviz` a `~/kviz-demo` teď commit odmítne `pre-commit` hook — narazíš na něj,
+až budeš chtít uložit práci, tedy pozdě. Zkontroluj `pwd` na začátku, ne na konci.
+
+Proč to tak je: 29. 9. 2026 odvedl Codex půl hodiny práce na vzhledu v `~/kviz-demo`
+a commitnul ji do `main`. Demo se přepisuje přes `git reset --hard` a noční cron ho
+srovnává podle serveru — ta práce se málem ztratila. Zachránit ji šlo jen tím, že
+z ní někdo udělal větev. Navíc vznikl konflikt s prací, kterou mezitím dělal Claude
+ve stejném souboru, protože ani jeden o druhém nevěděl.
+
 ## Adresáře — tohle je nejdůležitější
 
 | cesta | co to je | smí se v tom sestavovat? |
