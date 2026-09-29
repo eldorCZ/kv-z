@@ -16,6 +16,8 @@
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
   /* surfaces floating above a motive: at least 90 % opaque in play, fully opaque in focus (V6.3) */
   --color-panel: color-mix(in srgb, var(--surface) calc(var(--surface-alpha) * 100%), transparent);
   --color-panel-2: color-mix(in srgb, var(--surface-2) calc(var(--surface-alpha) * 100%), transparent);
@@ -23,6 +25,7 @@
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-line-subtle: var(--line-subtle);
   --color-line-strong: var(--line-strong);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
@@ -60,6 +63,7 @@
   --radius-xl: var(--radius-lg);
   --radius-pill: var(--radius-pill);
   --shadow-soft: var(--shadow-soft);
+  --shadow-raised: var(--shadow-raised);
   --shadow-pop: var(--shadow-pop);
 }
 

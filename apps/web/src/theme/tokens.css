@@ -11,13 +11,16 @@
 [data-theme='light'] {
   color-scheme: light;
   /* surfaces */
-  --canvas: #f7f5ff;
+  --canvas: #f8f8fc;
   --surface: #ffffff;
-  --surface-2: #efebff;
+  --surface-2: #f1f0f7;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f4f3f9;
   --surface-alpha: 0.94;
   --fg: #1b1640;
   --muted: #56517c;
-  --line: #ddd8f3;
+  --line: #e3e1ec;
+  --line-subtle: #eeecf3;
   --line-strong: #77719f;
   /* brand */
   --primary: #5b3df5;
@@ -57,10 +60,11 @@
   --on-answer-5: #1b1640;
   /* shape, space, motion */
   --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-pill: 999px;
-  --shadow-soft: 0 1px 2px rgb(27 22 64 / 0.06), 0 4px 16px rgb(27 22 64 / 0.06);
+  --shadow-soft: 0 1px 2px rgb(27 22 64 / 0.04), 0 8px 24px rgb(27 22 64 / 0.06);
+  --shadow-raised: 0 16px 40px rgb(27 22 64 / 0.12);
   --shadow-pop: none;
   --motion-fast: 120ms;
   --motion-base: 200ms;
@@ -77,10 +81,13 @@
   --canvas: #0f0b2a;
   --surface: #1a1445;
   --surface-2: #241c5c;
+  --surface-raised: #211a50;
+  --surface-sunken: #151035;
   --surface-alpha: 0.94;
   --fg: #f4f1ff;
   --muted: #bab4e2;
   --line: #342a78;
+  --line-subtle: #2a225f;
   --line-strong: #8a81c8;
   --primary: #8b7bff;
   --primary-hover: #a193ff;
@@ -111,6 +118,7 @@
   --answer-4: #0f7d51;
   --answer-5: #b79cff;
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.25);
+  --shadow-raised: 0 18px 46px rgb(0 0 0 / 0.38);
 }
 
 /* playful mood (lobby, live game, podium): richer colours, rounder shapes, solid "button" shadow */

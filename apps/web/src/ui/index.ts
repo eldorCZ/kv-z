@@ -6,6 +6,7 @@ export * from './Feedback';
 export * from './Field';
 export * from './Logo';
 export * from './Menu';
+export * from './Page';
 export * from './SchemeSwitcher';
 export * from './Switch';
 export * from './Tabs';

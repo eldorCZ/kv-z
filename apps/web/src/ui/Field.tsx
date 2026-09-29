@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 
 export const controlCls =
-  'w-full min-h-11 rounded-md border border-line-strong bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted focus:border-primary focus:outline-none focus-visible:outline-3 focus-visible:outline-focus disabled:opacity-60';
+  'w-full min-h-11 rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg shadow-[0_1px_2px_rgb(27_22_64/0.04)] placeholder:text-muted focus:border-primary focus:outline-none focus-visible:outline-3 focus-visible:outline-focus disabled:opacity-60';
 
 export function Field({ label, children, hint, error }: { label: string; children: ReactNode; hint?: string; error?: string }) {
   return (

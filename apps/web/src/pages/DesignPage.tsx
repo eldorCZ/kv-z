@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { AnswerMark, ANSWER_STYLES } from '../components/Shapes';
 import { Badge, Button } from '../components/ui';
+import { Card, CardContent, Input, PageHeader, Toolbar } from '../ui';
 import { Logo } from '../ui/Logo';
 import { SchemeSwitcher } from '../ui/SchemeSwitcher';
 import type { MascotPose } from '../ui/Mascot';
@@ -162,6 +163,25 @@ export default function DesignPage() {
           <Badge tone="flagged">ke kontrole</Badge>
           <Badge tone="approved">schváleno</Badge>
           <Badge tone="neutral">koncept</Badge>
+        </div>
+      </Section>
+
+      <Section title="Učitelská obrazovka">
+        <div className="space-y-5 rounded-lg bg-canvas p-5" data-mood="focus">
+          <PageHeader
+            eyebrow="Knihovna"
+            title="Moje kvízy"
+            description="Připravujte otázky, kontrolujte obsah a spouštějte aktivity pro svou třídu."
+            actions={<Button variant="primary">Nový kvíz</Button>}
+          />
+          <Toolbar meta="12 kvízů">
+            <Input className="max-w-sm border-transparent bg-surface-sunken shadow-none" placeholder="Hledat podle názvu…" />
+          </Toolbar>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Card variant="plain"><CardContent><p className="text-sm text-muted">Žáků</p><p className="mt-1 text-3xl font-bold tabular">28</p></CardContent></Card>
+            <Card variant="plain"><CardContent><p className="text-sm text-muted">Úspěšnost</p><p className="mt-1 text-3xl font-bold tabular">73 %</p></CardContent></Card>
+            <Card variant="plain"><CardContent><p className="text-sm text-muted">Odpovědí</p><p className="mt-1 text-3xl font-bold tabular">184</p></CardContent></Card>
+          </div>
         </div>
       </Section>
 

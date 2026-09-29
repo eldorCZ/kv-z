@@ -35,10 +35,18 @@
     "switchToLogin": "Už máte účet? Přihlaste se"
   },
   "quizzes": {
+    "eyebrow": "Knihovna",
     "title": "Moje kvízy",
+    "description": "Připravujte otázky, kontrolujte obsah a spouštějte aktivity pro svou třídu.",
     "create": "Nový kvíz",
     "uploadJson": "Nahrát JSON",
     "search": "Hledat podle názvu…",
+    "quizLabel": "Kvíz",
+    "ready": "Připraveno",
+    "open": "Otevřít",
+    "quizCount_one": "{{count}} kvíz",
+    "quizCount_few": "{{count}} kvízy",
+    "quizCount_other": "{{count}} kvízů",
     "empty": "Zatím tu není žádný kvíz.",
     "emptyHint": "Pošlete soubor svému agentovi na Telegramu, vytvořte kvíz ručně, nebo nahrajte JSON.",
     "questionCount_one": "{{count}} otázka",

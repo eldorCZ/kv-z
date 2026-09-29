@@ -68,7 +68,7 @@ export default function Layout() {
           aria-label={compact ? label : undefined}
           title={compact ? label : undefined}
           className={({ isActive }) =>
-            `flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-primary-soft text-on-primary-soft' : 'text-fg hover:bg-surface-2'} ${compact ? 'justify-center px-0' : ''}`
+            `relative flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-primary-soft text-on-primary-soft before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-pill before:bg-primary' : 'text-muted hover:bg-surface hover:text-fg'} ${compact ? 'justify-center px-0' : ''}`
           }
         >
           <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -89,7 +89,7 @@ export default function Layout() {
         onClick={doLogout}
         aria-label={compact ? t('nav.logout') : undefined}
         title={compact ? t('nav.logout') : undefined}
-        className={`flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-fg hover:bg-surface-2 ${compact ? 'justify-center px-0' : ''}`}
+        className={`flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold text-muted hover:bg-surface hover:text-fg ${compact ? 'justify-center px-0' : ''}`}
       >
         <LogOut className="h-5 w-5" aria-hidden="true" />
         {!compact && t('nav.logout')}
@@ -101,11 +101,11 @@ export default function Layout() {
     <div className="min-h-screen bg-canvas text-fg md:flex" data-mood="focus">
       {/* desktop side navigation */}
       <aside
-        className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col gap-4 border-r border-line bg-surface p-3 md:flex ${collapsed ? 'w-[4.5rem]' : 'w-60'}`}
+        className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col gap-5 border-r border-line bg-surface-sunken p-3 md:flex ${collapsed ? 'w-[4.5rem]' : 'w-64'}`}
         data-testid="side-nav"
       >
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
-          <NavLink to="/quizzes" aria-label={t('nav.home')} className="rounded-md p-1">
+          <NavLink to="/quizzes" aria-label={t('nav.home')} className={`rounded-md py-2 ${collapsed ? 'px-1' : 'px-2'}`}>
             {collapsed ? <Logo variant="mark" height={32} decorative /> : <Logo height={28} decorative />}
           </NavLink>
         </div>
@@ -116,7 +116,7 @@ export default function Layout() {
           onClick={toggle}
           aria-label={collapsed ? t('nav.expand') : t('nav.collapse')}
           title={collapsed ? t('nav.expand') : t('nav.collapse')}
-          className="flex min-h-11 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-fg"
+          className="flex min-h-11 items-center justify-center rounded-md text-muted hover:bg-surface hover:text-fg"
         >
           {collapsed ? <ChevronsRight className="h-5 w-5" aria-hidden="true" /> : <ChevronsLeft className="h-5 w-5" aria-hidden="true" />}
         </button>
@@ -155,7 +155,7 @@ export default function Layout() {
       </header>
 
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-6 md:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8 lg:px-10">
           <OfflineBanner />
           <Outlet />
         </div>

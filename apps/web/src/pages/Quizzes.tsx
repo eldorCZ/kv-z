@@ -3,10 +3,10 @@ import { useTitle } from '../ui/useTitle';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router';
 import { api, ApiError } from '../api';
-import { Copy, MoreHorizontal, Plus, Search, Trash2, Upload } from 'lucide-react';
+import { ArrowRight, Copy, FileUp, MoreHorizontal, Plus, Search, Trash2 } from 'lucide-react';
 import { ErrorBox, formatDate } from '../components/ui';
 import { QuizThumb } from '../components/QuizThumb';
-import { Badge, Button, EmptyState, IconButton, Input, Menu, SkeletonList } from '../ui';
+import { Badge, Button, EmptyState, IconButton, Input, Menu, PageHeader, SkeletonList, Toolbar } from '../ui';
 
 interface Item {
   id: string;
@@ -90,31 +90,39 @@ export default function Quizzes() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-3xl font-bold">{t('quizzes.title')}</h1>
-        <Button variant="primary" icon={<Plus className="h-4 w-4" aria-hidden="true" />} onClick={createEmpty}>
-          {t('quizzes.create')}
-        </Button>
-        <Button icon={<Upload className="h-4 w-4" aria-hidden="true" />} onClick={() => fileRef.current?.click()}>
-          {t('quizzes.uploadJson')}
-        </Button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            if (f) void upload(f);
-          }}
-        />
-      </div>
-      <div className="relative max-w-md">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
-        <Input className="pl-9" type="search" placeholder={t('quizzes.search')} aria-label={t('quizzes.search')} value={q} onChange={(e) => setQ(e.target.value)} />
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={t('quizzes.eyebrow')}
+        title={t('quizzes.title')}
+        description={t('quizzes.description')}
+        actions={
+          <>
+            <Button icon={<FileUp className="h-4 w-4" aria-hidden="true" />} onClick={() => fileRef.current?.click()}>
+              {t('quizzes.uploadJson')}
+            </Button>
+            <Button variant="primary" icon={<Plus className="h-4 w-4" aria-hidden="true" />} onClick={createEmpty}>
+              {t('quizzes.create')}
+            </Button>
+          </>
+        }
+      />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = '';
+          if (f) void upload(f);
+        }}
+      />
+      <Toolbar meta={items ? t('quizzes.quizCount', { count: items.length }) : undefined}>
+        <div className="relative w-full sm:max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden="true" />
+          <Input className="border-transparent bg-surface-sunken pl-9 shadow-none focus:bg-surface" type="search" placeholder={t('quizzes.search')} aria-label={t('quizzes.search')} value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
+      </Toolbar>
       <ErrorBox error={error} onClose={() => setError(null)} />
       {items === null && !error && <SkeletonList rows={3} />}
       {items && items.length === 0 && q.trim() !== '' && <EmptyState pose="think" title={t('quizzes.noMatch')} />}
@@ -130,21 +138,30 @@ export default function Quizzes() {
         />
       )}
       {items && items.length > 0 && (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="quiz-grid">
+        <ul className="grid gap-4 lg:grid-cols-2" data-testid="quiz-grid">
           {items.map((it) => (
-            <li key={it.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-soft transition-shadow hover:border-primary">
-              <QuizThumb seed={it.id} theme={it.theme} className="h-28 w-full" />
-              <div className="flex flex-1 flex-col gap-2 p-4">
-                <Link to={`/quizzes/${it.id}`} className="font-display text-lg font-bold leading-snug text-fg after:absolute after:inset-0 hover:text-primary">
+            <li key={it.id} className="group relative grid min-h-44 overflow-hidden rounded-lg border border-line bg-surface transition-[border-color,box-shadow,transform] duration-[var(--motion-base)] hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-soft sm:grid-cols-[11rem_1fr]">
+              <QuizThumb seed={it.id} theme={it.theme} className="h-28 w-full sm:h-full" />
+              <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
+                <div className="pr-10">
+                  <p className="mb-1 text-xs font-bold tracking-wide text-primary uppercase">{t('quizzes.quizLabel')}</p>
+                  <Link to={`/quizzes/${it.id}`} className="font-display text-xl font-bold leading-snug text-fg after:absolute after:inset-0 group-hover:text-primary">
                   {it.title}
-                </Link>
-                <div className="mt-auto flex flex-wrap items-center gap-2 text-xs text-muted">
-                  <span>{t('quizzes.questionCount', { count: it.questionCount })}</span>
-                  {it.flaggedCount > 0 && <Badge tone="flagged">{t('quizzes.toReview', { count: it.flaggedCount })}</Badge>}
+                  </Link>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
+                  <span className="font-semibold text-fg">{t('quizzes.questionCount', { count: it.questionCount })}</span>
+                  <span aria-hidden="true" className="text-line-strong">·</span>
                   <span>{t('quizzes.updated', { date: formatDate(it.updatedAt) })}</span>
                 </div>
+                <div className="mt-auto flex min-h-7 items-end justify-between gap-3">
+                  <div>{it.flaggedCount > 0 ? <Badge tone="flagged">{t('quizzes.toReview', { count: it.flaggedCount })}</Badge> : <Badge tone="ok">{t('quizzes.ready')}</Badge>}</div>
+                  <span className="inline-flex items-center gap-1 text-sm font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                    {t('quizzes.open')} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                </div>
               </div>
-              <div className="absolute right-2 top-2 z-10">
+              <div className="absolute right-3 top-3 z-10">
                 <Menu
                   trigger={
                     <IconButton label={t('quizzes.actions', { title: it.title })} variant="secondary" size="sm" className="min-h-9 min-w-9 bg-surface">
