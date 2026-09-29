@@ -55,7 +55,14 @@
     "newTitle": "Nový kvíz",
     "newQuestion": "Upravte tuto otázku",
     "actions": "Akce pro kvíz {{title}}",
-    "noMatch": "Hledání nic nenašlo."
+    "noMatch": "Hledání nic nenašlo.",
+    "sortLabel": "Řadit",
+    "sortNewest": "Naposledy upravené",
+    "sortOldest": "Nejstarší úpravy",
+    "sortTitle": "Podle názvu",
+    "viewLabel": "Zobrazení",
+    "viewGrid": "Dlaždice",
+    "viewList": "Seznam"
   },
   "review": {
     "back": "Zpět na kvízy",
