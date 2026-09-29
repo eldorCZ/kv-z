@@ -21,10 +21,13 @@ uprostřed vyučování. Sestavuj jen ve svém worktree.
 ## Než něco předáš dál
 
 ```
-pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm test:e2e
+pnpm check && pnpm build && pnpm check:budgets && pnpm test:e2e
 ```
 
-Všechno musí být zelené. `pnpm test:e2e` potřebuje `pnpm build` (server servíruje
+`pnpm check` = typecheck + lint + kontrast + unit testy. Všechno musí být zelené —
+**včetně `check:budgets`**, na který se snadno zapomene: hlídá velikost balíku pro
+žákovské telefony a CI na něm padá, i když všechny testy projdou. Stalo se to
+29. 9. 2026. CI pouští navíc ještě `pnpm check:lighthouse`. `pnpm test:e2e` potřebuje `pnpm build` (server servíruje
 `apps/web/dist`) a zabere ~4 minuty. Když e2e selže na obsazeném portu 3210,
 zůstal po předchozím běhu server — najdi ho přes `ss -ltnp | grep 3210` a ukonči.
 
