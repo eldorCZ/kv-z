@@ -226,8 +226,16 @@ export default function Play() {
   if (view === 'join' && roster && !guest)
     return shell(
       <div className="m-auto flex w-full justify-center">
-        {/* přezdívku žák zadal hned na první obrazovce – znovu se na ni neptáme */}
-        <RosterCodeStep pin={pin} allowGuests={roster.allowGuests} onTicket={(ticket) => joinWithTicket(ticket, nickname.trim() || undefined)} onGuest={() => setGuest(true)} dark />
+        {/* Na přezdívku se ptáme právě jednou. Kdo přišel přes formulář s PINem, zadal ji tam;
+            kdo naskenoval QR z lobby, tu obrazovku vůbec neviděl – tomu ji nabídneme tady. */}
+        <RosterCodeStep
+          pin={pin}
+          allowGuests={roster.allowGuests}
+          askNickname={!nickname.trim()}
+          onTicket={(ticket, _jmeno, zadana) => joinWithTicket(ticket, zadana ?? (nickname.trim() || undefined))}
+          onGuest={() => setGuest(true)}
+          dark
+        />
       </div>,
     );
 

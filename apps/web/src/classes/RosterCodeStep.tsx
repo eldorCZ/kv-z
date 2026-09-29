@@ -12,12 +12,18 @@ export default function RosterCodeStep({
   onTicket,
   onGuest,
   dark = false,
+  askNickname = false,
 }: {
   pin: string;
   allowGuests: boolean;
-  onTicket: (ticket: string, accountName: string) => Promise<void> | void;
+  onTicket: (ticket: string, accountName: string, nickname?: string) => Promise<void> | void;
   onGuest: () => void;
   dark?: boolean;
+  /**
+   * Zeptat se tu na přezdívku. Rodič ji zapne jen tehdy, když ji žák ještě nezadal —
+   * po skenu QR z lobby se totiž první obrazovka s PINem a přezdívkou přeskočí.
+   */
+  askNickname?: boolean;
 }) {
   const { t } = useTranslation();
   const saved = readDeviceCode();
@@ -27,6 +33,7 @@ export default function RosterCodeStep({
   const [busy, setBusy] = useState(false);
   const [noCode, setNoCode] = useState(false);
   const [hasSaved, setHasSaved] = useState(!!saved);
+  const [prezdivka, setPrezdivka] = useState('');
 
   const identify = async (e?: FormEvent) => {
     e?.preventDefault();
@@ -69,12 +76,25 @@ export default function RosterCodeStep({
     return (
       <div className={box} data-testid="roster-confirm">
         <p className="text-center text-2xl font-bold">{t('rosterLogin.isItYou', { name: who.accountName })}</p>
+        {askNickname && (
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium">{t('rosterLogin.nickname')}</span>
+            <input
+              className="w-full rounded-md border border-line-strong px-3 py-3 text-lg"
+              maxLength={20}
+              value={prezdivka}
+              onChange={(e) => setPrezdivka(e.target.value)}
+              data-testid="roster-nickname"
+            />
+            <span className="mt-1 block text-xs text-muted">{t('rosterLogin.nicknameHint')}</span>
+          </label>
+        )}
         <button
           className="w-full rounded-md bg-primary py-3 text-lg font-bold text-on-primary"
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            await onTicket(who.ticket, who.accountName);
+            await onTicket(who.ticket, who.accountName, prezdivka.trim() || undefined);
             setBusy(false);
           }}
           data-testid="roster-yes"
