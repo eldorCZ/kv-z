@@ -46,10 +46,12 @@ export default function Layout() {
     });
   };
 
-  const items = [
+  const mainItems = [
     { to: '/quizzes', label: t('nav.quizzes'), Icon: BookOpen },
     ...(classes ? [{ to: '/classes', label: t('nav.classes'), Icon: Users }] : []),
     { to: '/games', label: t('nav.games'), Icon: Trophy },
+  ];
+  const settingsItems = [
     { to: '/settings/look', label: t('nav.look'), Icon: Palette },
     { to: '/settings/tokens', label: t('nav.tokens'), Icon: KeyRound },
   ];
@@ -59,22 +61,30 @@ export default function Layout() {
     nav('/login');
   };
 
-  const links = (compact: boolean) => (
-    <nav className="flex flex-col gap-1" aria-label={t('nav.main')}>
-      {items.map(({ to, label, Icon }) => (
+  const linkGroup = (items: typeof mainItems, compact: boolean) => (
+      items.map(({ to, label, Icon }) => (
         <NavLink
           key={to}
           to={to}
           aria-label={compact ? label : undefined}
           title={compact ? label : undefined}
           className={({ isActive }) =>
-            `relative flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-semibold transition-colors ${isActive ? 'bg-primary-soft text-on-primary-soft before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-pill before:bg-primary' : 'text-muted hover:bg-surface hover:text-fg'} ${compact ? 'justify-center px-0' : ''}`
+            `relative flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-bold transition-all ${isActive ? 'bg-primary-soft text-on-primary-soft shadow-[0_8px_24px_rgb(91_61_245/0.08)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-pill before:bg-primary' : 'text-muted hover:bg-surface hover:text-fg'} ${compact ? 'justify-center px-0' : ''}`
           }
         >
           <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
           {!compact && <span>{label}</span>}
         </NavLink>
-      ))}
+      ))
+  );
+
+  const links = (compact: boolean) => (
+    <nav className="flex flex-col gap-5" aria-label={t('nav.main')}>
+      <div className="flex flex-col gap-1">{linkGroup(mainItems, compact)}</div>
+      <div className="flex flex-col gap-1">
+        {!compact && <p className="px-3 pb-1 text-[0.65rem] font-extrabold tracking-[0.14em] text-muted/70 uppercase">{t('nav.settings')}</p>}
+        {linkGroup(settingsItems, compact)}
+      </div>
     </nav>
   );
 
@@ -101,16 +111,34 @@ export default function Layout() {
     <div className="min-h-screen bg-canvas text-fg md:flex" data-mood="focus">
       {/* desktop side navigation */}
       <aside
-        className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col gap-5 border-r border-line bg-surface-sunken p-3 md:flex ${collapsed ? 'w-[4.5rem]' : 'w-64'}`}
+        className={`no-print sticky top-0 hidden h-screen shrink-0 flex-col gap-6 border-r border-line bg-surface p-4 md:flex ${collapsed ? 'w-[5rem]' : 'w-64'}`}
         data-testid="side-nav"
       >
         <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'}`}>
           <NavLink to="/quizzes" aria-label={t('nav.home')} className={`rounded-md py-2 ${collapsed ? 'px-1' : 'px-2'}`}>
-            {collapsed ? <Logo variant="mark" height={32} decorative /> : <Logo height={28} decorative />}
+            {collapsed ? <Logo variant="mark" height={36} decorative /> : <Logo height={34} decorative />}
           </NavLink>
         </div>
         <div className="flex-1">{links(collapsed)}</div>
-        {account(collapsed)}
+        {!collapsed && (
+          <div className="overflow-hidden rounded-lg border border-primary/15 bg-primary-soft p-4">
+            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-primary text-on-primary shadow-soft">
+              <BookOpen className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <p className="font-display text-base font-bold leading-tight text-on-primary-soft">{t('nav.tipTitle')}</p>
+            <p className="mt-1 text-xs leading-5 text-muted">{t('nav.tipText')}</p>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={doLogout}
+          aria-label={collapsed ? t('nav.logout') : undefined}
+          title={collapsed ? t('nav.logout') : undefined}
+          className={`flex min-h-11 items-center gap-3 border-t border-line pt-3 text-sm font-semibold text-muted hover:text-fg ${collapsed ? 'justify-center' : 'px-3'}`}
+        >
+          <LogOut className="h-5 w-5" aria-hidden="true" />
+          {!collapsed && t('nav.logout')}
+        </button>
         <button
           type="button"
           onClick={toggle}
@@ -155,7 +183,20 @@ export default function Layout() {
       </header>
 
       <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-6 md:px-8 md:py-8 lg:px-10">
+        <header className="no-print sticky top-0 z-10 hidden h-[4.5rem] items-center justify-end border-b border-line-subtle bg-canvas/90 px-8 backdrop-blur md:flex">
+          <div className="flex items-center gap-3">
+            <SchemeSwitcher />
+            <div className="h-8 w-px bg-line" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-pill bg-primary-soft text-sm font-extrabold text-on-primary-soft">
+              {(teacher?.email?.[0] ?? 'U').toUpperCase()}
+            </div>
+            <div className="max-w-48">
+              <p className="truncate text-sm font-bold text-fg">{teacher?.email}</p>
+              <p className="text-xs text-muted">{t('nav.teacher')}</p>
+            </div>
+          </div>
+        </header>
+        <div className="mx-auto max-w-[90rem] px-4 py-6 md:px-8 md:py-8 lg:px-10">
           <OfflineBanner />
           <Outlet />
         </div>
