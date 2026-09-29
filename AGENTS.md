@@ -14,11 +14,17 @@ pwd   # musí být TVŮJ worktree, ne ~/kviz a ne ~/kviz-demo
 V `~/kviz` a `~/kviz-demo` teď commit odmítne `pre-commit` hook — narazíš na něj,
 až budeš chtít uložit práci, tedy pozdě. Zkontroluj `pwd` na začátku, ne na konci.
 
-Proč to tak je: 29. 9. 2026 odvedl Codex půl hodiny práce na vzhledu v `~/kviz-demo`
-a commitnul ji do `main`. Demo se přepisuje přes `git reset --hard` a noční cron ho
-srovnává podle serveru — ta práce se málem ztratila. Zachránit ji šlo jen tím, že
-z ní někdo udělal větev. Navíc vznikl konflikt s prací, kterou mezitím dělal Claude
-ve stejném souboru, protože ani jeden o druhém nevěděl.
+Proč to tak je: `~/kviz-demo` se přepíná na libovolnou větev přes `git reset --hard`
+a noční cron ho srovnává podle serveru. Cokoli, co tam vznikne a není pushnuté,
+zmizí bez varování. Totéž platí o `~/kviz`, odkud běží ostrá verze.
+
+**A pravidlo pro druhou stranu: nesahej cizímu agentovi do worktree.** Zvlášť ne
+`git reset --hard` — smazal bys mu rozdělanou práci, o které nevíš. Když potřebuješ
+vědět, na čem je, podívej se na jeho větev na serveru (`git fetch && git log origin/<vetev>`).
+Claude to 29. 9. 2026 udělal Codexovi a pak si ještě špatně vyložil stav dema:
+z toho, že tam byly nepushnuté commity, usoudil, že se v demu vyvíjí, ačkoli tam
+byly jen stažené z větve. Než někoho obviníš z porušení pravidel, ověř si to —
+`git ls-remote --heads origin` ukáže, kde ta práce doopravdy je.
 
 ## Adresáře — tohle je nejdůležitější
 
