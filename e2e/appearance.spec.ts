@@ -55,6 +55,28 @@ test('reduced motion and readable font (V5.2)', async ({ page }) => {
   expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain('Atkinson');
 });
 
+test('the appearance panel stays inside the window, also from the bottom-left sidebar button', async ({ page }) => {
+  // in the teacher layout the button sits at the bottom left; a panel anchored below it
+  // used to open under the bottom edge of the window and off to the left
+  await page.setViewportSize({ width: 1100, height: 620 });
+  await registerAndToken(page);
+  await page.getByTestId('scheme-switcher').click();
+  const panel = page.getByTestId('appearance-popover');
+  await expect(panel).toBeVisible();
+  const uvnitr = async () => {
+    const b = (await panel.boundingBox())!;
+    const v = page.viewportSize()!;
+    return { ok: b.x >= 0 && b.y >= 0 && b.x + b.width <= v.width && b.y + b.height <= v.height, b, v };
+  };
+  const siroke = await uvnitr();
+  expect(siroke, JSON.stringify(siroke)).toMatchObject({ ok: true });
+  // and on a phone, where the panel is as wide as the screen
+  await page.setViewportSize({ width: 360, height: 740 });
+  const uzke = await uvnitr();
+  expect(uzke, JSON.stringify(uzke)).toMatchObject({ ok: true });
+  await expect(panel).toBeVisible();
+});
+
 test("a teacher's appearance follows them to another device (V5.3)", async ({ page, browser }) => {
   await page.emulateMedia({ colorScheme: 'light' });
   await registerAndToken(page);
