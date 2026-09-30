@@ -55,7 +55,22 @@
     "newTitle": "Nový kvíz",
     "newQuestion": "Upravte tuto otázku",
     "actions": "Akce pro kvíz {{title}}",
-    "noMatch": "Hledání nic nenašlo."
+    "noMatch": "Hledání nic nenašlo.",
+    "sortLabel": "Řadit",
+    "sortNewest": "Naposledy upravené",
+    "sortOldest": "Nejstarší úpravy",
+    "sortTitle": "Podle názvu",
+    "filterLabel": "Zobrazit",
+    "filterAll": "Všechny kvízy",
+    "filterFlagged": "Jen ke kontrole",
+    "viewLabel": "Zobrazení",
+    "viewGrid": "Dlaždice",
+    "viewList": "Seznam",
+    "statQuizzes": "Kvízů",
+    "statQuestions": "Otázek celkem",
+    "statFlagged": "Ke kontrole",
+    "statFlaggedHint": "Otázky čekají na tvé schválení.",
+    "deleteTitle": "Smazat kvíz?"
   },
   "review": {
     "back": "Zpět na kvízy",

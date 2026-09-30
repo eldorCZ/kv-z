@@ -6,7 +6,8 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-on-primary hover:bg-primary-hover shadow-pop',
-  secondary: 'border border-line-strong bg-surface text-fg hover:bg-surface-2',
+  // Dodatek 5/1: tenčí obrys (--line místo --line-strong), ať tlačítko nekřičí vedle primárního
+  secondary: 'border border-line bg-surface text-fg hover:bg-surface-2',
   ghost: 'text-fg hover:bg-surface-2',
   danger: 'bg-danger text-on-danger hover:brightness-95',
   success: 'bg-success-strong text-on-success hover:brightness-95',
