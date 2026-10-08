@@ -22,3 +22,6 @@ apps/web/public/favicon.svg
 # provozní logy a zálohy databáze před nasazením
 *.log
 /zalohy/
+
+# mapa projektu pro agenty (graphify) – generovaná, nepatří do repozitáře
+graphify-out/
