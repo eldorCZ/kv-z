@@ -97,6 +97,22 @@ curl -s -o /dev/null -w "%{http_code}\n" "https://lore.zdenekstasta.cz/$A"   # m
   pro žákovské telefony. Učitelské obrazovky používají plný `@kvizhub/core`.
 - Texty jsou česky v `apps/web/src/locales/cs.json`, v kódu jen klíče.
 
+## Mapa projektu (graphify) — ušetří hledání
+
+Místo grepování napříč 263 soubory se dá zeptat mapy, kdo co volá:
+
+```
+graphify extract . --code-only     # jednou, a po větší změně znovu (je to rychlé, kešuje)
+graphify explain "joinStudent"     # kdo tuhle funkci volá a co volá ona
+graphify path "Play" "GameEngine"  # nejkratší cesta mezi dvěma místy
+```
+
+**Vždycky s `--code-only`.** Bez toho pošle dokumentaci, PDF a obrázky modelu ven;
+s ním běží celý rozbor lokálně přes tree-sitter a nic neodchází ze serveru.
+
+`graphify-out/` je v `.gitignore` — každý agent si mapu vyrobí sám, do repozitáře
+nepatří (3,6 MB, zastarala by).
+
 ## Jak psát
 
 - Komentáře a commit messages česky, kód anglicky (názvy proměnných v obou —
