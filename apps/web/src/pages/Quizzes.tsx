@@ -15,6 +15,7 @@ interface Item {
   flaggedCount: number;
   updatedAt: number;
   theme?: { motive?: string; accent?: string; imageId?: string } | null;
+  questionImageId?: string | null;
 }
 
 export default function Quizzes() {
@@ -133,7 +134,7 @@ export default function Quizzes() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="quiz-grid">
           {items.map((it) => (
             <li key={it.id} className="group relative flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-soft transition-shadow hover:border-primary">
-              <QuizThumb seed={it.id} theme={it.theme} className="h-28 w-full" />
+              <QuizThumb theme={it.theme} questionImageId={it.questionImageId} className="h-28 w-full" />
               <div className="flex flex-1 flex-col gap-2 p-4">
                 <Link to={`/quizzes/${it.id}`} className="font-display text-lg font-bold leading-snug text-fg after:absolute after:inset-0 hover:text-primary">
                   {it.title}

@@ -4,15 +4,28 @@ import { Logo } from '../ui/Logo';
 import { motiveThumb } from './ThemePicker';
 
 /**
- * Thumbnail of a quiz on its card (V7.2): the quiz's motive, drawn by the same function as the background.
- * Quizzes with the default look get a calm gradient derived from the id, so cards stay easy to tell apart.
+ * Thumbnail of a quiz on its card (V7.2). Pořadí: vlastní obrázek kvízu → obrázek
+ * z jeho první obrázkové otázky → motiv → značka.
+ *
+ * `questionImageId` přibyl proto, že náhodný barevný přechod podle id vypadal sice
+ * pestře, ale o kvízu neříkal nic — seznam pak působí jako šablona. Obrázek z vlastní
+ * otázky je zadarmo a učitel pozná kvíz na první pohled.
  */
-export function QuizThumb({ seed, theme, className = '' }: { seed: string; theme?: { motive?: string; accent?: string; imageId?: string } | null; className?: string }) {
+export function QuizThumb({
+  theme,
+  questionImageId,
+  className = '',
+}: {
+  theme?: { motive?: string; accent?: string; imageId?: string } | null;
+  questionImageId?: string | null;
+  className?: string;
+}) {
   const { theme: scheme } = usePrefs();
-  if (theme?.imageId)
+  const obrazek = theme?.imageId ?? (theme?.motive ? undefined : (questionImageId ?? undefined));
+  if (obrazek)
     return (
       <div className={`relative overflow-hidden ${className}`} aria-hidden="true" data-image="true">
-        <img src={`/media/theme/${theme.imageId}/640.webp`} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <img src={`/media/theme/${obrazek}/640.webp`} alt="" loading="lazy" className="h-full w-full object-cover" />
       </div>
     );
   const motive = getMotive(theme?.motive);
@@ -24,16 +37,11 @@ export function QuizThumb({ seed, theme, className = '' }: { seed: string; theme
         {accent && <span className="absolute right-2 bottom-2 h-4 w-4 rounded-pill border-2 border-surface" style={{ background: accent.tokens[scheme].primary }} />}
       </div>
     );
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const hue = h % 360;
+  // Poslední možnost: klidná plocha se značkou. Dřív tu byl odstín spočítaný z id —
+  // vedle sebe to dávalo duhu, ve které barva nic neznamenala.
   return (
-    <div
-      className={`relative flex items-center justify-center overflow-hidden ${className}`}
-      aria-hidden="true"
-      style={{ background: `linear-gradient(135deg, hsl(${hue} 70% 62%), hsl(${(hue + 50) % 360} 75% 52%))` }}
-    >
-      <Logo variant="mark" tone="mono" height={48} decorative className="text-[#ffffff]" />
+    <div className={`relative flex items-center justify-center overflow-hidden bg-panel ${className}`} aria-hidden="true" data-fallback="brand">
+      <Logo variant="mark" height={44} decorative className="opacity-40" />
     </div>
   );
 }

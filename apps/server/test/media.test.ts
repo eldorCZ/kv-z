@@ -119,6 +119,30 @@ describe('custom background images (Dodatek 4, V8)', () => {
     expect((await t.http.get('/media/theme/../../etc/passwd')).status).toBe(404);
   });
 
+  it('seznam kvízů nabídne jako náhled obrázek první otázky, která ho má', async () => {
+    const img = (await upload(await png())).body.id as string;
+    const kviz = {
+      schemaVersion: 1,
+      title: 'Náhled z otázky',
+      questions: [
+        { type: 'single', prompt: 'Bez obrázku?', options: ['první', 'druhá', 'třetí'], correctIndices: [0] },
+        { type: 'single', prompt: 'S obrázkem?', options: ['první', 'druhá', 'třetí'], correctIndices: [0], imageId: img },
+      ],
+    };
+    const vytvoreni = await t.http.post('/api/v1/quizzes').set(ui(sess)).send(kviz);
+    expect(vytvoreni.status, JSON.stringify(vytvoreni.body)).toBe(201);
+    const q = vytvoreni.body;
+    const list = (await t.http.get('/api/v1/quizzes').set(ui(sess))).body.quizzes;
+    const polozka = list.find((x: { id: string }) => x.id === q.quizId);
+    // bere se první otázka, která obrázek má – ne první otázka v pořadí
+    expect(polozka.questionImageId).toBe(img);
+
+    // kvíz bez jediného obrázku ho nemá čím naplnit
+    const bez = (await t.http.post('/api/v1/quizzes').set(ui(sess)).send({ ...kviz, title: 'Bez obrázků', questions: [kviz.questions[0]] })).body;
+    const list2 = (await t.http.get('/api/v1/quizzes').set(ui(sess))).body.quizzes;
+    expect(list2.find((x: { id: string }) => x.id === bez.quizId).questionImageId).toBeNull();
+  });
+
   it('image-label: labels go out without coordinates, the reveal adds where they belong', async () => {
     const img = (await upload(await png())).body.id as string;
     const pins = [

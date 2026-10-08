@@ -91,6 +91,8 @@ export interface QuizListItem {
   id: string;
   title: string;
   theme: QuizTheme | null;
+  /** obrázek první otázky, která ho má – náhled karty, když kvíz nemá vlastní vzhled */
+  questionImageId: string | null;
   questionCount: number;
   flaggedCount: number;
   createdAt: number;
@@ -166,6 +168,9 @@ export class QuizRepo {
         // the outer column must be qualified: an unqualified "id" would resolve to q.id inside the subquery
         questionCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id")`,
         flaggedCount: sql<number>`(select count(*) from questions q where q.quiz_id = "quizzes"."id" and q.qa_status = 'flagged')`,
+        // náhled karty: první otázka s obrázkem. Bez něj by karta měla jen náhodný přechod,
+        // který o kvízu nic neříká – a právě to dělá seznam neosobním.
+        questionImageId: sql<string | null>`(select q.image_id from questions q where q.quiz_id = "quizzes"."id" and q.image_id is not null order by q.position limit 1)`,
       })
       .from(quizzes)
       .where(where)
